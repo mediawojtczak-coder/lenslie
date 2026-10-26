@@ -1,22 +1,32 @@
+const proporcje = ["r-tall", "r-wide", "r-sq", "r-wide", "r-tall", "r-sq", "r-tall", "r-wide", "r-sq"];
+const tony = ["", "b", "c", "d", "e"];
+
 export default async function Galeria({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const zdjecia = Array.from({ length: 12 }, (_, i) => i + 1);
+  const demo = id === "demo";
 
   return (
     <>
-      <h1>Galeria: {id}</h1>
-      <p className="muted">
-        Widok klienta. Później będzie tu pytanie o hasło i prawdziwe zdjęcia z R2.
-      </p>
-      <div className="grid">
-        {zdjecia.map((n) => (
-          <div key={n} className="ph">Zdjęcie {n}</div>
+      <section className="cover">
+        <h1>{demo ? "Anna & Marek" : id}</h1>
+        <p className="meta">{demo ? "Ślub, 14 września 2026" : "Galeria"}</p>
+        <button className="btn btn-ghost" type="button" disabled>
+          Pobierz wszystkie zdjęcia
+        </button>
+      </section>
+
+      <section className="masonry" aria-label="Zdjęcia">
+        {Array.from({ length: 18 }, (_, i) => (
+          <div
+            key={i}
+            className={`tile ${proporcje[i % proporcje.length]} ${tony[(i * 3) % tony.length]}`}
+          />
         ))}
-      </div>
+      </section>
     </>
   );
 }
