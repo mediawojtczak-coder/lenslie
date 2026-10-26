@@ -1,4 +1,4 @@
-# Galerie
+# Lenslie
 
 Platforma do udostępniania zdjęć klientom fotografa.
 
@@ -21,4 +21,5 @@ Lista potrzebnych zmiennych jest w pliku `.env.example`.
 1. Wgrywanie zdjęć do R2 i miniatury
 2. Galeria z hasłem dla klienta
 3. Konta fotografów i panel
-4. Płatności i rezerwacje
+4. Wersja angielska (PL/EN)
+5. Płatności i rezerwacje
