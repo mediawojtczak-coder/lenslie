@@ -20,7 +20,6 @@ export default function Home() {
         <div className="tile t2" />
         <div className="tile t3 c" />
         <div className="tile t4 d" />
-        <div className="tile t5 e" />
       </section>
 
       <section className="features">

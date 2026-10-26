@@ -155,7 +155,6 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .hero { padding: 48px 0 48px; }
   .mosaic { grid-template-columns: 1fr 1fr; grid-template-rows: 220px 160px 160px; }
   .mosaic .t3 { grid-row: auto; }
-  .mosaic .t5 { display: none; }
   .features { grid-template-columns: 1fr; gap: 32px; margin-top: 64px; }
 }
 
