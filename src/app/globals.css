@@ -481,3 +481,32 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .tool-search { max-width: none; flex-basis: 100%; }
   .photo-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 }
+
+/* Okno „Udostępnij klientowi” */
+.share-modal { width: min(620px, calc(100vw - 32px)); }
+.share-modal .modal-body h2 { margin-bottom: 20px; }
+.share-tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--hair); margin-bottom: 20px; }
+.share-tab {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 8px 12px; background: none; border: 0; border-bottom: 2px solid transparent;
+  font: inherit; font-size: .88rem; color: var(--taupe); cursor: pointer; margin-bottom: -1px;
+}
+.share-tab:hover { color: var(--ink); }
+.share-tab.active { color: var(--ink); border-bottom-color: var(--brass); background: #fffaf7; }
+.share-card { background: #fff; border: 1px solid var(--hair); border-radius: 8px; padding: 22px 24px; margin-bottom: 16px; }
+.share-card h3 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.45rem; margin: 0 0 16px; }
+.share-card .pass-row input { font-size: 1.05rem; }
+.save-pass { margin: -14px 0 20px; }
+.share-sub { margin: 0 0 4px; font-size: .85rem; color: var(--taupe); }
+.share-url { display: inline-block; margin-bottom: 22px; color: var(--brass); word-break: break-all; font-size: .92rem; }
+.hint-inline { margin: 10px 0 0; font-size: .8rem; color: var(--taupe); }
+.share-card textarea {
+  width: 100%; font: inherit; font-size: .92rem; color: var(--ink); resize: vertical;
+  border: 1px solid var(--hair); border-radius: 8px; padding: 12px 14px; margin: 6px 0 20px; background: var(--paper);
+}
+.share-card textarea:focus { outline: none; border-color: var(--blush-deep); }
+.email-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.email-actions .as-link { color: var(--brass); }
+.qr-card { text-align: center; }
+.qr-img { display: block; width: 220px; height: 220px; margin: 16px auto 20px; border-radius: 6px; }
+.qr-empty { background: var(--tile-1); }

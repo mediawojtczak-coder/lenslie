@@ -73,6 +73,7 @@ export default async function ZarzadzanieGalerii({
       <main className="app-main">
         <ShareBar
           id={id}
+          title={gallery.title}
           protectedByPassword={Boolean(meta?.passwordHash)}
           password={meta?.password ?? null}
           photoCount={photos.length}
