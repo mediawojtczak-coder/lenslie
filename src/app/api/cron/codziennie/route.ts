@@ -5,7 +5,8 @@ import { listKeys } from "@/lib/photos";
 import { getMeta, saveMeta, DRAFT_REMIND_DAYS, DRAFT_DELETE_DAYS, draftDeleteDate, type GalleryMeta } from "@/lib/galleries";
 import { adminClient } from "@/lib/supabase/admin";
 import { getOwnerEmail } from "@/lib/profiles";
-import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
+import { sendEmail, emailLayout, siteUrl, notifyAdmins } from "@/lib/email";
+import { getReminders, lastReminderMail, markReminderMail } from "@/lib/reminders";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -174,6 +175,21 @@ export async function GET(req: Request) {
       meta.notices = notices;
       await saveMeta(id, meta);
     }
+  }
+
+  // Przypomnienia dla właściciela – raz w tygodniu
+  const last = await lastReminderMail();
+  if (!last || Date.now() - new Date(last).getTime() > 7 * DAY - 3600 * 1000) {
+    const rem = await getReminders();
+    if (rem.length && !dry) {
+      await notifyAdmins(
+        `Lenslie: ${rem.length} ${rem.length === 1 ? "sprawa" : "sprawy"} do zrobienia`,
+        "Przypomnienia",
+        rem.map((r) => `[${r.level.toUpperCase()}] ${r.title}. ${r.text}`),
+      );
+      await markReminderMail();
+    }
+    log.push(`przypomnienia: ${rem.length}`);
   }
 
   return NextResponse.json({ ok: true, dry, actions: log });

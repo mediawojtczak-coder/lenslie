@@ -4,6 +4,7 @@ import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
 import { getPlan, formatBytes } from "@/lib/plans";
 import ConfirmButton from "./ConfirmButton";
 import { listOrders } from "@/lib/p24";
+import { getReminders } from "@/lib/reminders";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     listObjects("galleries/").catch(() => []),
   ]);
 
+  const reminders = await getReminders().catch(() => []);
   const orders = (await listOrders().catch(() => [])).filter((o) => o.status === "paid" || Date.now() - new Date(o.createdAt).getTime() < 24 * 3600 * 1000);
   const users = usersRes.data?.users ?? [];
   const galleries = (galleriesRes.data ?? []) as G[];
@@ -96,6 +98,24 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </div>
         ))}
       </div>
+
+      {reminders.length > 0 && (
+        <section className="settings-card reminders">
+          <h2>Do zrobienia</h2>
+          <ul>
+            {reminders.map((r) => (
+              <li key={r.id} className={`rem rem-${r.level}`}>
+                <span className="rem-tag">{r.level}</span>
+                <div>
+                  <strong>{r.title}</strong>
+                  <p>{r.text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="hint-inline">Te same przypomnienia przychodzą raz w tygodniu mailem.</p>
+        </section>
+      )}
 
       <section className="settings-card" id="platnosci">
         <h2>Płatności</h2>
