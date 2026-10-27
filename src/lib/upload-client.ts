@@ -1,11 +1,12 @@
 // Wgrywanie zdjęć z przeglądarki prosto do R2 (używane w panelu galerii)
+import { drawWatermark, canvasToJpeg } from "@/lib/watermark-client";
 
-type Upload = { name: string; type: string; originalUrl: string; webUrl: string };
+type Upload = { name: string; type: string; originalUrl: string; webUrl: string; wmUrl?: string };
 
 const WEB_MAX = 2048; // dłuższy bok wersji do oglądania
 
-// Tworzy lżejszą wersję zdjęcia do galerii (JPEG, max 2048 px)
-async function makeWebVersion(file: File): Promise<Blob> {
+// Tworzy lżejszą wersję zdjęcia do galerii (JPEG, max 2048 px), a gdy trzeba – także wersję ze znakiem wodnym
+async function makeWebVersion(file: File, watermark?: string): Promise<{ web: Blob; wm?: Blob }> {
   const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
   const scale = Math.min(1, WEB_MAX / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
@@ -17,9 +18,10 @@ async function makeWebVersion(file: File): Promise<Blob> {
   if (!ctx) throw new Error("Przeglądarka nie obsługuje przetwarzania zdjęć.");
   ctx.drawImage(bitmap, 0, 0, w, h);
   bitmap.close();
-  return new Promise((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Nie udało się przetworzyć zdjęcia."))), "image/jpeg", 0.85),
-  );
+  const web = await canvasToJpeg(canvas);
+  if (!watermark) return { web };
+  drawWatermark(ctx, w, h, watermark);
+  return { web, wm: await canvasToJpeg(canvas) };
 }
 
 async function put(url: string, body: Blob, type: string) {
@@ -43,15 +45,17 @@ export async function uploadPhotos(gallery: string, files: File[], onProgress: (
       throw err;
     }
     const uploads: Upload[] = data.uploads;
+    const watermark: string | undefined = data.watermark || undefined;
 
     // Po 3 zdjęcia naraz
     let next = 0;
     const worker = async () => {
       while (next < batch.length) {
         const i = next++;
-        const web = await makeWebVersion(batch[i]);
+        const { web, wm } = await makeWebVersion(batch[i], uploads[i].wmUrl ? watermark : undefined);
         await put(uploads[i].originalUrl, batch[i], uploads[i].type);
         await put(uploads[i].webUrl, web, "image/jpeg");
+        if (wm && uploads[i].wmUrl) await put(uploads[i].wmUrl, wm, "image/jpeg");
         done += 1;
         onProgress(done);
       }

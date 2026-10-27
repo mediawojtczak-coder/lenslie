@@ -12,6 +12,8 @@ export type Photo = {
   webFileName: string;
   size: number;
   uploadedAt: string;
+  // false, gdy znak wodny jest włączony, ale wersja ze znakiem jeszcze nie powstała
+  watermarked?: boolean;
 };
 
 type Obj = { key: string; size: number; modified: string };
@@ -38,14 +40,17 @@ export async function listKeys(prefix: string) {
 }
 
 // Zwraca zdjęcia galerii z tymczasowymi linkami (ważnymi 2 godziny).
-export async function getGalleryPhotos(id: string): Promise<Photo[]> {
+// Ze znakiem wodnym podgląd i wersja do internetu pochodzą z galleries/<id>/wm/.
+export async function getGalleryPhotos(id: string, opts: { watermark?: boolean } = {}): Promise<Photo[]> {
   if (!process.env.R2_ENDPOINT) return [];
   const prefix = galleryPrefix(id);
 
-  const [webObjs, originalObjs] = await Promise.all([
+  const [webObjs, originalObjs, wmObjs] = await Promise.all([
     listObjects(`${prefix}web/`),
     listObjects(`${prefix}original/`),
+    opts.watermark ? listObjects(`${prefix}wm/`) : Promise.resolve([] as Obj[]),
   ]);
+  const wmKeys = new Set(wmObjs.map((o) => o.key));
   const webKeys = webObjs.map((o) => o.key);
 
   const originals = new Map<string, Obj>();
@@ -57,8 +62,11 @@ export async function getGalleryPhotos(id: string): Promise<Photo[]> {
   webKeys.sort((a, b) => a.localeCompare(b, "pl", { numeric: true }));
 
   return Promise.all(
-    webKeys.map(async (key) => {
-      const file = key.slice(`${prefix}web/`.length);
+    webKeys.map(async (plainKey) => {
+      const file = plainKey.slice(`${prefix}web/`.length);
+      const wmKey = `${prefix}wm/${file}`;
+      const hasWm = wmKeys.has(wmKey);
+      const key = hasWm ? wmKey : plainKey;
       const name = baseName(file);
       const original = originals.get(name);
       const originalKey = original?.key ?? key;
@@ -96,6 +104,7 @@ export async function getGalleryPhotos(id: string): Promise<Photo[]> {
         webFileName,
         size: original?.size ?? 0,
         uploadedAt: original?.modified ?? "",
+        watermarked: opts.watermark ? hasWm : undefined,
       };
     }),
   );

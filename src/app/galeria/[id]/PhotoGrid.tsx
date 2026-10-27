@@ -9,9 +9,12 @@ export type GridItem = {
   name: string;
   fileName: string;
   webUrl: string;
-  downloadUrl: string;
-  webDownloadUrl: string;
+  // Brak linku = to pobieranie jest wyłączone przez fotografa
+  downloadUrl?: string;
+  webDownloadUrl?: string;
   webFileName: string;
+  // Znak wodny jeszcze się nakłada – pokazujemy nakładkę z napisem
+  wmPending?: boolean;
 };
 
 export type Group = { id: string; name: string | null; photos: GridItem[] };
@@ -22,11 +25,15 @@ export default function PhotoGrid({
   layout,
   zipBase,
   musicUrl,
+  downloads = "all",
+  watermark,
 }: {
   groups: Group[];
   layout: "mozaika" | "siatka";
   zipBase: string;
   musicUrl?: string | null;
+  downloads?: "all" | "web" | "none";
+  watermark?: string | null;
 }) {
   const all = useMemo(() => groups.flatMap((g) => g.photos), [groups]);
   const [open, setOpen] = useState<number | null>(null);
@@ -69,17 +76,20 @@ export default function PhotoGrid({
             {named.length > 0 && (
               <div className="section-head">
                 <h2>{g.name ?? "Pozostałe zdjęcia"}</h2>
-                <DownloadAll
-                  small
-                  label="Pobierz sekcję"
-                  zipName={`${zipBase}-${slug(g.name ?? "pozostale")}.zip`}
-                  items={g.photos.map((p) => ({
-                    url: p.downloadUrl,
-                    fileName: p.fileName,
-                    webUrl: p.webDownloadUrl,
-                    webFileName: p.webFileName,
-                  }))}
-                />
+                {downloads !== "none" && (
+                  <DownloadAll
+                    small
+                    label="Pobierz sekcję"
+                    allowFull={downloads === "all"}
+                    zipName={`${zipBase}-${slug(g.name ?? "pozostale")}.zip`}
+                    items={g.photos.map((p) => ({
+                      url: p.downloadUrl ?? "",
+                      fileName: p.fileName,
+                      webUrl: p.webDownloadUrl ?? "",
+                      webFileName: p.webFileName,
+                    }))}
+                  />
+                )}
               </div>
             )}
             <div className={layout === "siatka" ? "client-grid even" : "client-grid"}>
@@ -87,10 +97,27 @@ export default function PhotoGrid({
                 <figure key={p.name} className="photo">
                   <button type="button" className="photo-open" onClick={() => openAt(p)} aria-label={`Otwórz zdjęcie ${p.fileName}`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.webUrl} alt={p.name} loading="lazy" />
+                    <img
+                      src={p.webUrl}
+                      alt={p.name}
+                      loading="lazy"
+                      draggable={downloads !== "none"}
+                      onContextMenu={downloads === "none" ? (e) => e.preventDefault() : undefined}
+                    />
                   </button>
+                  {p.wmPending && watermark && (
+                    <span className="wm-overlay" aria-hidden="true">
+                      {Array.from({ length: 24 }, () => watermark).join("   ·   ")}
+                    </span>
+                  )}
                   <div className="photo-actions">
-                    <DownloadMenu fullUrl={p.downloadUrl} webUrl={p.webDownloadUrl} fileName={p.fileName} />
+                    {downloads !== "none" && p.webDownloadUrl && (
+                      <DownloadMenu
+                        fullUrl={downloads === "all" ? p.downloadUrl : undefined}
+                        webUrl={p.webDownloadUrl}
+                        fileName={p.fileName}
+                      />
+                    )}
                     <button type="button" className="pa-btn" onClick={() => openAt(p)} aria-label={`Powiększ ${p.fileName}`}>
                       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
                         <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
@@ -121,6 +148,7 @@ export default function PhotoGrid({
           }}
           autoplay={autoplay}
           musicUrl={musicUrl}
+          allowDownload={downloads !== "none"}
         />
       )}
     </>

@@ -1107,3 +1107,31 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 }
 .select-actions > *, .select-actions .tool-select select, .section-head .btn { margin: 0; }
 .select-bar .btn-small { padding: 7px 16px; }
+
+/* ===== Ochrona zdjęć i link dla gości ===== */
+.field-title { margin: 6px 0 10px; font-size: .85rem; color: var(--taupe); letter-spacing: .02em; }
+.option-list { display: grid; gap: 8px; margin-bottom: 24px; }
+.option {
+  display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 1px solid var(--hair);
+  border-radius: 10px; cursor: pointer; color: var(--ink);
+}
+.option input { width: auto; margin: 3px 0 0; accent-color: var(--brass); }
+.option span { display: flex; flex-direction: column; gap: 2px; }
+.option strong { font-weight: 500; font-size: .92rem; }
+.option small { font-size: .8rem; color: var(--taupe); }
+.option.active { border-color: var(--blush-deep); background: #fffaf7; }
+.check input[type="checkbox"] { accent-color: var(--brass); width: 16px; height: 16px; }
+.settings-card .check { margin: 4px 0 18px; }
+.warn-inline { margin: 0 0 18px; padding: 10px 14px; border-radius: 8px; background: #fbf3e9; font-size: .86rem; }
+.warn-inline .as-link { color: var(--brass); padding: 0; }
+.wm-progress { margin: 0 0 18px; }
+.wm-progress p { margin: 0 0 8px; font-size: .86rem; }
+.guest-link { align-items: center; flex-wrap: wrap; margin: 0 0 18px; padding: 12px 14px; border-radius: 10px; background: var(--blush); }
+.guest-link .share-url { margin: 0; flex: 1 1 260px; font-size: .85rem; }
+.settings-card .chips { margin-bottom: 8px; }
+.modal-actions.left { justify-content: flex-start; gap: 22px; }
+.wm-overlay {
+  position: absolute; inset: -40%; display: flex; align-items: center; justify-content: center; pointer-events: none;
+  transform: rotate(-30deg); color: rgba(255, 255, 255, .45); text-shadow: 0 0 2px rgba(0, 0, 0, .2);
+  font-family: Georgia, serif; font-size: 1.1rem; line-height: 3.2; text-align: center; word-spacing: .4em; overflow: hidden;
+}

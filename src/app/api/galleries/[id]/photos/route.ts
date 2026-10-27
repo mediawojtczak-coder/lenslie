@@ -23,7 +23,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const prefix = galleryPrefix(id);
   const keys = (await listKeys(prefix)).filter((key) => {
     const rest = key.slice(prefix.length);
-    if (!rest.startsWith("web/") && !rest.startsWith("original/")) return false;
+    if (!rest.startsWith("web/") && !rest.startsWith("original/") && !rest.startsWith("wm/")) return false;
     return names.has(baseName(rest.split("/").pop() ?? ""));
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 function generatePassword() {
@@ -18,6 +18,7 @@ export default function SettingsForm({
   eventDate: initialDate,
   welcome: initialWelcome,
   hasMusic,
+  children,
 }: {
   id: string;
   title: string;
@@ -26,6 +27,7 @@ export default function SettingsForm({
   eventDate: string;
   welcome: string;
   hasMusic: boolean;
+  children?: ReactNode;
 }) {
   const [eventDate, setEventDate] = useState(initialDate);
   const [welcome, setWelcome] = useState(initialWelcome);
@@ -234,6 +236,8 @@ export default function SettingsForm({
         </div>
         {musicMsg && <p className="hint-inline">{musicMsg}</p>}
       </div>
+
+      {children}
 
       <div className="settings-card danger">
         <h2>Usuń galerię</h2>

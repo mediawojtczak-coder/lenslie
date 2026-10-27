@@ -27,7 +27,20 @@ export type GalleryMeta = {
   order?: string[];
   // Muzyka do pokazu slajdów (galleries/<id>/music.mp3)
   music?: boolean;
+  // Co klient może pobrać: wszystko, tylko wersje do internetu albo nic
+  downloads?: Downloads;
+  // Znak wodny na zdjęciach w galerii klienta (galleries/<id>/wm/)
+  watermark?: { enabled: boolean; text: string };
+  // Osobny link dla gości wesela
+  guest?: GuestLink;
 };
+
+export type Downloads = "all" | "web" | "none";
+export type GuestLink = { enabled: boolean; token: string; sections: string[]; downloads: "web" | "none" };
+
+export function watermarkOn(meta: GalleryMeta | null) {
+  return Boolean(meta?.watermark?.enabled && meta.watermark.text.trim());
+}
 
 export type Section = { id: string; name: string };
 

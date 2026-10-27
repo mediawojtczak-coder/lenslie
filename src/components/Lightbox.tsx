@@ -143,7 +143,7 @@ export default function Lightbox({
               </svg>
             </button>
           )}
-          {allowDownload && item.downloadUrl && (
+          {allowDownload && (item.downloadUrl || item.webDownloadUrl) && (
             <DownloadMenu
               variant="lightbox"
               fullUrl={item.downloadUrl}
@@ -175,6 +175,7 @@ export default function Lightbox({
           style={{ transformOrigin: origin }}
           onLoad={() => setLoaded(true)}
           onClick={toggleZoom}
+          onContextMenu={allowDownload ? undefined : (e) => e.preventDefault()}
           draggable={false}
         />
       </div>

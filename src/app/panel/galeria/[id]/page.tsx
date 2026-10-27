@@ -2,13 +2,15 @@ import Link from "next/link";
 import SideLogout from "@/components/SideLogout";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
-import { isValidGalleryId } from "@/lib/r2";
-import { getGalleryPhotos, getGalleryUsage, pickCover, applyOrder, type Photo } from "@/lib/photos";
-import { getMeta } from "@/lib/galleries";
+import { isValidGalleryId, galleryPrefix } from "@/lib/r2";
+import { getGalleryPhotos, getGalleryUsage, pickCover, applyOrder, listKeys, type Photo } from "@/lib/photos";
+import { getMeta, watermarkOn } from "@/lib/galleries";
 import ShareBar from "./ShareBar";
 import PlanBar from "./PlanBar";
 import PhotoManager from "./PhotoManager";
 import SettingsForm from "./SettingsForm";
+import ProtectionCard from "./ProtectionCard";
+import GuestCard from "./GuestCard";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,13 @@ export default async function ZarzadzanieGalerii({
     getGalleryUsage(id).catch(() => 0),
   ]);
   const photos = applyOrder(rawPhotos, meta?.order);
+
+  // Zdjęcia, na które znak wodny nie został jeszcze nałożony
+  let wmMissing: string[] = [];
+  if (tab === "ustawienia" && watermarkOn(meta)) {
+    const wm = new Set(await listKeys(`${galleryPrefix(id)}wm/`).catch(() => [] as string[]));
+    wmMissing = photos.filter((p) => !wm.has(`${galleryPrefix(id)}wm/${p.name}.jpg`)).map((p) => p.name);
+  }
 
   const cover = pickCover(photos, meta?.cover);
 
@@ -103,7 +112,16 @@ export default async function ZarzadzanieGalerii({
             eventDate={meta?.eventDate ?? ""}
             welcome={meta?.welcome ?? ""}
             hasMusic={Boolean(meta?.music)}
-          />
+          >
+            <ProtectionCard
+              id={id}
+              downloads={meta?.downloads ?? "all"}
+              watermark={meta?.watermark ?? { enabled: false, text: "" }}
+              wmMissing={wmMissing}
+              photoCount={photos.length}
+            />
+            <GuestCard id={id} guest={meta?.guest ?? null} sections={meta?.sections ?? []} />
+          </SettingsForm>
         ) : (
           <PhotoManager
             id={id}

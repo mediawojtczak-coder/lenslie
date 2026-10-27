@@ -3,7 +3,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET, isValidGalleryId, safeFileName, baseName, galleryPrefix } from "@/lib/r2";
 import { getUser } from "@/lib/supabase/server";
-import { getMeta, isExpired } from "@/lib/galleries";
+import { getMeta, isExpired, watermarkOn } from "@/lib/galleries";
 import { getGalleryUsage } from "@/lib/photos";
 import { getPlan, hardLimitBytes, formatBytes, planBytes } from "@/lib/plans";
 
@@ -65,7 +65,8 @@ export async function POST(req: Request) {
     );
   }
   const used = await getGalleryUsage(gallery);
-  const incoming = files.reduce((sum, f) => sum + Math.max(0, Number(f.size) || 0), 0) * (1 + WEB_SHARE);
+  const wm = watermarkOn(meta);
+  const incoming = files.reduce((sum, f) => sum + Math.max(0, Number(f.size) || 0), 0) * (1 + WEB_SHARE * (wm ? 2 : 1));
   if (used + incoming > hardLimitBytes(plan)) {
     const free = Math.max(0, planBytes(plan) - used);
     return NextResponse.json(
@@ -95,9 +96,17 @@ export async function POST(req: Request) {
         { expiresIn: 3600 },
       );
 
-      return { name: f.name, type, originalUrl, webUrl };
+      const wmUrl = wm
+        ? await getSignedUrl(
+            r2,
+            new PutObjectCommand({ Bucket: BUCKET, Key: `${prefix}wm/${webName}`, ContentType: "image/jpeg" }),
+            { expiresIn: 3600 },
+          )
+        : undefined;
+
+      return { name: f.name, type, originalUrl, webUrl, wmUrl };
     }),
   );
 
-  return NextResponse.json({ gallery, uploads });
+  return NextResponse.json({ gallery, uploads, watermark: wm ? meta?.watermark?.text : null });
 }

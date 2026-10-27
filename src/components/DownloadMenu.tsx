@@ -9,7 +9,8 @@ export default function DownloadMenu({
   fileName,
   variant = "tile",
 }: {
-  fullUrl: string;
+  // Bez pełnej rozdzielczości przycisk od razu pobiera wersję do internetu
+  fullUrl?: string;
   webUrl: string;
   fileName: string;
   variant?: "tile" | "lightbox";
@@ -35,6 +36,25 @@ export default function DownloadMenu({
       window.removeEventListener("keydown", onKey, true);
     };
   }, [open]);
+
+  if (!fullUrl) {
+    return (
+      <div className={`dl-menu dl-${variant}`}>
+        <a
+          href={webUrl}
+          download
+          className={variant === "tile" ? "pa-btn" : "lb-btn"}
+          aria-label={`Pobierz ${fileName}`}
+          title="Pobierz"
+        >
+          <svg viewBox="0 0 24 24" width={variant === "tile" ? 22 : 20} height={variant === "tile" ? 22 : 20} aria-hidden="true">
+            <path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {variant === "tile" && <span>Pobierz</span>}
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div ref={ref} className={`dl-menu dl-${variant}`}>
