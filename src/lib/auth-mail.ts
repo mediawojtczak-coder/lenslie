@@ -28,10 +28,14 @@ export async function sendResetMail(email: string, origin: string): Promise<bool
   if (!db || !process.env.RESEND_API_KEY) return false;
   if (tooSoon(`reset:${email.toLowerCase()}`)) return true;
   const { data, error } = await db.auth.admin.generateLink({ type: "recovery", email });
-  // Nieistniejące konto: nic nie wysyłamy, ale nie zdradzamy tego na stronie
-  if (error || !data?.properties?.hashed_token) return true;
+  if (error || !data?.properties?.hashed_token) {
+    // Nieistniejące konto: nic nie wysyłamy, ale nie zdradzamy tego na stronie
+    if (error && /not.?found|no user/i.test(error.message)) return true;
+    console.error("Reset hasła – generateLink:", error?.message ?? "brak tokenu");
+    return false; // inny błąd: niech wyśle Supabase
+  }
   const url = confirmUrl(origin, data.properties.hashed_token, "recovery", "/panel/konto?nowe-haslo=1");
-  await sendEmail({
+  const sent = await sendEmail({
     to: email,
     subject: "Ustaw nowe hasło do Lenslie",
     html: emailLayout(
@@ -44,7 +48,36 @@ export async function sendResetMail(email: string, origin: string): Promise<bool
       { label: "Ustaw nowe hasło", url },
     ),
   });
-  return true;
+  if (!sent) console.error("Reset hasła – wysyłka Resend nie powiodła się");
+  return sent;
+}
+
+// Diagnostyka dla panelu administratora: co dokładnie dzieje się przy wysyłce resetu
+export async function diagnoseReset(email: string, origin: string): Promise<string> {
+  const db = adminClient();
+  if (!db) return "Brak SUPABASE_SECRET_KEY.";
+  if (!process.env.RESEND_API_KEY) return "Brak RESEND_API_KEY.";
+  const { data, error } = await db.auth.admin.generateLink({ type: "recovery", email });
+  if (error) return `Supabase generateLink: ${error.message}`;
+  if (!data?.properties?.hashed_token) return "Supabase nie zwrócił tokenu.";
+  const err = await sendEmailDetailed(email, confirmUrl(origin, data.properties.hashed_token, "recovery", "/panel/konto?nowe-haslo=1"));
+  return err ?? "OK – mail resetu wysłany.";
+}
+
+async function sendEmailDetailed(to: string, url: string): Promise<string | null> {
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM ?? "Lenslie <powiadomienia@lenslie.com>",
+      to,
+      subject: "Ustaw nowe hasło do Lenslie (test)",
+      html: emailLayout("Ustaw nowe hasło", ["Testowa wiadomość resetu hasła z panelu administratora."], { label: "Ustaw nowe hasło", url }),
+    }),
+  }).catch((e) => e as Error);
+  if (res instanceof Error) return `Resend: ${res.message}`;
+  if (!res.ok) return `Resend ${res.status}: ${await res.text().catch(() => "")}`;
+  return null;
 }
 
 export type SignupResult = "sent" | "exists" | "error" | "fallback";

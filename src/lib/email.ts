@@ -9,6 +9,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from, to, subject, html }),
     });
+    if (!res.ok) console.error("Resend:", res.status, await res.text().catch(() => ""));
     return res.ok;
   } catch {
     return false;

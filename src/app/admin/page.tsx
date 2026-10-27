@@ -17,8 +17,8 @@ const MAIL: Record<string, string> = {
   blad: "Resend odrzucił wysyłkę. Sprawdź, czy klucz ma dostęp do domeny lenslie.com i czy domena jest zweryfikowana.",
 };
 
-export default async function Admin({ searchParams }: { searchParams: Promise<{ mail?: string }> }) {
-  const { mail } = await searchParams;
+export default async function Admin({ searchParams }: { searchParams: Promise<{ mail?: string; reset?: string }> }) {
+  const { mail, reset } = await searchParams;
   const db = adminClient();
   if (!db) {
     return (
@@ -73,11 +73,17 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     <main className="app-main admin">
       <div className="admin-head">
         <h1>Przegląd</h1>
-        <form method="post" action="/api/admin/test-email">
-          <button type="submit" className="btn btn-ghost btn-small">Wyślij testowy mail</button>
-        </form>
+        <div className="admin-actions">
+          <form method="post" action="/api/admin/test-email">
+            <button type="submit" className="btn btn-ghost btn-small">Wyślij testowy mail</button>
+          </form>
+          <form method="post" action="/api/admin/test-reset">
+            <button type="submit" className="btn btn-ghost btn-small">Test maila resetu hasła</button>
+          </form>
+        </div>
       </div>
       {mail && MAIL[mail] && <p className={mail === "wyslany" ? "success-box" : "warn-inline"}>{MAIL[mail]}</p>}
+      {reset && <p className={reset.startsWith("OK") ? "success-box" : "warn-inline"}>Reset hasła: {reset}</p>}
       <div className="stat-tiles admin-tiles">
         {tiles.map((t) => (
           <div key={t.label} className="stat-tile">
