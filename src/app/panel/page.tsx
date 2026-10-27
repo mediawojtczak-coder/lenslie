@@ -94,10 +94,12 @@ export default async function Panel({
       </aside>
 
       <main className="app-main">
-        <div className="app-head">
-          <h1>{query ? `Wyniki dla „${q.trim()}”` : "Twoje galerie"}</h1>
-          {query && <Link href={linkFor(filtr)} className="link-quiet">Wyczyść wyszukiwanie</Link>}
-        </div>
+        {query && (
+          <div className="app-head">
+            <p className="search-note">Wyniki dla „{q.trim()}”</p>
+            <Link href={linkFor(filtr)} className="link-quiet">Wyczyść wyszukiwanie</Link>
+          </div>
+        )}
 
         {cards.length === 0 ? (
           <div className="empty-state">

@@ -290,7 +290,8 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 .side-link.active { background: var(--blush); }
 .side-count { color: var(--taupe); font-size: .85rem; }
 
-.app-main { padding: 36px 40px 80px; }
+.app-main { max-width: none; margin: 0; padding: 36px 40px 80px; }
+.search-note { margin: 0; color: var(--taupe); }
 .app-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
 .app-main h1 {
   font-family: var(--font-display), Georgia, serif; font-weight: 400;
@@ -326,7 +327,7 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 }
 .empty-state p { color: var(--taupe); margin: 0 0 24px; }
 
-.app-narrow { max-width: 640px; }
+.app-main.app-narrow { max-width: 720px; margin: 0 auto; }
 .app-narrow h1 { margin-bottom: 10px; }
 .app-narrow .lead { color: var(--taupe); margin: 0 0 40px; }
 .back-link { display: inline-block; margin-bottom: 20px; padding: 0; }
