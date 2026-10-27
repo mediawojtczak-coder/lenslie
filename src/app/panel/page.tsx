@@ -113,6 +113,9 @@ export default async function Panel({
           ))}
         </nav>
         <nav aria-label={t("Narzędzia", "Tools")} className="side-tools">
+          <Link href="/panel/goscie" className="side-link">
+            <span>{t("Zdjęcia od gości", "Guest uploads")}</span>
+          </Link>
           <Link href="/panel/rezerwacje" className="side-link">
             <span>{t("Rezerwacje sesji", "Session bookings")}</span>
           </Link>

@@ -74,6 +74,8 @@ export function uploadPhotos(
   gallery: string,
   files: File[],
   onState: (index: number, state: FileState) => void,
+  // Inny adres do pobrania linków wysyłki (np. galeria gości wesela)
+  endpoint = "/api/upload-url",
 ): UploadJob {
   const canceled = new Set<number>();
   const active = new Map<number, XMLHttpRequest>();
@@ -94,7 +96,7 @@ export function uploadPhotos(
   const run = async () => {
     for (let start = 0; start < files.length && !all; start += 50) {
       const batch = files.slice(start, start + 50);
-      const res = await fetch("/api/upload-url", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ gallery, files: batch.map((f) => ({ name: f.name, type: f.type, size: f.size })) }),

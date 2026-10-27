@@ -20,6 +20,7 @@ const sign = (o: Record<string, unknown>) => createHash("sha384").update(JSON.st
 
 // Zamówienie zapisane w magazynie: payments/<sessionId>.json
 export type TopupAction = { action: "topup"; amount: number; bonus: number };
+export type GuestEventAction = { action: "guest-event"; eventId: string };
 
 export type Order = {
   sessionId: string;
@@ -27,7 +28,7 @@ export type Order = {
   ownerId: string;
   email: string;
   amount: number; // grosze
-  action: PlanAction | TopupAction;
+  action: PlanAction | TopupAction | GuestEventAction;
   returnPath?: string;
   description: string;
   status: "pending" | "paid" | "error";

@@ -54,6 +54,8 @@ const EN: Record<string, string> = {
   "Kalendarz może mieć najwyżej 500 terminów.": "A calendar can have at most 500 time slots.",
   "Ten termin jest zarezerwowany – najpierw go odwołaj.": "This time is booked – cancel the booking first.",
   "Nie znaleziono rezerwacji.": "Booking not found.",
+  "Nie znaleziono wydarzenia.": "Event not found.",
+  "To wydarzenie jest już aktywne.": "This event is already active.",
   "Numer konta powinien mieć 26 cyfr.": "The bank account number should have 26 digits.",
   "Numer telefonu do BLIK powinien mieć 9 cyfr.": "The BLIK phone number should have 9 digits.",
   "Podaj numer konta albo telefon do BLIK.": "Enter a bank account number or a BLIK phone number.",

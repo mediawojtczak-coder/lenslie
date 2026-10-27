@@ -1662,3 +1662,51 @@ ol.stat-list { counter-reset: s; }
   .top nav > .nav-cta { grid-area: cta; padding: 8px 16px; }
   .top nav > .lang-switch { grid-area: lang; justify-self: end; }
 }
+
+/* ===== Zdjęcia od gości – strona dla gości ===== */
+.gu-head { max-width: 620px; margin: 0 auto 28px; text-align: center; }
+.gu-studio { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--taupe); margin: 0 0 22px; }
+.gu-head h1 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: clamp(2.2rem, 7vw, 3.4rem); line-height: 1.08; margin: 0 0 10px; }
+.gu-date { color: var(--taupe); margin: 0; }
+.gu-upload { gap: 14px; }
+.gu-welcome { color: var(--ink) !important; white-space: pre-line; font-size: 1rem; }
+.gu-btn { display: inline-flex; align-items: center; gap: 10px; padding: 16px 32px; font-size: 1rem; }
+.gu-note { font-size: .85rem; }
+.gu-progress { width: 100%; max-width: 360px; }
+.gu-progress p { color: var(--ink) !important; margin-bottom: 10px !important; }
+.gu-progress small { color: var(--taupe); font-size: .8rem; display: block; margin-top: 10px; }
+.gu-wall { max-width: 1100px; margin: 44px auto 0; }
+.gu-wall-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 4px 16px; flex-wrap: wrap; }
+.gu-wall-head h2 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.5rem; margin: 0; }
+.gu-wall-head h2 span { color: var(--taupe); font-size: 1rem; margin-left: 6px; }
+.gu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; }
+.gu-tile { padding: 0; border: 0; background: var(--blush); aspect-ratio: 1; overflow: hidden; cursor: zoom-in; border-radius: 4px; }
+.gu-tile img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s; }
+.gu-tile:hover img { transform: scale(1.03); }
+@media (max-width: 600px) { .gu-grid { grid-template-columns: repeat(3, 1fr); gap: 3px; } .gu-btn { width: 100%; justify-content: center; } }
+
+/* ===== Kartka z kodem QR do druku ===== */
+.qr-sheet { display: grid; grid-template-columns: 1fr 1fr; gap: 0; background: #fff; max-width: 210mm; margin: 0 auto; }
+.qr-card { height: 148mm; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 14mm 12mm; border: 1px dashed #e6dfda; color: #3b3633; }
+.qr-card .qr-kicker { font-size: 8pt; letter-spacing: .22em; text-transform: uppercase; color: #958c85; margin: 0 0 6mm; }
+.qr-card h2 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 20pt; line-height: 1.1; margin: 0 0 3mm; }
+.qr-card .qr-date { font-size: 9pt; color: #958c85; margin: 0 0 7mm; }
+.qr-card img { width: 46mm; height: 46mm; }
+.qr-card .qr-lead { font-size: 10pt; line-height: 1.45; margin: 7mm 0 0; max-width: 70mm; }
+.qr-card .qr-url { font-size: 7pt; color: #958c85; margin-top: 3mm; word-break: break-all; }
+.qr-tools { max-width: 210mm; margin: 0 auto 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+@media print {
+  @page { size: A4; margin: 0; }
+  body { background: #fff !important; }
+  .qr-tools, .app-bar { display: none !important; }
+  .qr-card { border-color: #eee; }
+}
+.qr-print { padding: 24px 16px 40px; }
+.qr-panel-row { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+.qr-panel-row .qr-img { width: 180px; height: 180px; flex: 0 0 auto; }
+.qr-panel-row > div { flex: 1 1 260px; }
+.qr-panel-row p { color: var(--taupe); font-size: .9rem; margin: 0 0 14px; }
+.gu-admin { position: relative; margin: 0; cursor: default; }
+.gu-admin .photo-del { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(253, 252, 250, .92); color: var(--ink); cursor: pointer; font-size: 1.1rem; line-height: 1; }
+@media print { .qr-print { padding: 0; } .qr-card { height: 148.5mm; } }
+.qr-panel-row .qr-img { margin: 0; }

@@ -10,6 +10,7 @@ import { sendEmail, emailLayout, siteUrl, notifyAdmins } from "@/lib/email";
 import { getReminders, lastReminderMail, markReminderMail } from "@/lib/reminders";
 import { listObjects } from "@/lib/photos";
 import { getDomainByHost, saveDomain, vercelRemoveDomain, DOMAIN_PRICE } from "@/lib/domains";
+import { getGuestEvent, saveGuestEvent, deleteGuestEvent, GUEST_DELETE_AFTER } from "@/lib/guest-events";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -216,6 +217,54 @@ export async function GET(req: Request) {
     if (!dry && JSON.stringify(notices) !== JSON.stringify(meta.notices ?? {})) {
       meta.notices = notices;
       await saveMeta(id, meta);
+    }
+  }
+
+  // Zdjęcia od gości: ostrzeżenie 7 dni przed usunięciem, usunięcie 30 dni po wygaśnięciu
+  const guestIds: string[] = [];
+  {
+    let token: string | undefined;
+    do {
+      const res = await r2.send(new ListObjectsV2Command({ Bucket: BUCKET, Prefix: "guests/", Delimiter: "/", ContinuationToken: token }));
+      for (const p of res.CommonPrefixes ?? []) {
+        const gid = String(p.Prefix ?? "").split("/")[1];
+        if (gid) guestIds.push(gid);
+      }
+      token = res.IsTruncated ? res.NextContinuationToken : undefined;
+    } while (token);
+  }
+  for (const gid of guestIds) {
+    const ge = await getGuestEvent(gid).catch(() => null);
+    if (!ge?.expiresAt) continue;
+    const deleteOn = new Date(new Date(ge.expiresAt).getTime() + GUEST_DELETE_AFTER * DAY);
+    const left = (deleteOn.getTime() - now) / DAY;
+    if (left <= 0) {
+      log.push(`goście ${gid}: usunięcie`);
+      if (!dry) await deleteGuestEvent(ge);
+    } else if (left <= 7 && !ge.warned) {
+      log.push(`goście ${gid}: ostrzeżenie przed usunięciem`);
+      if (!dry && db) {
+        const to = (await db.auth.admin.getUserById(ge.uid)).data?.user?.email;
+        const lang = await getUserLang(ge.uid);
+        const df = dateIn(lang);
+        if (to) {
+          await sendEmail({
+            to,
+            subject: lang === "en" ? `Guest photos “${ge.title}” will be deleted on ${df.format(deleteOn)}` : `Zdjęcia od gości „${ge.title}” zostaną usunięte ${df.format(deleteOn)}`,
+            html: emailLayout(
+              lang === "en" ? "Download the guest photos" : "Pobierz zdjęcia od gości",
+              [
+                lang === "en"
+                  ? `The guest gallery “${ge.title}” has ended. On ${df.format(deleteOn)} we will delete it with all photos – download them before then.`
+                  : `Galeria gości „${ge.title}” zakończyła się. ${df.format(deleteOn)} usuniemy ją ze wszystkimi zdjęciami – pobierz je wcześniej.`,
+              ],
+              { label: lang === "en" ? "Download photos" : "Pobierz zdjęcia", url: `${siteUrl()}/panel/goscie/${gid}` },
+              lang,
+            ),
+          }).catch(() => undefined);
+        }
+        await saveGuestEvent({ ...ge, warned: new Date().toISOString() });
+      }
     }
   }
 

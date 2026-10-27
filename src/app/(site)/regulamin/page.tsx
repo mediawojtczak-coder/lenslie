@@ -125,6 +125,19 @@ function RegulaminPl() {
         </li>
       </ol>
 
+      <h2>§ 6c. Zdjęcia od gości</h2>
+      <ol>
+        <li>
+          Usługa „Zdjęcia od gości” pozwala gościom wydarzenia przesyłać zdjęcia przez link lub kod QR, bez zakładania
+          konta. Opłata wynosi 99 zł brutto za wydarzenie i obejmuje 12 miesięcy przesyłania i oglądania zdjęć (do 30 GB),
+          a następnie 30 dni na ich pobranie, po których zdjęcia są usuwane.
+        </li>
+        <li>
+          Za treści przesłane przez gości odpowiada Fotograf, który utworzył wydarzenie. Fotograf może usuwać przesłane
+          zdjęcia, a Usługodawca usuwa treści bezprawne po otrzymaniu zgłoszenia.
+        </li>
+      </ol>
+
       <h2>§ 7. Treści i prawa autorskie</h2>
       <ol>
         <li>
@@ -264,6 +277,12 @@ function TermsEn() {
         <li>The Photographer may turn on photo selection and sales in a Gallery: the Client chooses the photos included in the package agreed with the Photographer and pays the Photographer’s price for extra photos.</li>
         <li>The Client pays for photos directly to the bank account or BLIK phone number provided by the Photographer. The Provider does not receive or intermediate these payments and charges no commission on them.</li>
         <li>The photo sale agreement is concluded solely between the Photographer and the Client. The Photographer is responsible for pricing, confirming payments, issuing sales documents, taxes and complaints concerning the photos.</li>
+      </ol>
+
+      <h2>§ 6c. Guest uploads</h2>
+      <ol>
+        <li>The “Guest uploads” service lets event guests upload photos via a link or QR code without an account. The fee is PLN 99 gross per event and covers 12 months of uploading and viewing (up to 30 GB), followed by 30 days to download the photos, after which they are deleted.</li>
+        <li>The Photographer who created the event is responsible for content uploaded by guests. The Photographer can delete uploaded photos, and the Provider removes unlawful content upon notice.</li>
       </ol>
 
       <h2>§ 7. Content and copyright</h2>
