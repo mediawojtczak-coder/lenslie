@@ -3,7 +3,7 @@ import SideLogout from "@/components/SideLogout";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { isValidGalleryId } from "@/lib/r2";
-import { getGalleryPhotos, getGalleryUsage, pickCover, type Photo } from "@/lib/photos";
+import { getGalleryPhotos, getGalleryUsage, pickCover, applyOrder, type Photo } from "@/lib/photos";
 import { getMeta } from "@/lib/galleries";
 import ShareBar from "./ShareBar";
 import PlanBar from "./PlanBar";
@@ -30,11 +30,12 @@ export default async function ZarzadzanieGalerii({
   if (!data) notFound();
   const gallery = data as { id: string; title: string; created_at: string };
 
-  const [meta, photos, usedBytes] = await Promise.all([
+  const [meta, rawPhotos, usedBytes] = await Promise.all([
     getMeta(id).catch(() => null),
     getGalleryPhotos(id).catch(() => [] as Photo[]),
     getGalleryUsage(id).catch(() => 0),
   ]);
+  const photos = applyOrder(rawPhotos, meta?.order);
 
   const cover = pickCover(photos, meta?.cover);
 
@@ -99,13 +100,18 @@ export default async function ZarzadzanieGalerii({
             title={gallery.title}
             hasPassword={Boolean(meta?.passwordHash)}
             layout={meta?.layout ?? "mozaika"}
+            eventDate={meta?.eventDate ?? ""}
+            welcome={meta?.welcome ?? ""}
+            hasMusic={Boolean(meta?.music)}
           />
         ) : (
           <PhotoManager
             id={id}
             layout={meta?.layout ?? "mozaika"}
             cover={cover?.name ?? null}
+            sections={meta?.sections ?? []}
             photos={photos.map((p) => ({
+              section: meta?.photoSection?.[p.name] ?? null,
               name: p.name,
               fileName: p.fileName,
               url: p.webUrl,

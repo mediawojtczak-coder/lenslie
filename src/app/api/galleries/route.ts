@@ -22,6 +22,8 @@ export async function POST(req: Request) {
         removePassword?: boolean;
         plan?: string;
         period?: number;
+        eventDate?: string;
+        welcome?: string;
       }
     | null;
 
@@ -70,6 +72,7 @@ export async function POST(req: Request) {
 
   const existing = await getMeta(id);
   const meta: GalleryMeta = {
+    ...(existing ?? {}),
     title,
     createdAt: existing?.createdAt ?? new Date().toISOString(),
     passwordHash: body?.removePassword
@@ -84,6 +87,14 @@ export async function POST(req: Request) {
     expiresAt: existing?.expiresAt,
     cover: existing?.cover,
   };
+
+  if (typeof body?.eventDate === "string") {
+    const d = body.eventDate.trim();
+    meta.eventDate = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : undefined;
+  }
+  if (typeof body?.welcome === "string") {
+    meta.welcome = body.welcome.trim().slice(0, 1500) || undefined;
+  }
 
   // Pakiet wybiera się raz, przy tworzeniu galerii. Późniejsze zmiany tylko przez /api/galleries/[id]/plan
   if (!meta.plan) {

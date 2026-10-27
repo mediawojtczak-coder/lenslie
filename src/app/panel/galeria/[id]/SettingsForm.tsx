@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 function generatePassword() {
@@ -15,12 +15,23 @@ export default function SettingsForm({
   title: initialTitle,
   hasPassword,
   layout: initialLayout,
+  eventDate: initialDate,
+  welcome: initialWelcome,
+  hasMusic,
 }: {
   id: string;
   title: string;
   hasPassword: boolean;
   layout: "mozaika" | "siatka";
+  eventDate: string;
+  welcome: string;
+  hasMusic: boolean;
 }) {
+  const [eventDate, setEventDate] = useState(initialDate);
+  const [welcome, setWelcome] = useState(initialWelcome);
+  const musicRef = useRef<HTMLInputElement>(null);
+  const [music, setMusic] = useState<"idle" | "busy">("idle");
+  const [musicMsg, setMusicMsg] = useState("");
   const router = useRouter();
   const [title, setTitle] = useState(initialTitle);
   const [password, setPassword] = useState("");
@@ -45,6 +56,8 @@ export default function SettingsForm({
           clientPassword: removePassword ? "" : password.trim(),
           removePassword,
           layout,
+          eventDate,
+          welcome,
         }),
       });
       const data = await res.json();
@@ -58,6 +71,47 @@ export default function SettingsForm({
     } finally {
       setBusy(false);
     }
+  }
+
+  async function uploadMusic(file: File | undefined) {
+    if (!file) return;
+    if (!/\.mp3$/i.test(file.name) && file.type !== "audio/mpeg") {
+      setMusicMsg("Wybierz plik w formacie MP3.");
+      return;
+    }
+    setMusic("busy");
+    setMusicMsg("");
+    try {
+      const res = await fetch(`/api/galleries/${id}/music`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ size: file.size }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Nie udało się przesłać muzyki.");
+      const put = await fetch(data.url, { method: "PUT", headers: { "Content-Type": "audio/mpeg" }, body: file });
+      if (!put.ok) throw new Error("Nie udało się przesłać muzyki.");
+      await fetch(`/api/galleries/${id}/music`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ step: "done" }),
+      });
+      setMusicMsg("Muzyka dodana. Zagra podczas pokazu slajdów.");
+      router.refresh();
+    } catch (err) {
+      setMusicMsg(err instanceof Error ? err.message : "Nie udało się przesłać muzyki.");
+    } finally {
+      setMusic("idle");
+      if (musicRef.current) musicRef.current.value = "";
+    }
+  }
+
+  async function removeMusic() {
+    setMusic("busy");
+    await fetch(`/api/galleries/${id}/music`, { method: "DELETE" });
+    setMusic("idle");
+    setMusicMsg("Muzyka usunięta.");
+    router.refresh();
   }
 
   async function removeGallery() {
@@ -84,6 +138,21 @@ export default function SettingsForm({
         <label htmlFor="s-title">Nazwa galerii</label>
         <input id="s-title" value={title} onChange={(e) => setTitle(e.target.value)} required />
         <p className="hint">Adres galerii pozostaje bez zmian: /galeria/{id}</p>
+
+        <label htmlFor="s-date">Data wydarzenia</label>
+        <input id="s-date" type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
+        <p className="hint">Wyświetla się na okładce galerii pod tytułem.</p>
+
+        <label htmlFor="s-welcome">Wiadomość powitalna</label>
+        <textarea
+          id="s-welcome"
+          rows={4}
+          maxLength={1500}
+          value={welcome}
+          onChange={(e) => setWelcome(e.target.value)}
+          placeholder="np. Kochani, dziękuję, że mogłam być z Wami tego dnia. Miłego oglądania!"
+        />
+        <p className="hint">Klient zobaczy ją nad zdjęciami. Zostaw puste, jeśli nie chcesz jej pokazywać.</p>
 
         <label htmlFor="s-pass">{hasPassword ? "Nowe hasło dla klienta" : "Hasło dla klienta"}</label>
         <div className="pass-row">
@@ -145,6 +214,26 @@ export default function SettingsForm({
           {busy ? "Zapisuję…" : "Zapisz zmiany"}
         </button>
       </form>
+
+      <div className="settings-card">
+        <h2>Muzyka do pokazu slajdów</h2>
+        <p>
+          Klient może uruchomić pokaz slajdów przyciskiem w galerii. Jeśli dodasz plik MP3 (do 25 MB), zagra w tle.
+          Używaj tylko muzyki, do której masz prawa.
+        </p>
+        <div className="music-row">
+          <button type="button" className="btn btn-ghost btn-small" onClick={() => musicRef.current?.click()} disabled={music === "busy"}>
+            {music === "busy" ? "Przesyłam…" : hasMusic ? "Zmień muzykę" : "Dodaj muzykę"}
+          </button>
+          {hasMusic && (
+            <button type="button" className="as-link" onClick={removeMusic} disabled={music === "busy"}>
+              Usuń muzykę
+            </button>
+          )}
+          <input ref={musicRef} type="file" accept="audio/mpeg,.mp3" hidden onChange={(e) => uploadMusic(e.target.files?.[0])} />
+        </div>
+        {musicMsg && <p className="hint-inline">{musicMsg}</p>}
+      </div>
 
       <div className="settings-card danger">
         <h2>Usuń galerię</h2>

@@ -129,3 +129,27 @@ export async function getGalleryUsage(id: string): Promise<number> {
 export function pickCover<T extends { name: string }>(photos: T[], cover?: string): T | undefined {
   return (cover && photos.find((p) => p.name === cover)) || photos[0];
 }
+
+// Układa zdjęcia według kolejności ustawionej przez fotografa; nowe zdjęcia trafiają na koniec
+export function applyOrder<T extends { name: string }>(photos: T[], order?: string[]): T[] {
+  if (!order?.length) return photos;
+  const pos = new Map(order.map((n, i) => [n, i]));
+  return photos
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => {
+      const pa = pos.get(a.p.name);
+      const pb = pos.get(b.p.name);
+      if (pa !== undefined && pb !== undefined) return pa - pb;
+      if (pa !== undefined) return -1;
+      if (pb !== undefined) return 1;
+      return a.i - b.i;
+    })
+    .map((x) => x.p);
+}
+
+// Link do muzyki pokazu slajdów (ważny 2 godziny)
+export async function getMusicUrl(id: string): Promise<string> {
+  return getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: `${galleryPrefix(id)}music.mp3` }), {
+    expiresIn: 7200,
+  });
+}

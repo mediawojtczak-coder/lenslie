@@ -1,21 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { downloadZip } from "client-zip";
+import { saveZip, type ZipItem, type ZipKind } from "@/lib/zip-client";
 
-type Item = { url: string; fileName: string; webUrl: string; webFileName: string };
-type Kind = "full" | "web";
-
-type SaveWindow = Window & {
-  showSaveFilePicker?: (options: {
-    suggestedName?: string;
-    types?: { description: string; accept: Record<string, string[]> }[];
-  }) => Promise<{ createWritable: () => Promise<WritableStream<Uint8Array>> }>;
-};
-
-// Składa ZIP ze wszystkich oryginałów bezpośrednio w przeglądarce klienta.
-// W Chrome i Edge plik zapisuje się na dysk na bieżąco, więc działa też przy dużych sesjach.
-export default function DownloadAll({ items, zipName }: { items: Item[]; zipName: string }) {
+// Przycisk pobierania wielu zdjęć jako ZIP (cała galeria albo jedna sekcja)
+export default function DownloadAll({
+  items,
+  zipName,
+  label = "Pobierz wszystkie",
+  small = false,
+  allowFull = true,
+  onDone,
+}: {
+  items: ZipItem[];
+  zipName: string;
+  label?: string;
+  small?: boolean;
+  allowFull?: boolean;
+  onDone?: (kind: ZipKind) => void;
+}) {
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [count, setCount] = useState(0);
   const [menu, setMenu] = useState(false);
@@ -30,64 +33,30 @@ export default function DownloadAll({ items, zipName }: { items: Item[]; zipName
     return () => document.removeEventListener("mousedown", onDoc);
   }, [menu]);
 
-  async function run(kind: Kind) {
+  async function run(kind: ZipKind) {
     setMenu(false);
     setState("busy");
     setCount(0);
-    const name = kind === "full" ? zipName : zipName.replace(/\.zip$/, "-internet.zip");
     try {
-      async function* files() {
-        for (const it of items) {
-          const url = kind === "full" ? it.url : it.webUrl;
-          const fileName = kind === "full" ? it.fileName : it.webFileName;
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`Nie udało się pobrać ${fileName}`);
-          yield { name: fileName, input: res };
-          setCount((c) => c + 1);
-        }
-      }
-
-      const zip = downloadZip(files());
-      const w = window as SaveWindow;
-
-      if (w.showSaveFilePicker && zip.body) {
-        const handle = await w.showSaveFilePicker({
-          suggestedName: name,
-          types: [{ description: "Archiwum ZIP", accept: { "application/zip": [".zip"] } }],
-        });
-        const writable = await handle.createWritable();
-        await zip.body.pipeTo(writable);
-      } else {
-        const blob = await zip.blob();
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = name;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
-      }
-      setState("done");
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") {
-        setState("idle");
-        return;
-      }
+      const saved = await saveZip(items, zipName, kind, () => setCount((c) => c + 1));
+      setState(saved ? "done" : "idle");
+      if (saved) onDone?.(kind);
+    } catch {
       setState("error");
     }
   }
 
   return (
-    <div className="download-all" ref={ref}>
+    <div className={small ? "download-all small" : "download-all"} ref={ref}>
       <button
-        className="btn btn-ghost"
+        className={small ? "btn btn-ghost btn-small" : "btn btn-ghost"}
         type="button"
-        onClick={() => setMenu((v) => !v)}
+        onClick={() => (allowFull ? setMenu((v) => !v) : run("web"))}
         disabled={state === "busy"}
-        aria-haspopup="menu"
-        aria-expanded={menu}
+        aria-haspopup={allowFull ? "menu" : undefined}
+        aria-expanded={allowFull ? menu : undefined}
       >
-        {state === "busy" ? `Przygotowuję… ${count} z ${items.length}` : "Pobierz wszystkie"}
+        {state === "busy" ? `Przygotowuję… ${count} z ${items.length}` : label}
       </button>
       {menu && (
         <div className="dl-pop dl-pop-down" role="menu">

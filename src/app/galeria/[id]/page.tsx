@@ -1,11 +1,12 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { getGalleryPhotos, getGallerySummary, pickCover, type Photo } from "@/lib/photos";
+import { getGalleryPhotos, getGallerySummary, pickCover, applyOrder, getMusicUrl, type Photo } from "@/lib/photos";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, hasAccess, accessCookieName, isExpired, type GalleryMeta } from "@/lib/galleries";
 import DownloadAll from "./DownloadAll";
 import Hero from "./Hero";
-import PhotoGrid from "./PhotoGrid";
+import PhotoGrid, { type Group } from "./PhotoGrid";
+import SlideshowButton from "./SlideshowButton";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,8 @@ function titleFromId(id: string) {
   const t = id.replace(/-/g, " ");
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
+
+const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
 function photosLabel(n: number) {
   if (n === 1) return "1 zdjęcie";
@@ -64,20 +67,50 @@ export default async function Galeria({
   const cookieStore = await cookies();
   if (!error && !hasAccess(id, meta, cookieStore.get(accessCookieName(id))?.value)) {
     const summary = await getGallerySummary(id, meta?.cover).catch(() => ({ count: 0, coverUrl: null }));
-    return <Hero id={id} title={title} coverUrl={summary.coverUrl} locked error={Boolean(blad)} />;
+    const lockedSub = meta?.eventDate ? dateFmt.format(new Date(`${meta.eventDate}T00:00:00Z`)) : undefined;
+    return <Hero id={id} title={title} subtitle={lockedSub} coverUrl={summary.coverUrl} locked error={Boolean(blad)} />;
   }
 
   let photos: Photo[] = [];
   if (valid && !error) {
     try {
-      photos = await getGalleryPhotos(id);
+      photos = applyOrder(await getGalleryPhotos(id), meta?.order);
     } catch {
       error = true;
     }
   }
 
   const showPlaceholders = demo && photos.length === 0;
-  const subtitle = demo ? "Ślub, 14 września 2026" : photos.length > 0 ? photosLabel(photos.length) : undefined;
+  const eventDate = meta?.eventDate ? dateFmt.format(new Date(`${meta.eventDate}T00:00:00Z`)) : null;
+  const subtitle = demo
+    ? "Ślub, 14 września 2026"
+    : [eventDate, photos.length > 0 ? photosLabel(photos.length) : null].filter(Boolean).join(" · ") || undefined;
+
+  // Zdjęcia pogrupowane w sekcje w kolejności ustawionej przez fotografa; bez sekcji – jedna grupa
+  const toItem = (p: Photo) => ({
+    name: p.name,
+    fileName: p.fileName,
+    webUrl: p.webUrl,
+    downloadUrl: p.downloadUrl,
+    webDownloadUrl: p.webDownloadUrl,
+    webFileName: p.webFileName,
+  });
+  const sections = meta?.sections ?? [];
+  const assigned = meta?.photoSection ?? {};
+  const known = new Set(sections.map((x) => x.id));
+  const groups: Group[] = [
+    ...sections.map((sec) => ({
+      id: sec.id,
+      name: sec.name,
+      photos: photos.filter((p) => assigned[p.name] === sec.id).map(toItem),
+    })),
+    {
+      id: "pozostale",
+      name: null,
+      photos: photos.filter((p) => !known.has(assigned[p.name] ?? "")).map(toItem),
+    },
+  ];
+  const musicUrl = meta?.music ? await getMusicUrl(id).catch(() => null) : null;
 
   return (
     <>
@@ -94,6 +127,7 @@ export default async function Galeria({
         <Link href="/" className="wordmark g-bar-mark">Lenslie</Link>
         <p className="g-bar-title">{title}</p>
         <div className="g-bar-actions">
+          {photos.length > 1 && <SlideshowButton />}
           {photos.length > 0 && (
             <DownloadAll
               zipName={`${id}.zip`}
@@ -114,6 +148,8 @@ export default async function Galeria({
       </div>
 
       <main className="g-photos">
+        {meta?.welcome && <p className="g-welcome">{meta.welcome}</p>}
+
         {error && <p className="notice">Nie udało się wczytać zdjęć. Odśwież stronę za chwilę.</p>}
 
         {!error && !showPlaceholders && photos.length === 0 && (
@@ -132,16 +168,7 @@ export default async function Galeria({
         )}
 
         {photos.length > 0 && (
-          <PhotoGrid
-            layout={meta?.layout ?? "mozaika"}
-            photos={photos.map((p) => ({
-              name: p.name,
-              fileName: p.fileName,
-              webUrl: p.webUrl,
-              downloadUrl: p.downloadUrl,
-              webDownloadUrl: p.webDownloadUrl,
-            }))}
-          />
+          <PhotoGrid layout={meta?.layout ?? "mozaika"} groups={groups} zipBase={id} musicUrl={musicUrl} />
         )}
       </main>
     </>

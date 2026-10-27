@@ -17,7 +17,19 @@ export type GalleryMeta = {
   expiresAt?: string;
   // Zdjęcie główne (okładka) – nazwa zdjęcia bez rozszerzenia; brak = pierwsze zdjęcie
   cover?: string;
+  // Data wydarzenia (RRRR-MM-DD) i wiadomość powitalna dla klienta
+  eventDate?: string;
+  welcome?: string;
+  // Sekcje (np. Ceremonia, Wesele) i przypisanie zdjęć do sekcji
+  sections?: Section[];
+  photoSection?: Record<string, string>;
+  // Własna kolejność zdjęć ustawiona przez fotografa
+  order?: string[];
+  // Muzyka do pokazu slajdów (galleries/<id>/music.mp3)
+  music?: boolean;
 };
+
+export type Section = { id: string; name: string };
 
 export function isExpired(meta: GalleryMeta | null) {
   return Boolean(meta?.expiresAt && new Date(meta.expiresAt).getTime() < Date.now());
