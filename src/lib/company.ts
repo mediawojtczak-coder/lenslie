@@ -1,8 +1,10 @@
-// Dane firmy prowadzącej Lenslie – uzupełnij przed startem (pojawiają się w regulaminie i polityce prywatności)
+// Dane firmy prowadzącej Lenslie (regulamin, polityka prywatności, stopka)
 export const COMPANY = {
-  name: "[NAZWA FIRMY / IMIĘ I NAZWISKO]",
-  address: "[ADRES SIEDZIBY]",
-  nip: "[NIP]",
-  email: "[E-MAIL KONTAKTOWY]",
-  draft: true, // false, gdy dokumenty zostaną sprawdzone przez prawnika
+  name: "MEDIA Adam Wojtczak",
+  address: "ul. Głogowska 23c/1, 63-400 Ostrów Wielkopolski",
+  nip: "6222722760",
+  regon: "520746234",
+  email: "mediawojtczak@gmail.com",
+  effective: "27 października 2026 r.",
+  draft: false,
 };

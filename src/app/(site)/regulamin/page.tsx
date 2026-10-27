@@ -10,7 +10,7 @@ export default function Regulamin() {
         <p className="legal-draft">Wersja robocza. Dokument zostanie sprawdzony przez prawnika przed uruchomieniem płatności.</p>
       )}
       <h1>Regulamin serwisu Lenslie</h1>
-      <p className="legal-meta">Obowiązuje od: [DATA]</p>
+      <p className="legal-meta">Obowiązuje od: {COMPANY.effective}</p>
 
       <h2>§ 1. Postanowienia ogólne</h2>
       <ol>
@@ -19,7 +19,7 @@ export default function Regulamin() {
           do przechowywania i udostępniania klientom galerii zdjęć.
         </li>
         <li>
-          Serwis prowadzi {COMPANY.name}, {COMPANY.address}, NIP {COMPANY.nip}, e-mail: {COMPANY.email} (dalej: Usługodawca).
+          Serwis prowadzi {COMPANY.name}, {COMPANY.address}, NIP {COMPANY.nip}, REGON {COMPANY.regon}, e-mail: {COMPANY.email} (dalej: Usługodawca).
         </li>
         <li>
           Regulamin jest regulaminem świadczenia usług drogą elektroniczną w rozumieniu ustawy z dnia 18 lipca 2002 r. o
@@ -72,7 +72,7 @@ export default function Regulamin() {
       <h2>§ 6. Płatności</h2>
       <ol>
         <li>Opłata za Pakiet jest pobierana z góry, przy tworzeniu Galerii, zmianie Pakietu lub przedłużeniu dostępu.</li>
-        <li>Płatności obsługuje zewnętrzny operator płatności: [NAZWA OPERATORA].</li>
+        <li>Płatności obsługuje zewnętrzny operator płatności PayPro S.A. (Przelewy24) z siedzibą w Poznaniu.</li>
         <li>Faktura lub rachunek jest wysyłany na adres e-mail Fotografa.</li>
       </ol>
 
@@ -114,7 +114,7 @@ export default function Regulamin() {
       <p>
         Fotograf będący konsumentem lub przedsiębiorcą na prawach konsumenta może odstąpić od umowy w ciągu 14 dni. Jeśli
         na jego wyraźne żądanie usługa została w pełni wykonana przed upływem tego terminu, prawo odstąpienia wygasa
-        zgodnie z art. 38 ustawy o prawach konsumenta. [DO WERYFIKACJI PRZEZ PRAWNIKA]
+        zgodnie z art. 38 ustawy o prawach konsumenta.
       </p>
 
       <h2>§ 11. Odpowiedzialność</h2>
@@ -122,7 +122,7 @@ export default function Regulamin() {
         <li>Usługodawca dokłada starań, aby Serwis działał bez przerw, i informuje o planowanych pracach technicznych.</li>
         <li>
           Odpowiedzialność Usługodawcy wobec Fotografów będących przedsiębiorcami jest ograniczona do kwoty opłat
-          wniesionych za daną Galerię. [DO WERYFIKACJI PRZEZ PRAWNIKA]
+          wniesionych za daną Galerię.
         </li>
       </ol>
 
@@ -133,7 +133,14 @@ export default function Regulamin() {
       </ol>
 
       <h2>Załącznik nr 1. Umowa powierzenia przetwarzania danych</h2>
-      <p>[TREŚĆ UMOWY POWIERZENIA – DO PRZYGOTOWANIA PRZEZ PRAWNIKA. Powinna wskazywać m.in. zakres i cel przetwarzania (przechowywanie i udostępnianie zdjęć), podprzetwarzających (Cloudflare, Supabase, Vercel, operator e-maili), środki bezpieczeństwa i zasady usuwania danych.]</p>
+      <ol>
+        <li>Fotograf (administrator) powierza Usługodawcy (podmiotowi przetwarzającemu) przetwarzanie danych osobowych zawartych w zdjęciach oraz danych Klientów w zakresie niezbędnym do przechowywania i udostępniania Galerii.</li>
+        <li>Usługodawca przetwarza dane wyłącznie na udokumentowane polecenie Fotografa, którym jest korzystanie z funkcji Serwisu, przez czas trwania umowy.</li>
+        <li>Usługodawca zapewnia poufność danych, stosuje szyfrowanie połączeń, ograniczenie dostępu i hasła do Galerii oraz pomaga Fotografowi w realizacji praw osób, których dane dotyczą.</li>
+        <li>Fotograf wyraża zgodę na korzystanie z podprzetwarzających: Cloudflare (przechowywanie zdjęć w UE), Supabase (baza danych w UE), Vercel (hosting), Resend (wysyłka e-maili).</li>
+        <li>Po wygaśnięciu Galerii lub usunięciu Konta dane są usuwane zgodnie z § 5 ust. 5.</li>
+        <li>Usługodawca niezwłocznie informuje Fotografa o naruszeniu ochrony danych dotyczącym jego Galerii.</li>
+      </ol>
     </article>
   );
 }

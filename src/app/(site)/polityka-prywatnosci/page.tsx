@@ -9,7 +9,7 @@ export default function Polityka() {
         <p className="legal-draft">Wersja robocza. Dokument zostanie sprawdzony przez prawnika przed uruchomieniem płatności.</p>
       )}
       <h1>Polityka prywatności</h1>
-      <p className="legal-meta">Obowiązuje od: [DATA]</p>
+      <p className="legal-meta">Obowiązuje od: {COMPANY.effective}</p>
 
       <h2>1. Administrator danych</h2>
       <p>
@@ -56,7 +56,7 @@ export default function Polityka() {
         <li>Supabase – konta i baza danych (serwery w Unii Europejskiej, Irlandia),</li>
         <li>Vercel – hosting strony,</li>
         <li>Resend – wysyłka wiadomości e-mail,</li>
-        <li>[OPERATOR PŁATNOŚCI] – obsługa płatności.</li>
+        <li>PayPro S.A. (Przelewy24) – obsługa płatności.</li>
       </ul>
       <p>
         Część dostawców ma siedzibę w USA. Przekazanie danych odbywa się na podstawie standardowych klauzul umownych lub
