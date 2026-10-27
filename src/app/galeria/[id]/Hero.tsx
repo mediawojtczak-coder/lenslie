@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Pełnoekranowa okładka galerii: zdjęcie spokojnie się wyłania, potem tytuł i przycisk
 export default function Hero({
@@ -20,12 +20,21 @@ export default function Hero({
 }) {
   const [loaded, setLoaded] = useState(!coverUrl);
   const [showForm, setShowForm] = useState(error);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // Zdjęcie mogło wczytać się z pamięci przeglądarki, zanim strona ożyła – wtedy pokazujemy je od razu.
+  // Zabezpieczenie: najpóźniej po 4 s okładka i tak się pokaże.
+  useEffect(() => {
+    if (imgRef.current?.complete) setLoaded(true);
+    const t = setTimeout(() => setLoaded(true), 4000);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <header className={loaded ? "hero-cover is-ready" : "hero-cover"}>
       {coverUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={coverUrl} alt="" className="hero-img" onLoad={() => setLoaded(true)} fetchPriority="high" />
+        <img ref={imgRef} src={coverUrl} alt="" className="hero-img" onLoad={() => setLoaded(true)} fetchPriority="high" />
       ) : (
         <div className="hero-img hero-blank" />
       )}
