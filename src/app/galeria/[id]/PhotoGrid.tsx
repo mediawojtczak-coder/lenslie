@@ -2,8 +2,15 @@
 
 import { useState } from "react";
 import Lightbox from "@/components/Lightbox";
+import DownloadMenu from "@/components/DownloadMenu";
 
-type Item = { name: string; fileName: string; webUrl: string; downloadUrl: string };
+type Item = {
+  name: string;
+  fileName: string;
+  webUrl: string;
+  downloadUrl: string;
+  webDownloadUrl: string;
+};
 
 export default function PhotoGrid({ photos, layout }: { photos: Item[]; layout: "mozaika" | "siatka" }) {
   const [open, setOpen] = useState<number | null>(null);
@@ -18,12 +25,7 @@ export default function PhotoGrid({ photos, layout }: { photos: Item[]; layout: 
               <img src={p.webUrl} alt={p.name} loading="lazy" />
             </button>
             <div className="photo-actions">
-              <a href={p.downloadUrl} download className="pa-btn" aria-label={`Pobierz ${p.fileName}`}>
-                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                  <path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span>Pobierz</span>
-              </a>
+              <DownloadMenu fullUrl={p.downloadUrl} webUrl={p.webDownloadUrl} fileName={p.fileName} />
               <button type="button" className="pa-btn" onClick={() => setOpen(i)} aria-label={`Powiększ ${p.fileName}`}>
                 <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
                   <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
@@ -38,7 +40,12 @@ export default function PhotoGrid({ photos, layout }: { photos: Item[]; layout: 
 
       {open !== null && (
         <Lightbox
-          items={photos.map((p) => ({ url: p.webUrl, name: p.fileName, downloadUrl: p.downloadUrl }))}
+          items={photos.map((p) => ({
+            url: p.webUrl,
+            name: p.fileName,
+            downloadUrl: p.downloadUrl,
+            webDownloadUrl: p.webDownloadUrl,
+          }))}
           index={open}
           onIndex={setOpen}
           onClose={() => setOpen(null)}

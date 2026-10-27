@@ -86,7 +86,12 @@ export default async function Galeria({
           {photos.length > 0 && (
             <DownloadAll
               zipName={`${id}.zip`}
-              items={photos.map((p) => ({ url: p.downloadUrl, fileName: p.fileName }))}
+              items={photos.map((p) => ({
+                url: p.downloadUrl,
+                fileName: p.fileName,
+                webUrl: p.webDownloadUrl,
+                webFileName: p.webFileName,
+              }))}
             />
           )}
           {meta?.passwordHash && (
@@ -123,6 +128,7 @@ export default async function Galeria({
               fileName: p.fileName,
               webUrl: p.webUrl,
               downloadUrl: p.downloadUrl,
+              webDownloadUrl: p.webDownloadUrl,
             }))}
           />
         )}

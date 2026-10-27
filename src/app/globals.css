@@ -668,3 +668,26 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 }
 .g-logout:hover { color: var(--ink); }
 @media (max-width: 760px) { .g-bar-actions { gap: 12px; } }
+
+/* Wybór jakości pobierania */
+.dl-menu { position: relative; display: inline-flex; }
+.dl-pop {
+  position: absolute; z-index: 20; min-width: 250px; padding: 6px;
+  background: #fff; color: var(--ink); border-radius: 10px;
+  box-shadow: 0 14px 40px rgba(20, 18, 17, .22); text-align: left;
+  animation: dl-in .15s ease-out;
+}
+@keyframes dl-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.dl-tile .dl-pop { right: 0; bottom: calc(100% + 6px); }
+.dl-lightbox .dl-pop { right: 0; top: calc(100% + 8px); }
+.dl-pop-down { right: 0; top: calc(100% + 8px); }
+.dl-pop a, .dl-pop button {
+  display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 10px 12px;
+  border: 0; border-radius: 6px; background: none; font: inherit; text-align: left;
+  color: var(--ink); text-decoration: none; cursor: pointer;
+}
+.dl-pop a:hover, .dl-pop button:hover, .dl-pop a:focus-visible, .dl-pop button:focus-visible { background: var(--blush); color: var(--ink); }
+.dl-pop strong { font-weight: 500; font-size: .9rem; }
+.dl-pop span { font-size: .76rem; color: var(--taupe); }
+.photo-actions:has(.dl-pop) { opacity: 1; }
+.download-all { position: relative; }

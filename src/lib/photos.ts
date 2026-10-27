@@ -7,6 +7,9 @@ export type Photo = {
   fileName: string;
   webUrl: string;
   downloadUrl: string;
+  // Lżejsza wersja do internetu (max 2048 px)
+  webDownloadUrl: string;
+  webFileName: string;
   size: number;
   uploadedAt: string;
 };
@@ -61,7 +64,8 @@ export async function getGalleryPhotos(id: string): Promise<Photo[]> {
       const originalKey = original?.key ?? key;
       const originalFile = originalKey.split("/").pop() ?? file;
 
-      const [webUrl, downloadUrl] = await Promise.all([
+      const webFileName = `${name}-internet.jpg`;
+      const [webUrl, downloadUrl, webDownloadUrl] = await Promise.all([
         getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: key }), { expiresIn: 7200 }),
         getSignedUrl(
           r2,
@@ -72,6 +76,15 @@ export async function getGalleryPhotos(id: string): Promise<Photo[]> {
           }),
           { expiresIn: 7200 },
         ),
+        getSignedUrl(
+          r2,
+          new GetObjectCommand({
+            Bucket: BUCKET,
+            Key: key,
+            ResponseContentDisposition: `attachment; filename="${webFileName}"`,
+          }),
+          { expiresIn: 7200 },
+        ),
       ]);
 
       return {
@@ -79,6 +92,8 @@ export async function getGalleryPhotos(id: string): Promise<Photo[]> {
         fileName: originalFile,
         webUrl,
         downloadUrl,
+        webDownloadUrl,
+        webFileName,
         size: original?.size ?? 0,
         uploadedAt: original?.modified ?? "",
       };

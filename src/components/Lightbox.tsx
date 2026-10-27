@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import DownloadMenu from "./DownloadMenu";
 
-export type LightboxItem = { url: string; name: string; downloadUrl?: string };
+export type LightboxItem = { url: string; name: string; downloadUrl?: string; webDownloadUrl?: string };
 
 // Pełnoekranowy podgląd zdjęć: strzałki, klawiatura, przesuwanie palcem i powiększanie
 export default function Lightbox({
@@ -93,11 +94,12 @@ export default function Lightbox({
         </span>
         <div className="lb-tools">
           {item.downloadUrl && (
-            <a className="lb-btn" href={item.downloadUrl} download aria-label="Pobierz zdjęcie" title="Pobierz">
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </a>
+            <DownloadMenu
+              variant="lightbox"
+              fullUrl={item.downloadUrl}
+              webUrl={item.webDownloadUrl ?? item.url}
+              fileName={item.name}
+            />
           )}
           <button type="button" className="lb-btn" onClick={() => setZoom((z) => !z)} aria-label={zoom ? "Pomniejsz" : "Powiększ"} title={zoom ? "Pomniejsz" : "Powiększ"}>
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">

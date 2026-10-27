@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { downloadZip } from "client-zip";
 
-type Item = { url: string; fileName: string };
+type Item = { url: string; fileName: string; webUrl: string; webFileName: string };
+type Kind = "full" | "web";
 
 type SaveWindow = Window & {
   showSaveFilePicker?: (options: {
@@ -17,16 +18,31 @@ type SaveWindow = Window & {
 export default function DownloadAll({ items, zipName }: { items: Item[]; zipName: string }) {
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [count, setCount] = useState(0);
+  const [menu, setMenu] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-  async function run() {
+  useEffect(() => {
+    if (!menu) return;
+    function onDoc(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setMenu(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [menu]);
+
+  async function run(kind: Kind) {
+    setMenu(false);
     setState("busy");
     setCount(0);
+    const name = kind === "full" ? zipName : zipName.replace(/\.zip$/, "-internet.zip");
     try {
       async function* files() {
         for (const it of items) {
-          const res = await fetch(it.url);
-          if (!res.ok) throw new Error(`Nie udało się pobrać ${it.fileName}`);
-          yield { name: it.fileName, input: res };
+          const url = kind === "full" ? it.url : it.webUrl;
+          const fileName = kind === "full" ? it.fileName : it.webFileName;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`Nie udało się pobrać ${fileName}`);
+          yield { name: fileName, input: res };
           setCount((c) => c + 1);
         }
       }
@@ -36,7 +52,7 @@ export default function DownloadAll({ items, zipName }: { items: Item[]; zipName
 
       if (w.showSaveFilePicker && zip.body) {
         const handle = await w.showSaveFilePicker({
-          suggestedName: zipName,
+          suggestedName: name,
           types: [{ description: "Archiwum ZIP", accept: { "application/zip": [".zip"] } }],
         });
         const writable = await handle.createWritable();
@@ -45,7 +61,7 @@ export default function DownloadAll({ items, zipName }: { items: Item[]; zipName
         const blob = await zip.blob();
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = zipName;
+        a.download = name;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -62,12 +78,29 @@ export default function DownloadAll({ items, zipName }: { items: Item[]; zipName
   }
 
   return (
-    <div className="download-all">
-      <button className="btn btn-ghost" type="button" onClick={run} disabled={state === "busy"}>
-        {state === "busy"
-          ? `Przygotowuję… ${count} z ${items.length}`
-          : "Pobierz wszystkie"}
+    <div className="download-all" ref={ref}>
+      <button
+        className="btn btn-ghost"
+        type="button"
+        onClick={() => setMenu((v) => !v)}
+        disabled={state === "busy"}
+        aria-haspopup="menu"
+        aria-expanded={menu}
+      >
+        {state === "busy" ? `Przygotowuję… ${count} z ${items.length}` : "Pobierz wszystkie"}
       </button>
+      {menu && (
+        <div className="dl-pop dl-pop-down" role="menu">
+          <button type="button" role="menuitem" onClick={() => run("full")}>
+            <strong>Pełna rozdzielczość</strong>
+            <span>Oryginały do druku i albumu</span>
+          </button>
+          <button type="button" role="menuitem" onClick={() => run("web")}>
+            <strong>Do internetu</strong>
+            <span>Mniejsze pliki, szybsze pobieranie</span>
+          </button>
+        </div>
+      )}
       {state === "done" && <p className="hint-center">Pobieranie zakończone.</p>}
       {state === "error" && (
         <p className="error hint-center" role="alert">
