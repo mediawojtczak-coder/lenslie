@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, saveMeta, hashPassword, type GalleryMeta } from "@/lib/galleries";
 import { getUser } from "@/lib/supabase/server";
+import { getPlan, isPeriod, addMonths } from "@/lib/plans";
 
 export const runtime = "nodejs";
 
@@ -13,7 +14,15 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json().catch(() => null)) as
-    | { gallery?: string; title?: string; clientPassword?: string; layout?: string; removePassword?: boolean }
+    | {
+        gallery?: string;
+        title?: string;
+        clientPassword?: string;
+        layout?: string;
+        removePassword?: boolean;
+        plan?: string;
+        period?: number;
+      }
     | null;
 
   const id = String(body?.gallery ?? "");
@@ -70,7 +79,21 @@ export async function POST(req: Request) {
         : existing?.passwordHash,
     password: body?.removePassword ? undefined : clientPassword || existing?.password,
     layout: requestedLayout ?? existing?.layout ?? "mozaika",
+    plan: existing?.plan,
+    period: existing?.period,
+    expiresAt: existing?.expiresAt,
   };
+
+  // Pakiet wybiera się raz, przy tworzeniu galerii. Późniejsze zmiany tylko przez /api/galleries/[id]/plan
+  if (!meta.plan) {
+    const plan = getPlan(body?.plan);
+    const period = body?.period;
+    if (plan && isPeriod(period)) {
+      meta.plan = plan.id;
+      meta.period = period;
+      meta.expiresAt = addMonths(new Date(), period).toISOString();
+    }
+  }
   await saveMeta(id, meta);
 
   return NextResponse.json({ ok: true, id, protected: Boolean(meta.passwordHash) });

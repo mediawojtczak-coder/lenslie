@@ -902,3 +902,43 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .features { margin-top: 56px; gap: 18px; }
   .features > div { padding: 32px 22px 28px; }
 }
+
+/* ===== Pakiety w panelu ===== */
+.plan-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  background: #fff; border-radius: 8px; padding: 16px 22px; margin-bottom: 24px;
+  box-shadow: 0 1px 2px rgba(59, 54, 51, .05);
+}
+.plan-info { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+.plan-name { margin: 0; font-size: .92rem; }
+.plan-name strong { font-weight: 500; }
+.plan-name span { color: var(--taupe); }
+.usage { display: flex; align-items: center; gap: 12px; }
+.usage-bar { width: 160px; height: 6px; border-radius: 999px; background: var(--hair); overflow: hidden; }
+.usage-bar span { display: block; height: 100%; border-radius: 999px; background: #9db39a; transition: width .4s; }
+.usage.warn .usage-bar span { background: #d6a56f; }
+.usage.full .usage-bar span { background: #c46b5c; }
+.usage p { margin: 0; font-size: .82rem; color: var(--taupe); white-space: nowrap; }
+.plan-exp { margin: 0; font-size: .82rem; color: var(--taupe); }
+.plan-exp.expired { color: #a4483c; }
+.plan-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.plan-actions .btn-small { margin: 0; }
+.plan-done { flex-basis: 100%; margin: 0; font-size: .82rem; color: #5d7a59; }
+
+.plan-pick { border: 0; padding: 0; margin: 4px 0 22px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.plan-pick legend { font-size: .85rem; color: var(--taupe); margin-bottom: 10px; padding: 0; }
+.plan-pick .pick { padding: 16px 10px 14px; }
+.pick-price { margin-top: 6px; font-family: var(--font-display), Georgia, serif; font-size: 1.25rem; }
+.modal .period-switch { margin: 6px 0 22px; }
+.test-note { margin: 14px 0 0; font-size: .75rem; color: var(--taupe); text-align: center; }
+.g-badge-exp { background: #c46b5c; color: #fff; }
+
+.expired-page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 16px; }
+.expired-page .wordmark { margin: 0 0 40px; }
+.expired-page h1 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: clamp(2.2rem, 5vw, 3.4rem); margin: 0 0 12px; }
+.expired-page p { color: var(--taupe); max-width: 30em; margin: 0; }
+
+@media (max-width: 560px) {
+  .plan-pick { grid-template-columns: 1fr; }
+  .usage-bar { width: 110px; }
+}

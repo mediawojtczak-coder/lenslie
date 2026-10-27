@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { getGalleryPhotos, getGallerySummary, type Photo } from "@/lib/photos";
 import { isValidGalleryId } from "@/lib/r2";
-import { getMeta, hasAccess, accessCookieName, type GalleryMeta } from "@/lib/galleries";
+import { getMeta, hasAccess, accessCookieName, isExpired, type GalleryMeta } from "@/lib/galleries";
 import DownloadAll from "./DownloadAll";
 import Hero from "./Hero";
 import PhotoGrid from "./PhotoGrid";
@@ -48,6 +48,17 @@ export default async function Galeria({
   }
 
   const title = demo ? "Anna & Marek" : meta?.title || titleFromId(id);
+
+  // Po wygaśnięciu pakietu klient widzi tylko krótką informację
+  if (!demo && isExpired(meta)) {
+    return (
+      <section className="expired-page">
+        <p className="wordmark">Lenslie</p>
+        <h1>{title}</h1>
+        <p>Dostęp do tej galerii wygasł. Skontaktuj się z fotografem, jeśli potrzebujesz zdjęć.</p>
+      </section>
+    );
+  }
 
   // Galeria chroniona hasłem: bez ważnego ciasteczka pokazujemy tylko okładkę z polem na hasło
   const cookieStore = await cookies();

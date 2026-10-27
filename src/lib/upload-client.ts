@@ -34,10 +34,14 @@ export async function uploadPhotos(gallery: string, files: File[], onProgress: (
     const res = await fetch("/api/upload-url", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gallery, files: batch.map((f) => ({ name: f.name, type: f.type })) }),
+      body: JSON.stringify({ gallery, files: batch.map((f) => ({ name: f.name, type: f.type, size: f.size })) }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error ?? "Błąd serwera.");
+    if (!res.ok) {
+      const err = new Error(data.error ?? "Błąd serwera.") as Error & { code?: string };
+      err.code = data.code;
+      throw err;
+    }
     const uploads: Upload[] = data.uploads;
 
     // Po 3 zdjęcia naraz

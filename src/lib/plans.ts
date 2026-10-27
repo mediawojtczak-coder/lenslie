@@ -47,3 +47,43 @@ export function periodLabel(p: Period) {
   if (p === 3) return "3 miesiące";
   return `${p} miesięcy`;
 }
+
+export type PlanId = Plan["id"];
+
+// Zapas ponad limit pakietu, żeby pojedyncze zdjęcia nie blokowały pracy
+export const TOLERANCE = 0.02;
+const GB = 1024 ** 3;
+
+export function getPlan(id: string | undefined | null): Plan | undefined {
+  return PLANS.find((p) => p.id === id);
+}
+
+export function isPeriod(n: unknown): n is Period {
+  return n === 1 || n === 3 || n === 6 || n === 12;
+}
+
+// Limit pakietu w bajtach (bez zapasu) i twardy limit z zapasem
+export function planBytes(plan: Plan) {
+  return plan.limitGb * GB;
+}
+export function hardLimitBytes(plan: Plan) {
+  return Math.floor(planBytes(plan) * (1 + TOLERANCE));
+}
+
+export function addMonths(from: Date, months: number) {
+  const d = new Date(from);
+  const day = d.getDate();
+  d.setMonth(d.getMonth() + months);
+  if (d.getDate() < day) d.setDate(0); // np. 31 stycznia + 1 miesiąc = 28/29 lutego
+  return d;
+}
+
+// Dopłata przy zmianie pakietu na większy w tym samym okresie
+export function upgradeCost(from: Plan, to: Plan, period: Period) {
+  return Math.max(0, to.prices[period] - from.prices[period]);
+}
+
+export function formatBytes(bytes: number) {
+  if (bytes >= GB) return `${(bytes / GB).toLocaleString("pl-PL", { maximumFractionDigits: 2 })} GB`;
+  return `${Math.max(0, Math.round(bytes / 1024 ** 2)).toLocaleString("pl-PL")} MB`;
+}

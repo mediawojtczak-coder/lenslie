@@ -1,6 +1,7 @@
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
+import type { Period, PlanId } from "@/lib/plans";
 
 // Opis galerii zapisany obok zdjęć w R2: galleries/<id>/meta.json
 export type GalleryMeta = {
@@ -10,7 +11,15 @@ export type GalleryMeta = {
   password?: string;
   createdAt: string;
   layout?: "mozaika" | "siatka";
+  // Pakiet: rozmiar, okres publikacji i data wygaśnięcia dostępu dla klienta
+  plan?: PlanId;
+  period?: Period;
+  expiresAt?: string;
 };
+
+export function isExpired(meta: GalleryMeta | null) {
+  return Boolean(meta?.expiresAt && new Date(meta.expiresAt).getTime() < Date.now());
+}
 
 const metaKey = (id: string) => `${galleryPrefix(id)}meta.json`;
 

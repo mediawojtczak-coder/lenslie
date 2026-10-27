@@ -2,6 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { PLANS, PERIODS, getPlan, type Period, type PlanId } from "@/lib/plans";
 
 function toSlug(text: string) {
   return text
@@ -30,6 +31,8 @@ export default function CreateGallery({ label, className }: { label: string; cla
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [layout, setLayout] = useState<Layout>("mozaika");
+  const [plan, setPlan] = useState<PlanId>("srednia");
+  const [period, setPeriod] = useState<Period>(12);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -39,6 +42,8 @@ export default function CreateGallery({ label, className }: { label: string; cla
     setName("");
     setPassword(generatePassword());
     setLayout("mozaika");
+    setPlan("srednia");
+    setPeriod(12);
     setError("");
     dialogRef.current?.showModal();
   }
@@ -59,7 +64,14 @@ export default function CreateGallery({ label, className }: { label: string; cla
       const res = await fetch("/api/galleries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gallery: slug, title: name.trim(), clientPassword: password.trim(), layout }),
+        body: JSON.stringify({
+          gallery: slug,
+          title: name.trim(),
+          clientPassword: password.trim(),
+          layout,
+          plan,
+          period,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Nie udało się utworzyć galerii.");
@@ -150,6 +162,34 @@ export default function CreateGallery({ label, className }: { label: string; cla
             </label>
           </fieldset>
 
+          <fieldset className="plan-pick">
+            <legend>Pakiet</legend>
+            {PLANS.map((p) => (
+              <label key={p.id} className={plan === p.id ? "pick active" : "pick"}>
+                <input type="radio" name="plan" checked={plan === p.id} onChange={() => setPlan(p.id)} />
+                <span className="pick-title">{p.name}</span>
+                <span className="pick-desc">
+                  do {p.limitGb.toLocaleString("pl-PL")} GB · {p.photos}
+                </span>
+                <span className="pick-price">{p.prices[period]} zł</span>
+              </label>
+            ))}
+          </fieldset>
+
+          <p className="share-sub">Dostęp dla klienta</p>
+          <div className="period-switch">
+            {PERIODS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                className={period === p ? "period active" : "period"}
+                onClick={() => setPeriod(p)}
+              >
+                {p === 1 ? "1 mies." : `${p} mies.`}
+              </button>
+            ))}
+          </div>
+
           {error && (
             <p className="error" role="alert">
               {error}
@@ -161,9 +201,10 @@ export default function CreateGallery({ label, className }: { label: string; cla
               Anuluj
             </button>
             <button type="submit" className="btn" disabled={busy}>
-              {busy ? "Tworzę…" : "Utwórz galerię"}
+              {busy ? "Tworzę…" : `Utwórz galerię · ${getPlan(plan)?.prices[period] ?? 0} zł`}
             </button>
           </div>
+          <p className="test-note">Tryb testowy: płatności zostaną podłączone później.</p>
         </form>
       </dialog>
     </>

@@ -72,6 +72,11 @@ export default function PhotoManager({
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nie udało się przesłać zdjęć.");
+      const code = (err as { code?: string }).code;
+      if (code === "LIMIT" || code === "NO_PLAN" || code === "EXPIRED") {
+        window.dispatchEvent(new Event("lenslie:plan"));
+      }
+      router.refresh();
     } finally {
       setUploading(null);
       if (fileRef.current) fileRef.current.value = "";

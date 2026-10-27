@@ -3,9 +3,10 @@ import SideLogout from "@/components/SideLogout";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { isValidGalleryId } from "@/lib/r2";
-import { getGalleryPhotos, type Photo } from "@/lib/photos";
+import { getGalleryPhotos, getGalleryUsage, type Photo } from "@/lib/photos";
 import { getMeta } from "@/lib/galleries";
 import ShareBar from "./ShareBar";
+import PlanBar from "./PlanBar";
 import PhotoManager from "./PhotoManager";
 import SettingsForm from "./SettingsForm";
 
@@ -29,9 +30,10 @@ export default async function ZarzadzanieGalerii({
   if (!data) notFound();
   const gallery = data as { id: string; title: string; created_at: string };
 
-  const [meta, photos] = await Promise.all([
+  const [meta, photos, usedBytes] = await Promise.all([
     getMeta(id).catch(() => null),
     getGalleryPhotos(id).catch(() => [] as Photo[]),
+    getGalleryUsage(id).catch(() => 0),
   ]);
 
   const tabs = [
@@ -79,6 +81,14 @@ export default async function ZarzadzanieGalerii({
           protectedByPassword={Boolean(meta?.passwordHash)}
           password={meta?.password ?? null}
           photoCount={photos.length}
+        />
+
+        <PlanBar
+          id={id}
+          planId={meta?.plan ?? null}
+          period={meta?.period ?? null}
+          expiresAt={meta?.expiresAt ?? null}
+          usedBytes={usedBytes}
         />
 
         {tab === "ustawienia" ? (

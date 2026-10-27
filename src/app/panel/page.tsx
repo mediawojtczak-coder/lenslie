@@ -2,14 +2,22 @@ import Link from "next/link";
 import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
 import { getGallerySummary } from "@/lib/photos";
-import { getMeta } from "@/lib/galleries";
+import { getMeta, isExpired } from "@/lib/galleries";
+import { getPlan } from "@/lib/plans";
 import CreateGallery from "./CreateGallery";
 
 export const dynamic = "force-dynamic";
 
 type GalleryRow = { id: string; title: string; created_at: string };
 
-type Card = GalleryRow & { count: number; coverUrl: string | null; protected: boolean };
+type Card = GalleryRow & {
+  count: number;
+  coverUrl: string | null;
+  protected: boolean;
+  planName: string | null;
+  expiresAt: string | null;
+  expired: boolean;
+};
 
 const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric" });
 
@@ -48,7 +56,14 @@ export default async function Panel({
         getGallerySummary(g.id).catch(() => ({ count: 0, coverUrl: null })),
         getMeta(g.id).catch(() => null),
       ]);
-      return { ...g, ...summary, protected: Boolean(meta?.passwordHash) };
+      return {
+        ...g,
+        ...summary,
+        protected: Boolean(meta?.passwordHash),
+        planName: getPlan(meta?.plan)?.name ?? null,
+        expiresAt: meta?.expiresAt ?? null,
+        expired: isExpired(meta),
+      };
     }),
   );
 
@@ -122,14 +137,23 @@ export default async function Panel({
                   ) : (
                     <span className="g-cover-empty">Brak zdjęć</span>
                   )}
-                  {c.protected && <span className="g-badge">Hasło</span>}
+                  {c.expired ? (
+                    <span className="g-badge g-badge-exp">Wygasła</span>
+                  ) : (
+                    c.protected && <span className="g-badge">Hasło</span>
+                  )}
                 </Link>
                 <div className="g-info">
                   <Link href={`/panel/galeria/${c.id}`} className="g-title">
                     {c.title}
                   </Link>
                   <p className="g-meta">
-                    {photosLabel(c.count)} · {dateFmt.format(new Date(c.created_at))}
+                    {photosLabel(c.count)}
+                    {c.planName ? ` · ${c.planName}` : " · bez pakietu"}
+                    <br />
+                    {c.expiresAt
+                      ? `${c.expired ? "Wygasła" : "Dostęp do"} ${dateFmt.format(new Date(c.expiresAt))}`
+                      : `Utworzona ${dateFmt.format(new Date(c.created_at))}`}
                   </p>
                   <a href={`/galeria/${c.id}`} className="g-action" target="_blank" rel="noreferrer">
                     Podgląd dla klienta

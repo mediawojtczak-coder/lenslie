@@ -16,7 +16,7 @@ export type Photo = {
 
 type Obj = { key: string; size: number; modified: string };
 
-async function listObjects(prefix: string): Promise<Obj[]> {
+export async function listObjects(prefix: string): Promise<Obj[]> {
   const out: Obj[] = [];
   let token: string | undefined;
   do {
@@ -111,4 +111,11 @@ export async function getGallerySummary(id: string): Promise<{ count: number; co
     expiresIn: 7200,
   });
   return { count: keys.length, coverUrl };
+}
+
+// Ile miejsca zajmuje galeria (oryginały + wersje do oglądania)
+export async function getGalleryUsage(id: string): Promise<number> {
+  if (!process.env.R2_ENDPOINT) return 0;
+  const objs = await listObjects(galleryPrefix(id));
+  return objs.reduce((sum, o) => sum + o.size, 0);
 }
