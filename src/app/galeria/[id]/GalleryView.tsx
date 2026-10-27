@@ -11,6 +11,8 @@ import PhotoGrid, { type Group, type GridItem } from "./PhotoGrid";
 import SlideshowButton from "./SlideshowButton";
 import Track from "./Track";
 import { T } from "@/lib/i18n";
+import { saleOn, getSaleOrder, getPayoutForGallery, type SaleOrder } from "@/lib/sales";
+import type { SaleInfo } from "./PhotoGrid";
 
 const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
@@ -52,8 +54,22 @@ export default async function GalleryView({
     error = true;
   }
 
+  // Sprzedaż zdjęć: klient pobiera tylko zdjęcia z dostarczonego zamówienia
+  const selling = saleOn(meta);
+  const store = await cookies();
+  const sel =
+    mode === "client" && !preview && adminClient()
+      ? await getSelection(id, store.get(selectionCookie(id))?.value).catch(() => null)
+      : null;
+  const order: SaleOrder | null = selling && sel ? await getSaleOrder(id, sel.id).catch(() => null) : null;
+  const unlocked = new Set(order?.status === "delivered" ? order.photos : []);
+  const clean = new Map<string, Photo>();
+  if (unlocked.size > 0) {
+    for (const p of await getGalleryPhotos(id).catch(() => [] as Photo[])) if (unlocked.has(p.name)) clean.set(p.name, p);
+  }
+
   // Goście nigdy nie dostają więcej niż klient
-  const clientDownloads: Downloads = meta?.downloads ?? "all";
+  const clientDownloads: Downloads = selling ? "none" : (meta?.downloads ?? "all");
   const guest = meta?.guest;
   const downloads: Downloads =
     mode === "guest" && guest
@@ -62,7 +78,22 @@ export default async function GalleryView({
         : clientDownloads
       : clientDownloads;
 
-  const toItem = (p: Photo): GridItem => ({
+  const toItem = (p: Photo): GridItem => {
+    const c = clean.get(p.name);
+    if (c) {
+      return {
+        name: p.name,
+        fileName: c.fileName,
+        webUrl: c.webUrl,
+        downloadUrl: c.downloadUrl,
+        webDownloadUrl: c.webDownloadUrl,
+        webFileName: c.webFileName,
+        unlocked: true,
+      };
+    }
+    return toLocked(p);
+  };
+  const toLocked = (p: Photo): GridItem => ({
     name: p.name,
     fileName: p.fileName,
     webUrl: p.webUrl,
@@ -103,9 +134,20 @@ export default async function GalleryView({
   // Ulubione są dostępne dla klienta (nie dla gości), gdy działa baza wyborów
   let favorites: { name: string | null; photos: string[] } | null = null;
   if (mode === "client" && !preview && adminClient()) {
-    const store = await cookies();
-    const sel = await getSelection(id, store.get(selectionCookie(id))?.value).catch(() => null);
-    favorites = { name: sel?.client_name ?? null, photos: sel?.photos ?? [] };
+    favorites = { name: sel?.client_name ?? null, photos: order?.photos ?? sel?.photos ?? [] };
+  }
+
+  // Galeria ze sprzedażą: pakiet, stan zamówienia i dane do wpłaty
+  let sale: SaleInfo | null = null;
+  if (selling && favorites) {
+    sale = {
+      included: meta!.sale!.included,
+      extraPrice: meta!.sale!.extraPrice,
+      title,
+      payout: await getPayoutForGallery(id).catch(() => null),
+      order: order ? { status: order.status, total: order.total, extra: order.extra, count: order.photos.length, ref: order.ref } : null,
+      delivered: [...clean.values()].map((c) => ({ url: c.downloadUrl, fileName: c.fileName, webUrl: c.webDownloadUrl, webFileName: c.webFileName })),
+    };
   }
 
   return (
@@ -178,6 +220,7 @@ export default async function GalleryView({
             watermark={watermark}
             galleryId={id}
             favorites={favorites}
+            sale={sale}
             lang={lang}
           />
         )}

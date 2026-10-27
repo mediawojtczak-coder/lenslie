@@ -6,6 +6,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET } from "@/lib/r2";
 import { getUser } from "@/lib/supabase/server";
 import { cleanBilling, saveBilling } from "@/lib/billing";
+import { cleanPayout, savePayout } from "@/lib/sales";
 
 export const runtime = "nodejs";
 
@@ -17,7 +18,8 @@ type Body =
   | { action: "logo-done"; key?: string }
   | { action: "logo-remove" }
   | { action: "password"; password?: string }
-  | { action: "billing"; billing?: unknown };
+  | { action: "billing"; billing?: unknown }
+  | { action: "payout"; payout?: unknown };
 
 const NO_TABLE = "Nie udało się zapisać profilu. Sprawdź, czy w Supabase uruchomiono SQL z tabelą profiles.";
 
@@ -27,6 +29,13 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: await E("Zaloguj się ponownie.") }, { status: 401 });
   const body = (await req.json().catch(() => null)) as Body | null;
   if (!body) return NextResponse.json({ error: await E("Nieprawidłowe dane.") }, { status: 400 });
+
+  if (body.action === "payout") {
+    const p = cleanPayout(body.payout);
+    if (!p.ok) return NextResponse.json({ error: await E(p.error) }, { status: 400 });
+    await savePayout(user.id, p.payout);
+    return NextResponse.json({ ok: true, payout: p.payout });
+  }
 
   if (body.action === "billing") {
     const c = cleanBilling({ ...(body.billing as object), want: true });

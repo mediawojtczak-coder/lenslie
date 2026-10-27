@@ -20,6 +20,8 @@ import ProtectionCard from "./ProtectionCard";
 import GuestCard from "./GuestCard";
 import SelectionsTab from "./SelectionsTab";
 import StatsTab from "./StatsTab";
+import SaleCard from "./SaleCard";
+import { getPayout } from "@/lib/sales";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +45,7 @@ export default async function ZarzadzanieGalerii({
   const balance = user ? (await getWallet(user.id)).balance : 0;
   const domainRec = user ? await getDomainByUser(user.id).catch(() => null) : null;
   const domain = domainActive(domainRec) ? domainRec!.host : null;
+  const hasPayout = user ? Boolean(await getPayout(user.id).catch(() => null)) : false;
   const { data } = await supabase.from("galleries").select("id, title, created_at").eq("id", id).maybeSingle();
   if (!data) notFound();
   const gallery = data as { id: string; title: string; created_at: string };
@@ -70,7 +73,7 @@ export default async function ZarzadzanieGalerii({
 
   const tabs = [
     { key: "zdjecia", label: L("Zdjęcia", "Photos"), count: photos.length },
-    { key: "wybory", label: L("Wybory klientów", "Client selections"), count: selectionCount ?? 0 },
+    { key: "wybory", label: meta?.sale?.enabled ? L("Zamówienia klientów", "Client orders") : L("Wybory klientów", "Client selections"), count: selectionCount ?? 0 },
     { key: "statystyki", label: L("Statystyki", "Statistics"), count: null },
     { key: "ustawienia", label: L("Ustawienia", "Settings"), count: null },
   ];
@@ -144,7 +147,7 @@ export default async function ZarzadzanieGalerii({
         )}
 
         {tab === "wybory" ? (
-          <SelectionsTab id={id} photos={photos.map((p) => ({ name: p.name, fileName: p.fileName, url: p.webUrl }))} />
+          <SelectionsTab id={id} selling={Boolean(meta?.sale?.enabled)} photos={photos.map((p) => ({ name: p.name, fileName: p.fileName, url: p.webUrl }))} />
         ) : tab === "statystyki" ? (
           <StatsTab id={id} />
         ) : tab === "ustawienia" ? (
@@ -165,6 +168,7 @@ export default async function ZarzadzanieGalerii({
               wmMissing={wmMissing}
               photoCount={photos.length}
             />
+            <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} />
             <GuestCard id={id} guest={meta?.guest ?? null} sections={meta?.sections ?? []} />
           </SettingsForm>
         ) : (

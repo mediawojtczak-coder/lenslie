@@ -2,6 +2,7 @@ import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
 import type { Period, PlanId } from "@/lib/plans";
+import type { Sale } from "@/lib/sales";
 
 // Opis galerii zapisany obok zdjęć w R2: galleries/<id>/meta.json
 export type GalleryMeta = {
@@ -33,6 +34,8 @@ export type GalleryMeta = {
   watermark?: { enabled: boolean; text: string };
   // Osobny link dla gości wesela
   guest?: GuestLink;
+  // Sprzedaż zdjęć: pakiet w cenie sesji i dopłata za dodatkowe zdjęcia
+  sale?: Sale;
   // Wysłane automatyczne powiadomienia (daty), czyszczone po przedłużeniu
   // Język galerii widzianej przez klienta
   lang?: "pl" | "en";

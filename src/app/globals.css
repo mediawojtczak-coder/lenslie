@@ -1531,3 +1531,39 @@ ol.stat-list { counter-reset: s; }
 .lang-switch button { border: 0; background: none; font: inherit; font-size: .72rem; letter-spacing: .08em; color: var(--taupe); padding: 4px 9px; border-radius: 999px; cursor: pointer; }
 .lang-switch button.on { background: var(--blush); color: var(--ink); }
 .account-lang { padding: 6px 0 10px; }
+
+/* ===== Sprzedaż zdjęć u klienta ===== */
+.sale-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px 28px; flex-wrap: wrap;
+  max-width: 760px; margin: 0 auto 40px; padding: 26px 30px; border-radius: 10px;
+  background: #fff; border: 1px solid var(--hair); text-align: left;
+}
+.sale-card h2 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.5rem; margin: 0 0 6px; }
+.sale-card p { margin: 0; color: var(--taupe); font-size: .92rem; line-height: 1.55; max-width: 470px; }
+.sale-card-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.fav-mark.pick { color: var(--ink); }
+.sale-bar .fav-count { color: #fff; }
+.sale-bar .fav-count em { font-style: normal; color: #f3b7aa; margin-left: 4px; }
+.sale-bar .fav-send:disabled { opacity: .45; cursor: default; }
+.sale-sum { margin: 0 0 22px; padding: 0; border-top: 1px solid var(--hair); }
+.sale-sum > div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--hair); }
+.sale-sum dt { color: var(--taupe); font-size: .88rem; }
+.sale-sum dd { margin: 0; font-size: .95rem; text-align: right; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.sale-sum .sale-total dt { color: var(--ink); }
+.sale-sum .sale-total dd { font-family: var(--font-display), Georgia, serif; font-size: 1.35rem; }
+.sale-sum .mono { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+@media (max-width: 760px) {
+  .sale-card { margin: 0 4px 28px; padding: 22px 20px; }
+  .sale-bar .fav-count em { display: none; }
+}
+
+/* ===== Sprzedaż zdjęć w panelu ===== */
+.order-box { margin: 0 0 18px; padding: 16px 18px; border-radius: 8px; background: var(--paper); display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
+.order-box p { margin: 0; font-size: .9rem; }
+.order-box small { display: block; color: var(--taupe); font-size: .8rem; margin-top: 3px; }
+.order-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .75rem; letter-spacing: .02em; margin-right: 8px; background: #f3e3dc; color: #8a4f43; }
+.order-status.paid { background: #e8eee3; color: #4f6440; }
+.order-status.delivered { background: var(--ink); color: #fff; }
+.order-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.sale-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+@media (max-width: 760px) { .sale-fields { grid-template-columns: 1fr; } }

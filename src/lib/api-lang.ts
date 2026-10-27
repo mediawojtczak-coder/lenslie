@@ -44,6 +44,12 @@ const EN: Record<string, string> = {
   "Galeria nie ma jeszcze pakietu.": "The gallery does not have a plan yet.",
   "Pakiet można zmienić tylko na większy.": "You can only change to a larger plan.",
   "Wybierz okres.": "Choose a period.",
+  "Sprawdź liczbę zdjęć w pakiecie i cenę.": "Check the number of included photos and the price.",
+  "Nie znaleziono zamówienia.": "Order not found.",
+  "Numer konta powinien mieć 26 cyfr.": "The bank account number should have 26 digits.",
+  "Numer telefonu do BLIK powinien mieć 9 cyfr.": "The BLIK phone number should have 9 digits.",
+  "Podaj numer konta albo telefon do BLIK.": "Enter a bank account number or a BLIK phone number.",
+  "Podaj odbiorcę przelewu (imię i nazwisko albo nazwę firmy).": "Enter the transfer recipient (full name or company name).",
   "Ta domena jest już używana w innym serwisie.": "This domain is already used by another service.",
   "Nie udało się podłączyć domeny. Spróbuj ponownie za chwilę.": "Could not connect the domain. Please try again shortly.",
 };

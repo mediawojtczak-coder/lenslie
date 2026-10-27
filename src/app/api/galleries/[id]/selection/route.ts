@@ -6,13 +6,16 @@ import { adminClient } from "@/lib/supabase/admin";
 import { getSelection, selectionCookie } from "@/lib/selections";
 import { getOwnerContact } from "@/lib/profiles";
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
+import { saleOn, priceFor, getSaleOrder, saveSaleOrder, getPayoutForGallery, orderRef, type SaleOrder } from "@/lib/sales";
+import { mailOrderPlaced, paymentLines } from "@/lib/sales-mail";
 
 export const runtime = "nodejs";
 
 type Body =
   | { action: "start"; name?: string; email?: string }
   | { action: "toggle"; photo?: string }
-  | { action: "note"; note?: string; notify?: boolean };
+  | { action: "note"; note?: string; notify?: boolean }
+  | { action: "order"; note?: string };
 
 // Ulubione zdjęcia klienta: rozpoczęcie wyboru, zaznaczanie i wysłanie fotografowi
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -56,6 +59,44 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const sel = await getSelection(id, store.get(selectionCookie(id))?.value);
   if (!sel) return NextResponse.json({ error: "Wybór wygasł. Odśwież stronę.", code: "NO_SELECTION" }, { status: 404 });
+
+  const en = meta.lang === "en";
+  const existing = saleOn(meta) ? await getSaleOrder(id, sel.id) : null;
+  if (existing && (body.action === "toggle" || body.action === "order")) {
+    return NextResponse.json(
+      { error: en ? "Your order has already been placed." : "Zamówienie zostało już złożone.", code: "ORDERED" },
+      { status: 409 },
+    );
+  }
+
+  // Zamówienie zdjęć w galerii ze sprzedażą
+  if (body.action === "order") {
+    if (!saleOn(meta)) return NextResponse.json({ error: en ? "Ordering is not enabled." : "Zamawianie nie jest włączone." }, { status: 400 });
+    const photos = sel.photos ?? [];
+    if (photos.length === 0) return NextResponse.json({ error: en ? "Choose at least one photo." : "Wybierz co najmniej jedno zdjęcie." }, { status: 400 });
+    const sale = meta.sale!;
+    const { extra, total } = priceFor(photos.length, sale);
+    const note = String(body.note ?? "").trim().slice(0, 2000) || null;
+    const order: SaleOrder = {
+      selection: sel.id,
+      ref: orderRef(sel.id),
+      status: "ordered",
+      clientName: sel.client_name,
+      clientEmail: sel.client_email,
+      photos,
+      included: sale.included,
+      extraPrice: sale.extraPrice,
+      extra,
+      total,
+      note,
+      createdAt: new Date().toISOString(),
+    };
+    await saveSaleOrder(id, order);
+    if (note) await db.from("selections").update({ note, updated_at: order.createdAt }).eq("id", sel.id);
+    const payout = await getPayoutForGallery(id).catch(() => null);
+    await mailOrderPlaced(id, meta.title, order, payout, meta.lang ?? "pl");
+    return NextResponse.json({ ok: true, order: { status: order.status, total, extra, count: photos.length, ref: order.ref }, payment: paymentLines(order, payout, meta.title, meta.lang ?? "pl") });
+  }
 
   if (body.action === "toggle") {
     const photo = String(body.photo ?? "").slice(0, 200);

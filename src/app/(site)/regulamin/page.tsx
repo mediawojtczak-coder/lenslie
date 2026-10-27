@@ -109,6 +109,22 @@ function RegulaminPl() {
         </li>
       </ol>
 
+      <h2>§ 6b. Sprzedaż zdjęć w Galerii</h2>
+      <ol>
+        <li>
+          Fotograf może włączyć w Galerii wybór i sprzedaż zdjęć: Klient wybiera zdjęcia objęte pakietem ustalonym z
+          Fotografem, a za zdjęcia dodatkowe płaci według ceny ustalonej przez Fotografa.
+        </li>
+        <li>
+          Płatności za zdjęcia Klient dokonuje bezpośrednio na rachunek bankowy lub numer telefonu BLIK wskazany przez
+          Fotografa. Usługodawca nie przyjmuje tych płatności, nie pośredniczy w nich i nie pobiera od nich prowizji.
+        </li>
+        <li>
+          Stroną umowy sprzedaży zdjęć jest wyłącznie Fotograf i Klient. Fotograf odpowiada za ustalenie ceny,
+          potwierdzenie wpłaty, wystawienie dokumentu sprzedaży oraz rozliczenia podatkowe i reklamacje dotyczące zdjęć.
+        </li>
+      </ol>
+
       <h2>§ 7. Treści i prawa autorskie</h2>
       <ol>
         <li>
@@ -241,6 +257,13 @@ function TermsEn() {
         <li>When a person who signed up using the referral link has paid a total of at least PLN 30, both the referring Photographer and the referred person receive a PLN 20 bonus to their balance, once per referred person.</li>
         <li>Bonuses can only be used for the Service; they cannot be withdrawn or refunded.</li>
         <li>Creating Accounts to obtain bonuses (e.g. referring yourself) is prohibited; the Provider may cancel such bonuses.</li>
+      </ol>
+
+      <h2>§ 6b. Photo sales in Galleries</h2>
+      <ol>
+        <li>The Photographer may turn on photo selection and sales in a Gallery: the Client chooses the photos included in the package agreed with the Photographer and pays the Photographer’s price for extra photos.</li>
+        <li>The Client pays for photos directly to the bank account or BLIK phone number provided by the Photographer. The Provider does not receive or intermediate these payments and charges no commission on them.</li>
+        <li>The photo sale agreement is concluded solely between the Photographer and the Client. The Photographer is responsible for pricing, confirming payments, issuing sales documents, taxes and complaints concerning the photos.</li>
       </ol>
 
       <h2>§ 7. Content and copyright</h2>
