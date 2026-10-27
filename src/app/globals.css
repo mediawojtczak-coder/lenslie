@@ -869,3 +869,15 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .phone-cover .mock-cover-text b { font-size: .7rem; }
   .phone-cover .mock-cover-text em { display: none; }
 }
+
+/* Baner ze zdjęciami pod nagłówkiem */
+.hero-visual { margin: 0 -24px; }
+.hero-collage { display: block; width: 100%; height: auto; }
+.hero-collage-mobile { display: none; }
+@media (max-width: 760px) {
+  .hero-visual { margin: 0; }
+  .hero-collage { display: none; }
+  .hero-collage-mobile { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hero-collage-mobile img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; }
+  .hero-collage-mobile img:nth-child(2), .hero-collage-mobile img:nth-child(3) { aspect-ratio: 4 / 3; }
+}

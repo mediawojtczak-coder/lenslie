@@ -17,7 +17,9 @@ export default async function Home() {
   const urls = photos.map((p) => p.webUrl);
   const showcaseTitle = meta?.title && meta.title.toLowerCase() !== "pokaz" ? meta.title : "Anna & Marek";
 
-  const tiles = ["t1 b", "t2", "t3 c", "t4 d"];
+  // Zdjęcia z banera, gdy galeria „Pokaz” jest jeszcze pusta
+  const fallback = [2, 1, 4, 3, 6, 5, 7, 1, 2, 4].map((n) => `/home/foto-${n}.jpg`);
+  const devicePhotos = urls.length >= 6 ? urls.slice(0, 12) : fallback;
 
   return (
     <>
@@ -33,15 +35,15 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mosaic" aria-hidden="true">
-        {tiles.map((t, i) =>
-          urls[i] ? (
+      <section className="hero-visual" aria-hidden="true">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/home/kolaz.jpg" alt="" className="hero-collage" width={1672} height={570} fetchPriority="high" />
+        <div className="hero-collage-mobile">
+          {["foto-1", "foto-2", "foto-4", "foto-7"].map((f) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={t} src={urls[i]} alt="" className={`tile mosaic-img ${t}`} />
-          ) : (
-            <div key={t} className={`tile ${t}`} />
-          ),
-        )}
+            <img key={f} src={`/home/${f}.jpg`} alt="" loading="lazy" />
+          ))}
+        </div>
       </section>
 
       <section className="features">
@@ -67,7 +69,7 @@ export default async function Home() {
             bez instalowania czegokolwiek.
           </p>
         </div>
-        <DeviceShowcase photos={urls.slice(0, 12)} title={showcaseTitle} />
+        <DeviceShowcase photos={devicePhotos} title={showcaseTitle} />
       </section>
 
       <section className="home-pricing" id="cennik">
