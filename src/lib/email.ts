@@ -16,7 +16,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
 }
 
 export function siteUrl() {
-  return (process.env.SITE_URL ?? "https://lenslie.vercel.app").replace(/\/$/, "");
+  return (process.env.SITE_URL ?? "https://www.lenslie.com").replace(/\/$/, "");
 }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
