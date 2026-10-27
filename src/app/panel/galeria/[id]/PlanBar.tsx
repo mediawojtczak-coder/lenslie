@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   PLANS,
   PERIODS,
+  DEFAULT_PERIOD,
   periodLabel,
   upgradeCost,
   formatBytes,
@@ -37,7 +38,7 @@ export default function PlanBar({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<Mode>("upgrade");
   const [target, setTarget] = useState<PlanId | null>(null);
-  const [newPeriod, setNewPeriod] = useState<Period>(period ?? 12);
+  const [newPeriod, setNewPeriod] = useState<Period>(period ?? DEFAULT_PERIOD);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState("");
@@ -52,7 +53,7 @@ export default function PlanBar({
     setMode(m);
     setError("");
     setTarget(m === "upgrade" ? (bigger[0]?.id ?? null) : m === "choose" ? "srednia" : null);
-    setNewPeriod(period ?? 12);
+    setNewPeriod(period ?? DEFAULT_PERIOD);
     dialogRef.current?.showModal();
   }
 

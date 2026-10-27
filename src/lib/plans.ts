@@ -12,7 +12,7 @@ export type Plan = {
 };
 
 export const PERIODS: Period[] = [1, 3, 6, 12];
-export const DEFAULT_PERIOD: Period = 12;
+export const DEFAULT_PERIOD: Period = 3;
 
 export const PLANS: Plan[] = [
   {

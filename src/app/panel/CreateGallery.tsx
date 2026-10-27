@@ -2,7 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { PLANS, PERIODS, getPlan, type Period, type PlanId } from "@/lib/plans";
+import { PLANS, PERIODS, DEFAULT_PERIOD, getPlan, type Period, type PlanId } from "@/lib/plans";
 
 function toSlug(text: string) {
   return text
@@ -32,7 +32,7 @@ export default function CreateGallery({ label, className }: { label: string; cla
   const [password, setPassword] = useState("");
   const [layout, setLayout] = useState<Layout>("mozaika");
   const [plan, setPlan] = useState<PlanId>("srednia");
-  const [period, setPeriod] = useState<Period>(12);
+  const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -43,7 +43,7 @@ export default function CreateGallery({ label, className }: { label: string; cla
     setPassword(generatePassword());
     setLayout("mozaika");
     setPlan("srednia");
-    setPeriod(12);
+    setPeriod(DEFAULT_PERIOD);
     setError("");
     dialogRef.current?.showModal();
   }
