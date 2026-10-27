@@ -59,6 +59,21 @@ export default function PhotoGrid({
   const [favs, setFavs] = useState<Set<string>>(new Set(favorites?.photos ?? []));
   const [who, setWho] = useState<string | null>(favorites?.name ?? null);
   const [onlyFavs, setOnlyFavs] = useState(false);
+  // Pasek ulubionych pokazujemy dopiero przy zdjęciach, nie na okładce
+  const [pastCover, setPastCover] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const bar = document.getElementById("zdjecia");
+      setPastCover(bar ? bar.getBoundingClientRect().top < window.innerHeight * 0.5 : true);
+    };
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => {
+      window.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
+  }, []);
   const [pending, setPending] = useState<string | null>(null);
   const [favError, setFavError] = useState("");
   const startRef = useRef<HTMLDialogElement>(null);
@@ -297,7 +312,7 @@ export default function PhotoGrid({
         />
       )}
 
-      {favorites && (favs.size > 0 || onlyFavs) && (
+      {favorites && pastCover && (favs.size > 0 || onlyFavs) && (
         <div className="fav-bar" role="region" aria-label="Ulubione">
           <span className="fav-count">
             <Heart on size={16} /> {favs.size}
