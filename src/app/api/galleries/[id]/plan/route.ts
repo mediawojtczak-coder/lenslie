@@ -63,6 +63,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!isPeriod(body.period)) return NextResponse.json({ error: "Wybierz okres." }, { status: 400 });
     const base = meta.expiresAt && new Date(meta.expiresAt) > new Date() ? new Date(meta.expiresAt) : new Date();
     meta.expiresAt = addMonths(base, body.period).toISOString();
+    meta.notices = undefined;
     await saveMeta(id, meta);
     return NextResponse.json({ ok: true, charged: current.prices[body.period] });
   }

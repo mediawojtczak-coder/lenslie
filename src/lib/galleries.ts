@@ -33,6 +33,8 @@ export type GalleryMeta = {
   watermark?: { enabled: boolean; text: string };
   // Osobny link dla gości wesela
   guest?: GuestLink;
+  // Wysłane automatyczne powiadomienia (daty), czyszczone po przedłużeniu
+  notices?: { expiring?: string; deleting?: string };
 };
 
 export type Downloads = "all" | "web" | "none";

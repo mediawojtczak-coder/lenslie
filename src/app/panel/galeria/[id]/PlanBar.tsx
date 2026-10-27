@@ -122,6 +122,11 @@ export default function PlanBar({
               <p className={expired ? "plan-exp expired" : "plan-exp"}>
                 {expired ? "Dostęp wygasł " : "Dostęp dla klienta do "}
                 {dateFmt.format(new Date(expiresAt))}
+                {expired && (
+                  <>
+                    . Zdjęcia zostaną usunięte {dateFmt.format(new Date(new Date(expiresAt).getTime() + 30 * 24 * 3600 * 1000))}
+                  </>
+                )}
               </p>
             )}
           </div>
