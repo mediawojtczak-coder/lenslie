@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/supabase/admin";
+import { getWallet, zlFromGr } from "@/lib/wallet";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   if (!user) redirect("/logowanie");
 
   const initial = (user.email ?? "?").charAt(0).toUpperCase();
+  const wallet = await getWallet(user.id).catch(() => ({ balance: 0, history: [] }));
 
   return (
     <div className="app">
@@ -21,6 +23,10 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <label htmlFor="q" className="sr-only">Szukaj galerii</label>
           <input id="q" name="q" type="search" placeholder="Szukaj galerii lub klienta" />
         </form>
+
+        <Link href="/panel/konto#saldo" className="wallet-chip" title="Saldo konta – doładuj">
+          {zlFromGr(wallet.balance)}
+        </Link>
 
         <details className="account">
           <summary aria-label="Konto">

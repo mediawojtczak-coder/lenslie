@@ -19,13 +19,16 @@ const auth = () => "Basic " + Buffer.from(`${posId()}:${process.env.P24_API_KEY}
 const sign = (o: Record<string, unknown>) => createHash("sha384").update(JSON.stringify(o)).digest("hex");
 
 // Zamówienie zapisane w magazynie: payments/<sessionId>.json
+export type TopupAction = { action: "topup"; amount: number; bonus: number };
+
 export type Order = {
   sessionId: string;
-  galleryId: string;
+  galleryId: string; // pusty przy doładowaniu salda
   ownerId: string;
   email: string;
   amount: number; // grosze
-  action: PlanAction;
+  action: PlanAction | TopupAction;
+  returnPath?: string;
   description: string;
   status: "pending" | "paid" | "error";
   createdAt: string;
@@ -71,7 +74,7 @@ export async function registerTransaction(o: Order, origin: string): Promise<str
     email: o.email,
     country: "PL",
     language: "pl",
-    urlReturn: `${origin}/panel/galeria/${o.galleryId}?platnosc=${o.sessionId}`,
+    urlReturn: `${origin}${o.returnPath ?? `/panel/galeria/${o.galleryId}`}?platnosc=${o.sessionId}`,
     urlStatus: `${origin}/api/platnosci/p24`,
     sign: sign({ sessionId: o.sessionId, merchantId: merchantId(), amount: o.amount, currency: "PLN", crc: crc() }),
   };

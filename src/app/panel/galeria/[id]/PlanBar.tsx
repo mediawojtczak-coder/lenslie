@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import InvoiceFields from "@/components/InvoiceFields";
+import PayButtons from "@/components/PayButtons";
 import type { Billing } from "@/lib/billing";
 import {
   PLANS,
@@ -31,6 +32,7 @@ export default function PlanBar({
   expiresAt,
   usedBytes,
   billing,
+  balance,
 }: {
   id: string;
   planId: PlanId | null;
@@ -38,6 +40,7 @@ export default function PlanBar({
   expiresAt: string | null;
   usedBytes: number;
   billing: Billing;
+  balance: number;
 }) {
   const [invoice, setInvoice] = useState<Billing>(billing);
   const router = useRouter();
@@ -70,16 +73,16 @@ export default function PlanBar({
     return () => window.removeEventListener("lenslie:plan", handler);
   });
 
-  async function confirm() {
+  async function confirm(pay: "wallet" | "p24") {
     setBusy(true);
     setError("");
     try {
       const body =
         mode === "upgrade"
-          ? { action: "upgrade", plan: target, invoice }
+          ? { action: "upgrade", plan: target, invoice, pay }
           : mode === "extend"
-            ? { action: "extend", period: newPeriod, invoice }
-            : { action: "choose", plan: target, period: newPeriod, invoice };
+            ? { action: "extend", period: newPeriod, invoice, pay }
+            : { action: "choose", plan: target, period: newPeriod, invoice, pay };
       const res = await fetch(`/api/galleries/${id}/plan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -92,7 +95,7 @@ export default function PlanBar({
         return;
       }
       dialogRef.current?.close();
-      setDone(data.test ? `Zapisano (tryb testowy, bez płatności).` : "Zapisano.");
+      setDone(data.wallet ? `Zapłacono z salda: ${zl(data.charged)}.` : data.test ? "Zapisano (tryb testowy, bez płatności)." : "Zapisano.");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nie udało się zapisać zmiany.");
@@ -241,15 +244,17 @@ export default function PlanBar({
             </p>
           )}
 
-          <div className="modal-actions">
-            <button type="button" className="as-link" onClick={() => dialogRef.current?.close()}>
-              Anuluj
-            </button>
-            <button type="button" className="btn" onClick={confirm} disabled={busy || ((mode !== "extend") && !target)}>
-              {busy ? "Zapisuję…" : `Zapłać ${zl(price)}`}
-            </button>
-          </div>
-          <p className="test-note">Płatność BLIK, przelewem lub kartą przez Przelewy24.</p>
+          <PayButtons
+            price={price}
+            balance={balance}
+            busy={busy}
+            disabled={mode !== "extend" && !target}
+            label=""
+            onPay={confirm}
+          />
+          <button type="button" className="as-link pay-cancel" onClick={() => dialogRef.current?.close()}>
+            Anuluj
+          </button>
         </div>
       </dialog>
     </section>

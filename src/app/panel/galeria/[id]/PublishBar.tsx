@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import InvoiceFields from "@/components/InvoiceFields";
+import PayButtons from "@/components/PayButtons";
 import type { Billing } from "@/lib/billing";
 import { PLANS, PERIODS, DEFAULT_PERIOD, fitPlan, formatBytes, perMonth, zl, hardLimitBytes, type Period, type PlanId } from "@/lib/plans";
 
@@ -22,6 +23,7 @@ export default function PublishBar({
   usedBytes,
   deleteOn,
   billing,
+  balance,
 }: {
   id: string;
   title: string;
@@ -29,6 +31,7 @@ export default function PublishBar({
   usedBytes: number;
   deleteOn?: string | null;
   billing: Billing;
+  balance: number;
 }) {
   const [invoice, setInvoice] = useState<Billing>(billing);
   const router = useRouter();
@@ -49,7 +52,7 @@ export default function PublishBar({
     dialogRef.current?.showModal();
   }
 
-  async function publish() {
+  async function publish(pay: "wallet" | "p24") {
     if (!plan) return;
     setBusy(true);
     setError("");
@@ -57,7 +60,7 @@ export default function PublishBar({
       const res = await fetch(`/api/galleries/${id}/plan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "choose", plan: plan.id, period, invoice }),
+        body: JSON.stringify({ action: "choose", plan: plan.id, period, invoice, pay }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Nie udało się opublikować galerii.");
@@ -199,10 +202,7 @@ export default function PublishBar({
             </p>
           )}
 
-          <button type="button" className="btn btn-wide btn-dark" onClick={publish} disabled={busy || !plan}>
-            {busy ? "Przechodzę do płatności…" : `Zapłać ${zl(price)} i opublikuj`}
-          </button>
-          <p className="test-note">Płatność BLIK, przelewem lub kartą przez Przelewy24.</p>
+          <PayButtons price={price} balance={balance} busy={busy} disabled={!plan} label="i opublikuj" onPay={publish} />
         </div>
       </dialog>
     </section>

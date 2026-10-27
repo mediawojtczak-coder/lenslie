@@ -5,6 +5,7 @@ import { getUser } from "@/lib/supabase/server";
 import { checkAction, applyAction } from "@/lib/plan-actions";
 import { p24Enabled, newSessionId, saveOrder, registerTransaction } from "@/lib/p24";
 import { cleanBilling, saveBilling } from "@/lib/billing";
+import { spend } from "@/lib/wallet";
 
 export const runtime = "nodejs";
 
@@ -18,7 +19,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { data: own } = await supabase.from("galleries").select("id").eq("id", id).maybeSingle();
   if (!own) return NextResponse.json({ error: "To nie jest Twoja galeria." }, { status: 403 });
 
-  const body = ((await req.json().catch(() => null)) ?? {}) as { action?: string; plan?: string; period?: number; invoice?: unknown };
+  const body = ((await req.json().catch(() => null)) ?? {}) as { action?: string; plan?: string; period?: number; invoice?: unknown; pay?: string };
   const meta = await getMeta(id);
   if (!meta) return NextResponse.json({ error: "Nie znaleziono galerii." }, { status: 404 });
 
@@ -29,6 +30,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const inv = cleanBilling(body.invoice);
   if (!inv.ok) return NextResponse.json({ error: inv.error }, { status: 400 });
   if (body.invoice) await saveBilling(user.id, inv.billing).catch(() => undefined);
+
+  // Płatność z salda konta
+  if (body.pay === "wallet" && checked.amount > 0) {
+    const ref = newSessionId();
+    const ok = await spend(user.id, Math.round(checked.amount * 100), `${checked.label} – ${meta.title}`, ref);
+    if (!ok) return NextResponse.json({ error: "Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem." }, { status: 402 });
+    await applyAction(id, checked.action);
+    return NextResponse.json({ ok: true, charged: checked.amount, wallet: true });
+  }
 
   // Nic do zapłaty albo brak bramki (tryb testowy): od razu
   if (checked.amount <= 0 || !p24Enabled()) {

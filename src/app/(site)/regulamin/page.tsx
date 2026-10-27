@@ -73,7 +73,17 @@ export default function Regulamin() {
       <ol>
         <li>Opłata za Pakiet jest pobierana z góry, przy tworzeniu Galerii, zmianie Pakietu lub przedłużeniu dostępu.</li>
         <li>Płatności obsługuje zewnętrzny operator płatności PayPro S.A. (Przelewy24) z siedzibą w Poznaniu.</li>
-        <li>Faktura lub rachunek jest wysyłany na adres e-mail Fotografa.</li>
+        <li>Na życzenie Fotografa, zgłoszone przy płatności, wystawiana jest faktura VAT wysyłana na adres e-mail Konta.</li>
+        <li>
+          Fotograf może doładować Saldo konta kwotą 30, 50, 100 lub 200 zł. Przy doładowaniu 200 zł Usługodawca dolicza
+          10 zł bonusu. Ze Salda opłaca się Pakiety, ich zmianę i przedłużenie dostępu.
+        </li>
+        <li>Faktura za doładowanie Salda wystawiana jest przy wpłacie, na dane podane przez Fotografa.</li>
+        <li>
+          Saldo nie podlega oprocentowaniu i nie wygasa. Niewykorzystaną część Salda (bez bonusu) Usługodawca zwraca na
+          wniosek Fotografa przesłany na adres {COMPANY.email}, w ciągu 14 dni, na rachunek, z którego dokonano wpłaty.
+          Bonus nie podlega wypłacie.
+        </li>
       </ol>
 
       <h2>§ 7. Treści i prawa autorskie</h2>

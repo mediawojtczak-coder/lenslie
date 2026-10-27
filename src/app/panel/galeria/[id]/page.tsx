@@ -9,6 +9,7 @@ import ShareBar from "./ShareBar";
 import PublishBar from "./PublishBar";
 import PaymentNotice from "./PaymentNotice";
 import { getBilling } from "@/lib/billing";
+import { getWallet } from "@/lib/wallet";
 import PlanBar from "./PlanBar";
 import PhotoManager from "./PhotoManager";
 import SettingsForm from "./SettingsForm";
@@ -34,6 +35,7 @@ export default async function ZarzadzanieGalerii({
 
   const { supabase, user } = await getUser();
   const billing = user ? await getBilling(user.id) : null;
+  const balance = user ? (await getWallet(user.id)).balance : 0;
   const { data } = await supabase.from("galleries").select("id, title, created_at").eq("id", id).maybeSingle();
   if (!data) notFound();
   const gallery = data as { id: string; title: string; created_at: string };
@@ -117,6 +119,7 @@ export default async function ZarzadzanieGalerii({
               expiresAt={meta?.expiresAt ?? null}
               usedBytes={usedBytes}
               billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
+              balance={balance}
             />
           </>
         ) : (
@@ -127,6 +130,7 @@ export default async function ZarzadzanieGalerii({
             usedBytes={usedBytes}
             deleteOn={meta ? draftDeleteDate(meta).toISOString() : null}
             billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
+              balance={balance}
           />
         )}
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOrder, saveOrder, notificationValid, verifyTransaction, type Notification } from "@/lib/p24";
 import { applyAction } from "@/lib/plan-actions";
+import { addEntries } from "@/lib/wallet";
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -21,7 +22,15 @@ export async function POST(req: Request) {
   }
   if (!(await verifyTransaction(n))) return NextResponse.json({ error: "verify" }, { status: 502 });
 
-  await applyAction(order.galleryId, order.action);
+  if (order.action.action === "topup") {
+    const a = order.action;
+    await addEntries(order.ownerId, [
+      { type: "topup", amount: a.amount * 100, description: `Doładowanie konta (Przelewy24)`, ref: order.sessionId },
+      ...(a.bonus ? [{ type: "bonus" as const, amount: a.bonus * 100, description: `Bonus do doładowania ${a.amount} zł`, ref: order.sessionId }] : []),
+    ]);
+  } else {
+    await applyAction(order.galleryId, order.action);
+  }
   await saveOrder({ ...order, status: "paid", paidAt: new Date().toISOString(), orderId: n.orderId });
 
   // Mail do administratora: nowa płatność (z danymi do faktury, jeśli klient jej chce)
