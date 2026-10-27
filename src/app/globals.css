@@ -176,3 +176,9 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 .progress .hint { margin: 10px 0 0; }
 .error { color: #a4483c; margin: 0 0 20px; }
 .success { margin: 0 0 20px; }
+
+/* Ekran hasła i pobieranie ZIP */
+.gate { text-align: center; }
+.gate form { text-align: left; }
+.download-all { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.hint-center { color: var(--taupe); font-size: .85rem; margin: 0; text-align: center; }

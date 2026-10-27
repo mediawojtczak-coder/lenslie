@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET, isValidGalleryId, safeFileName, baseName, galleryPrefix } from "@/lib/r2";
+import { isAdmin } from "@/lib/admin";
 
 export const runtime = "nodejs";
 
@@ -15,14 +16,7 @@ export async function POST(req: Request) {
     | { password?: string; gallery?: string; files?: FileInfo[] }
     | null;
 
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) {
-    return NextResponse.json(
-      { error: "Brak hasła administratora w ustawieniach Vercel (ADMIN_PASSWORD)." },
-      { status: 500 },
-    );
-  }
-  if (!body || body.password !== adminPassword) {
+  if (!body || !isAdmin(body.password)) {
     return NextResponse.json({ error: "Nieprawidłowe hasło administratora." }, { status: 401 });
   }
 

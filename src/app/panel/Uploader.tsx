@@ -44,6 +44,7 @@ async function put(url: string, body: Blob, type: string) {
 export default function Uploader() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [clientPassword, setClientPassword] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [done, setDone] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -62,6 +63,15 @@ export default function Uploader() {
     setBusy(true);
     setDone(0);
     try {
+      // Najpierw zapisujemy tytuł galerii i hasło dla klienta
+      const metaRes = await fetch("/api/galleries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, gallery: slug, title: name.trim(), clientPassword }),
+      });
+      const metaData = await metaRes.json();
+      if (!metaRes.ok) throw new Error(metaData.error ?? "Błąd serwera");
+
       // Prosimy serwer o podpisane linki partiami po 50 zdjęć
       for (let start = 0; start < files.length; start += 50) {
         const batch = files.slice(start, start + 50);
@@ -122,6 +132,20 @@ export default function Uploader() {
         onChange={(e) => setName(e.target.value)}
       />
       {slug && <p className="hint">Adres galerii: /galeria/{slug}</p>}
+
+      <label htmlFor="haslo-klienta">Hasło dla klienta (opcjonalne)</label>
+      <input
+        id="haslo-klienta"
+        type="text"
+        placeholder="np. anna2026"
+        value={clientPassword}
+        onChange={(e) => setClientPassword(e.target.value)}
+        autoComplete="off"
+      />
+      <p className="hint">
+        Klient wpisze je przy otwieraniu galerii. Zostaw puste, aby nie zmieniać obecnego hasła
+        albo zostawić galerię otwartą.
+      </p>
 
       <label htmlFor="pliki">Zdjęcia (JPG, PNG lub WebP)</label>
       <input

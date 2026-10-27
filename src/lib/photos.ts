@@ -4,6 +4,7 @@ import { r2, BUCKET, baseName, galleryPrefix } from "@/lib/r2";
 
 export type Photo = {
   name: string;
+  fileName: string;
   webUrl: string;
   downloadUrl: string;
 };
@@ -59,7 +60,7 @@ export async function getGalleryPhotos(id: string): Promise<Photo[]> {
         ),
       ]);
 
-      return { name, webUrl, downloadUrl };
+      return { name, fileName: originalFile, webUrl, downloadUrl };
     }),
   );
 }
