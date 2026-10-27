@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SideLogout from "@/components/SideLogout";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { isValidGalleryId } from "@/lib/r2";
@@ -68,6 +69,7 @@ export default async function ZarzadzanieGalerii({
             </Link>
           ))}
         </nav>
+        <SideLogout />
       </aside>
 
       <main className="app-main">

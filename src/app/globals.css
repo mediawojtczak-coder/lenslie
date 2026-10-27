@@ -781,3 +781,16 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 .home-pricing .home-pricing-more { margin: 36px 0 0; }
 .home-pricing-more a { color: var(--brass); }
 @media (max-width: 560px) { .period { padding: 8px 12px; font-size: .82rem; } }
+
+/* Wyloguj na dole menu bocznego */
+.app-side { position: sticky; top: 69px; height: calc(100vh - 69px); overflow-y: auto; }
+.side-logout { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--hair); }
+.side-logout button {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 14px; border: 0; border-radius: 8px;
+  background: none; font: inherit; font-size: .95rem; color: var(--taupe); cursor: pointer; text-align: left;
+}
+.side-logout button:hover { background: #f6efea; color: var(--ink); }
+@media (max-width: 860px) {
+  .app-side { position: static; height: auto; overflow: visible; }
+  .side-logout { margin-top: 0; padding-top: 8px; }
+}

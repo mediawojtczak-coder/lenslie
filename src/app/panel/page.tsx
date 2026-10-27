@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
 import { getGallerySummary } from "@/lib/photos";
 import { getMeta } from "@/lib/galleries";
@@ -92,6 +93,7 @@ export default async function Panel({
             </Link>
           ))}
         </nav>
+        <SideLogout />
       </aside>
 
       <main className="app-main">
