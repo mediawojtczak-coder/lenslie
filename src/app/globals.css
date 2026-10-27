@@ -886,3 +886,19 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 .hero h1 { margin-bottom: 22px; }
 .hero p { margin: 0 auto; }
 @media (max-width: 760px) { .hero { padding-bottom: 36px; } }
+
+/* Trzy zalety na kafelkach w ślubnych kolorach (20% krycia) z lekkim cieniem */
+.features { border-top: 0; padding-top: 0; margin-top: 88px; gap: 24px; }
+.features > div {
+  text-align: center; padding: 40px 28px 36px; border-radius: 16px;
+  background: rgba(212, 168, 156, .2);
+  box-shadow: 0 10px 30px rgba(59, 54, 51, .07), 0 1px 3px rgba(59, 54, 51, .04);
+}
+.features > div:nth-child(2) { background: rgba(201, 178, 140, .2); }
+.features > div:nth-child(3) { background: rgba(163, 178, 150, .2); }
+.features h2 { margin-bottom: 10px; }
+.features p { max-width: 24em; margin: 0 auto; }
+@media (max-width: 760px) {
+  .features { margin-top: 56px; gap: 18px; }
+  .features > div { padding: 32px 22px 28px; }
+}
