@@ -82,14 +82,19 @@ export default async function Galeria({
       <div className="g-bar" id="zdjecia">
         <Link href="/" className="wordmark g-bar-mark">Lenslie</Link>
         <p className="g-bar-title">{title}</p>
-        {photos.length > 0 ? (
-          <DownloadAll
-            zipName={`${id}.zip`}
-            items={photos.map((p) => ({ url: p.downloadUrl, fileName: p.fileName }))}
-          />
-        ) : (
-          <span />
-        )}
+        <div className="g-bar-actions">
+          {photos.length > 0 && (
+            <DownloadAll
+              zipName={`${id}.zip`}
+              items={photos.map((p) => ({ url: p.downloadUrl, fileName: p.fileName }))}
+            />
+          )}
+          {meta?.passwordHash && (
+            <form method="post" action={`/api/galleries/${id}/lock`}>
+              <button type="submit" className="g-logout">Wyloguj</button>
+            </form>
+          )}
+        </div>
       </div>
 
       <main className="g-photos">

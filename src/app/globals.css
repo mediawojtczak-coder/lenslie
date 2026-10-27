@@ -657,3 +657,14 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .pa-btn span { display: none; }
   .pa-btn { min-width: 40px; }
 }
+
+/* Wylogowanie klienta z galerii */
+.g-bar-actions { justify-self: end; display: flex; align-items: center; gap: 18px; }
+.g-bar-actions .download-all { flex-direction: row; }
+.g-bar-actions .download-all .btn { padding: 9px 20px; font-size: .85rem; }
+.g-logout {
+  background: none; border: 0; padding: 6px 2px; font: inherit; font-size: .88rem;
+  color: var(--taupe); cursor: pointer; text-decoration: underline; text-underline-offset: 4px;
+}
+.g-logout:hover { color: var(--ink); }
+@media (max-width: 760px) { .g-bar-actions { gap: 12px; } }
