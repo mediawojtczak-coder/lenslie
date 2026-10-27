@@ -153,3 +153,26 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* Prawdziwe zdjęcia w galerii */
+.notice { text-align: center; color: var(--taupe); margin: 0 0 48px; }
+.photo { position: relative; margin: 0 0 12px; break-inside: avoid; }
+.photo img { display: block; width: 100%; height: auto; background: var(--tile-1); }
+.photo-dl {
+  position: absolute; right: 10px; bottom: 10px; padding: 6px 14px;
+  font-size: .8rem; text-decoration: none; border-radius: 999px;
+  background: rgba(253, 252, 250, .92); color: var(--ink);
+  opacity: 0; transition: opacity .2s;
+}
+.photo:hover .photo-dl, .photo-dl:focus-visible { opacity: 1; }
+@media (hover: none) { .photo-dl { opacity: 1; } }
+
+/* Panel: wgrywanie */
+.narrow-wide { max-width: 560px; }
+.uploader input[type="file"] { border-bottom: 0; padding: 8px 0; }
+.hint { color: var(--taupe); font-size: .85rem; margin: -18px 0 24px; }
+.progress { margin: 8px 0 24px; }
+.progress .bar { height: 3px; background: var(--brass); transition: width .3s; }
+.progress .hint { margin: 10px 0 0; }
+.error { color: #a4483c; margin: 0 0 20px; }
+.success { margin: 0 0 20px; }
