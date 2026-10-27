@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const DAY = 24 * 3600 * 1000;
-const REMIND_BEFORE = 14; // dni przed wygaśnięciem
+const REMIND_BEFORE = 3; // dni przed wygaśnięciem
 const DELETE_AFTER = 30; // dni po wygaśnięciu
 const WARN_BEFORE_DELETE = 7; // dni przed usunięciem
 
