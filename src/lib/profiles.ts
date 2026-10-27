@@ -10,6 +10,17 @@ export async function logoUrl(key: string | null | undefined) {
   return getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: key }), { expiresIn: 7200 }).catch(() => null);
 }
 
+// Nazwa studia, logo, e-mail i język fotografa – po identyfikatorze konta (np. dla strony rezerwacji)
+export async function getUserBrand(uid: string): Promise<Brand & { email: string | null }> {
+  const db = adminClient();
+  if (!db) return { studioName: null, logoUrl: null, email: null };
+  const [{ data: p }, { data: u }] = await Promise.all([
+    db.from("profiles").select("studio_name, logo_key").eq("id", uid).maybeSingle(),
+    db.auth.admin.getUserById(uid),
+  ]);
+  return { studioName: p?.studio_name ?? null, logoUrl: await logoUrl(p?.logo_key), email: u?.user?.email ?? null };
+}
+
 // Nazwa studia i logo fotografa, do którego należy galeria (widoczne dla klienta)
 export async function getGalleryBrand(galleryId: string): Promise<Brand> {
   const db = adminClient();

@@ -40,6 +40,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <div className="account-menu">
             <p>{user.email}</p>
             <Link href="/panel/konto" className="account-link">{t("Moje konto", "My account")}</Link>
+            <Link href="/panel/rezerwacje" className="account-link">{t("Rezerwacje sesji", "Session bookings")}</Link>
             <Link href="/panel/konto#polecenia" className="account-link">{t("Poleć Lenslie – 20 zł", "Refer a friend – PLN 20")}</Link>
             {isAdminEmail(user.email) && (
               <Link href="/admin" className="account-link">{t("Panel administratora", "Admin")}</Link>

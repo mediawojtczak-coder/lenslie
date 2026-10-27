@@ -1574,3 +1574,76 @@ ol.stat-list { counter-reset: s; }
   background: #fff; color: var(--ink); font-size: .88rem; line-height: 1.45; box-shadow: 0 12px 34px rgba(20, 18, 17, .18);
   animation: dl-in .2s ease-out;
 }
+
+/* ===== Rezerwacje sesji – panel ===== */
+.booking-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.booking-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 22px 26px; border-radius: 8px; background: #fff; color: var(--ink); text-decoration: none;
+  box-shadow: 0 1px 2px rgba(59, 54, 51, .05); transition: box-shadow .15s;
+}
+.booking-item:hover { box-shadow: 0 8px 24px rgba(59, 54, 51, .08); }
+.booking-item h2 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.4rem; margin: 0 0 4px; }
+.booking-item p { margin: 0; color: var(--taupe); font-size: .88rem; }
+.booking-nums { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.booking-nums small { color: var(--taupe); font-size: .82rem; }
+.slot-gen { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 10px; }
+.slot-gen > div { flex: 1 1 120px; }
+.slot-gen input { margin-bottom: 0; }
+.slot-days { display: grid; gap: 22px; margin: 22px 0 16px; }
+.slot-day h3 { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--taupe); font-weight: 500; margin: 0 0 8px; }
+.slot-day ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hair); }
+.slot-row { display: flex; align-items: baseline; gap: 16px; padding: 10px 2px; border-bottom: 1px solid var(--hair); font-size: .9rem; }
+.slot-row.past { opacity: .5; }
+.slot-time { font-variant-numeric: tabular-nums; min-width: 48px; font-weight: 500; }
+.slot-who { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.slot-who.free { color: var(--taupe); }
+.slot-who small { color: var(--taupe); font-size: .8rem; overflow-wrap: anywhere; }
+.slot-who small a { color: inherit; }
+.slot-who em { font-size: .82rem; color: var(--ink); }
+.slot-row.booked .slot-time { color: #8a4f43; }
+
+/* ===== Rezerwacje sesji – strona dla klienta ===== */
+.bk-page { min-height: 100vh; background: var(--paper); padding: 56px 20px 40px; }
+.bk-head { max-width: 620px; margin: 0 auto 32px; text-align: center; }
+.bk-logo { max-height: 56px; max-width: 200px; object-fit: contain; margin-bottom: 18px; }
+.bk-kicker { font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--taupe); margin: 0 0 10px; }
+.bk-head h1 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.1; margin: 0 0 16px; }
+.bk-desc { color: var(--ink); line-height: 1.65; margin: 0 0 16px; white-space: pre-line; }
+.bk-meta { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 18px; color: var(--taupe); font-size: .9rem; margin: 0; }
+.bk-meta span + span::before { content: "·"; margin-right: 18px; color: var(--hair); }
+.bk-card { max-width: 620px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 2px rgba(59, 54, 51, .05); }
+.bk-card h2 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.35rem; margin: 0 0 14px; }
+.bk-card h2 + .bk-times, .bk-days + h2 { margin-top: 0; }
+.bk-center { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.bk-center p { color: var(--taupe); margin: 0 0 8px; max-width: 420px; line-height: 1.55; }
+.bk-days { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 26px; scrollbar-width: thin; }
+.bk-day {
+  flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 128px;
+  padding: 12px 16px; border: 1px solid var(--hair); border-radius: 10px; background: #fff; color: var(--ink);
+  font: inherit; font-size: .9rem; text-align: left; cursor: pointer; text-transform: capitalize;
+}
+.bk-day small { color: var(--taupe); font-size: .78rem; text-transform: none; }
+.bk-day.active { border-color: var(--ink); background: var(--ink); color: #fff; }
+.bk-day.active small { color: #f3b7aa; }
+.bk-day:disabled { opacity: .45; cursor: default; }
+.bk-times { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.bk-time {
+  padding: 11px 0; border: 1px solid var(--hair); border-radius: 999px; background: #fff; color: var(--ink);
+  font: inherit; font-size: .92rem; font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.bk-time:hover:not(:disabled) { border-color: var(--ink); }
+.bk-time.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+.bk-time:disabled { color: #cfc7c1; text-decoration: line-through; cursor: default; }
+.bk-form { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--hair); animation: dl-in .2s ease-out; }
+.bk-when { font-family: var(--font-display), Georgia, serif; font-size: 1.2rem; margin: 0 0 18px; text-transform: none; }
+.bk-when::first-letter { text-transform: uppercase; }
+.bk-check { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--blush); color: var(--ink); margin-bottom: 4px; }
+.bk-foot { text-align: center; margin-top: 36px; font-size: .8rem; }
+.bk-foot a { color: var(--taupe); text-decoration: none; }
+@media (max-width: 600px) {
+  .bk-page { padding-top: 36px; }
+  .bk-card { padding: 24px 18px; }
+}
+.side-tools { border-top: 1px solid var(--hair); padding-top: 12px; }
+@media (max-width: 760px) { .side-tools { border-top: 0; padding-top: 0; } }
