@@ -53,7 +53,7 @@ export default function Polityka() {
       <p>Korzystamy ze sprawdzonych dostawców, z którymi mamy umowy powierzenia danych:</p>
       <ul>
         <li>Cloudflare – przechowywanie zdjęć (magazyn R2 w Unii Europejskiej),</li>
-        <li>Supabase – konta i baza danych ([REGION]),</li>
+        <li>Supabase – konta i baza danych (serwery w Unii Europejskiej, Irlandia),</li>
         <li>Vercel – hosting strony,</li>
         <li>Resend – wysyłka wiadomości e-mail,</li>
         <li>[OPERATOR PŁATNOŚCI] – obsługa płatności.</li>
