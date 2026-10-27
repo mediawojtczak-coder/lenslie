@@ -35,3 +35,15 @@ ${button ? `<p style="margin:26px 0 4px"><a href="${esc(button.url)}" style="dis
 <p style="font-size:12px;color:#958c85;margin:20px 0 0">Wiadomość wysłana automatycznie przez Lenslie.</p>
 </div></body></html>`;
 }
+
+// Powiadomienie administratorów (adresy z ADMIN_EMAILS)
+export async function notifyAdmins(subject: string, title: string, lines: string[]) {
+  const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim()).filter(Boolean);
+  for (const to of admins) {
+    await sendEmail({
+      to,
+      subject,
+      html: emailLayout(title, lines, { label: "Panel administratora", url: `${siteUrl()}/admin#platnosci` }),
+    }).catch(() => undefined);
+  }
+}

@@ -5,7 +5,8 @@ import { getUser } from "@/lib/supabase/server";
 import { checkAction, applyAction } from "@/lib/plan-actions";
 import { p24Enabled, newSessionId, saveOrder, registerTransaction } from "@/lib/p24";
 import { cleanBilling, saveBilling } from "@/lib/billing";
-import { spend } from "@/lib/wallet";
+import { spend, getWallet, zlFromGr } from "@/lib/wallet";
+import { notifyAdmins } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -37,6 +38,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const ok = await spend(user.id, Math.round(checked.amount * 100), `${checked.label} – ${meta.title}`, ref);
     if (!ok) return NextResponse.json({ error: "Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem." }, { status: 402 });
     await applyAction(id, checked.action);
+    const left = (await getWallet(user.id)).balance;
+    const kwota = zlFromGr(Math.round(checked.amount * 100));
+    await notifyAdmins(`Zakup z salda: ${kwota} – ${user.email}`, "Nowy zakup z salda", [
+      `Kwota: ${kwota} (z salda konta).`,
+      `Za: ${checked.label} – ${meta.title}.`,
+      `Konto: ${user.email}. Pozostało na saldzie: ${zlFromGr(left)}.`,
+      "Faktura była wystawiona przy doładowaniu – nic nie trzeba robić.",
+    ]);
     return NextResponse.json({ ok: true, charged: checked.amount, wallet: true });
   }
 
