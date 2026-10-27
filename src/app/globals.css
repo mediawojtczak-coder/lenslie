@@ -200,3 +200,42 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   font-family: var(--font-display), Georgia, serif; font-weight: 400;
   font-size: 1.9rem; margin: 0 0 8px;
 }
+
+/* Logowanie: formularz po lewej, odbitki zdjęć po prawej */
+.login-split {
+  display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: 96px; align-items: center; min-height: 72vh; padding: 32px 0 0;
+}
+.login-form h1 {
+  font-family: var(--font-display), Georgia, serif; font-weight: 400;
+  font-size: clamp(2.4rem, 4.6vw, 3.6rem); line-height: 1.08; margin: 0 0 14px;
+}
+.login-form .lead { color: var(--taupe); margin: 0 0 44px; }
+.btn-wide { width: 100%; margin-top: 8px; }
+
+.login-visual {
+  position: relative; height: 560px; border-radius: 4px;
+  background: linear-gradient(160deg, var(--blush) 0%, #f7f1ec 55%, var(--tile-2) 100%);
+  overflow: hidden;
+}
+.print {
+  position: absolute; background: #fff; padding: 12px 12px 44px;
+  box-shadow: 0 1px 2px rgba(59, 54, 51, .06), 0 18px 40px rgba(59, 54, 51, .10);
+}
+.print span { display: block; width: 100%; height: 100%; }
+.print-1 { width: 42%; aspect-ratio: 4 / 5; left: 12%; top: 14%; transform: rotate(-7deg); }
+.print-1 span { background: linear-gradient(170deg, #e9d3c8, #c9a99a); }
+.print-2 { width: 38%; aspect-ratio: 4 / 5; right: 10%; top: 9%; transform: rotate(5deg); }
+.print-2 span { background: linear-gradient(170deg, #dfe6db, #a9b7a2); }
+.print-3 { width: 46%; aspect-ratio: 5 / 4; left: 30%; bottom: 12%; transform: rotate(-2deg); }
+.print-3 span { background: linear-gradient(170deg, #e3e8ee, #b3bfcb); }
+.visual-note {
+  position: absolute; left: 0; right: 0; bottom: 18px; margin: 0; text-align: center;
+  font-family: var(--font-display), Georgia, serif; font-style: italic;
+  color: var(--taupe); font-size: 1.05rem;
+}
+
+@media (max-width: 900px) {
+  .login-split { grid-template-columns: 1fr; gap: 0; min-height: auto; padding-top: 24px; }
+  .login-visual { display: none; }
+}
