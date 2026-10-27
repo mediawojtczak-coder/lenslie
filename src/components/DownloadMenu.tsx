@@ -43,6 +43,8 @@ export default function DownloadMenu({
         <a
           href={webUrl}
           download
+          data-track="download"
+          data-photo={fileName}
           className={variant === "tile" ? "pa-btn" : "lb-btn"}
           aria-label={`Pobierz ${fileName}`}
           title="Pobierz"
@@ -75,11 +77,11 @@ export default function DownloadMenu({
 
       {open && (
         <div className="dl-pop" role="menu">
-          <a role="menuitem" href={fullUrl} download onClick={() => setOpen(false)}>
+          <a role="menuitem" href={fullUrl} download data-track="download" data-photo={fileName} onClick={() => setOpen(false)}>
             <strong>Pełna rozdzielczość</strong>
             <span>Oryginał do druku i albumu</span>
           </a>
-          <a role="menuitem" href={webUrl} download onClick={() => setOpen(false)}>
+          <a role="menuitem" href={webUrl} download data-track="download" data-photo={fileName} onClick={() => setOpen(false)}>
             <strong>Do internetu</strong>
             <span>Mniejszy plik na Facebooka, Instagram</span>
           </a>

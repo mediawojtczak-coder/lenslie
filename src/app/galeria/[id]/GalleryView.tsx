@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { getGalleryPhotos, pickCover, applyOrder, getMusicUrl, type Photo } from "@/lib/photos";
 import { watermarkOn, type GalleryMeta, type Downloads } from "@/lib/galleries";
+import { getGalleryBrand } from "@/lib/profiles";
+import { adminClient } from "@/lib/supabase/admin";
+import { getSelection, selectionCookie } from "@/lib/selections";
+import { cookies } from "next/headers";
 import DownloadAll from "./DownloadAll";
 import Hero from "./Hero";
 import PhotoGrid, { type Group, type GridItem } from "./PhotoGrid";
 import SlideshowButton from "./SlideshowButton";
+import Track from "./Track";
 
 const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
@@ -35,6 +40,8 @@ export default async function GalleryView({
   mode: "client" | "guest";
 }) {
   const watermark = watermarkOn(meta) ? meta!.watermark!.text : null;
+
+  const brand = await getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null }));
 
   let error = false;
   let photos: Photo[] = [];
@@ -92,14 +99,37 @@ export default async function GalleryView({
   const musicUrl = meta?.music ? await getMusicUrl(id).catch(() => null) : null;
   const cover = pickCover(shown, meta?.cover) ?? pickCover(photos, meta?.cover);
 
+  // Ulubione są dostępne dla klienta (nie dla gości), gdy działa baza wyborów
+  let favorites: { name: string | null; photos: string[] } | null = null;
+  if (mode === "client" && adminClient()) {
+    const store = await cookies();
+    const sel = await getSelection(id, store.get(selectionCookie(id))?.value).catch(() => null);
+    favorites = { name: sel?.client_name ?? null, photos: sel?.photos ?? [] };
+  }
+
   return (
     <>
-      <Hero id={id} title={title} subtitle={subtitle} coverUrl={cover?.webUrl ?? null} locked={false} error={false} />
+      <Hero
+        id={id}
+        title={title}
+        subtitle={subtitle}
+        studio={brand.studioName}
+        coverUrl={cover?.webUrl ?? null}
+        locked={false}
+        error={false}
+      />
 
       <div className="g-bar" id="zdjecia">
-        <Link href="/" className="wordmark g-bar-mark">
-          Lenslie
-        </Link>
+        {brand.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={brand.logoUrl} alt={brand.studioName ?? "Logo fotografa"} className="g-bar-logo" />
+        ) : brand.studioName ? (
+          <p className="wordmark g-bar-mark g-bar-studio">{brand.studioName}</p>
+        ) : (
+          <Link href="/" className="wordmark g-bar-mark">
+            Lenslie
+          </Link>
+        )}
         <p className="g-bar-title">{title}</p>
         <div className="g-bar-actions">
           {visible.length > 1 && <SlideshowButton />}
@@ -137,9 +167,16 @@ export default async function GalleryView({
             musicUrl={musicUrl}
             downloads={downloads}
             watermark={watermark}
+            galleryId={id}
+            favorites={favorites}
           />
         )}
       </main>
+      <Track galleryId={id} mode={mode} />
+      <footer className="g-footer">
+        {brand.studioName && <span>{brand.studioName} · </span>}
+        <Link href="/">Galeria w Lenslie</Link>
+      </footer>
     </>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
+import { isAdminEmail } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,10 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           </summary>
           <div className="account-menu">
             <p>{user.email}</p>
+            <Link href="/panel/konto" className="account-link">Moje konto</Link>
+            {isAdminEmail(user.email) && (
+              <Link href="/admin" className="account-link">Panel administratora</Link>
+            )}
             <form method="post" action="/auth/wyloguj">
               <button type="submit">Wyloguj</button>
             </form>

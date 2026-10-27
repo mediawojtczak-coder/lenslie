@@ -11,6 +11,8 @@ import PhotoManager from "./PhotoManager";
 import SettingsForm from "./SettingsForm";
 import ProtectionCard from "./ProtectionCard";
 import GuestCard from "./GuestCard";
+import SelectionsTab from "./SelectionsTab";
+import StatsTab from "./StatsTab";
 
 export const dynamic = "force-dynamic";
 
@@ -48,9 +50,16 @@ export default async function ZarzadzanieGalerii({
 
   const cover = pickCover(photos, meta?.cover);
 
+  const { count: selectionCount } = await supabase
+    .from("selections")
+    .select("id", { count: "exact", head: true })
+    .eq("gallery_id", id);
+
   const tabs = [
-    { key: "zdjecia", label: "Zdjęcia" },
-    { key: "ustawienia", label: "Ustawienia" },
+    { key: "zdjecia", label: "Zdjęcia", count: photos.length },
+    { key: "wybory", label: "Wybory klientów", count: selectionCount ?? 0 },
+    { key: "statystyki", label: "Statystyki", count: null },
+    { key: "ustawienia", label: "Ustawienia", count: null },
   ];
 
   return (
@@ -79,7 +88,7 @@ export default async function ZarzadzanieGalerii({
               aria-current={tab === t.key ? "page" : undefined}
             >
               <span>{t.label}</span>
-              {t.key === "zdjecia" && <span className="side-count">{photos.length}</span>}
+              {t.count !== null && <span className="side-count">{t.count}</span>}
             </Link>
           ))}
         </nav>
@@ -103,7 +112,11 @@ export default async function ZarzadzanieGalerii({
           usedBytes={usedBytes}
         />
 
-        {tab === "ustawienia" ? (
+        {tab === "wybory" ? (
+          <SelectionsTab id={id} photos={photos.map((p) => ({ name: p.name, fileName: p.fileName, url: p.webUrl }))} />
+        ) : tab === "statystyki" ? (
+          <StatsTab id={id} />
+        ) : tab === "ustawienia" ? (
           <SettingsForm
             id={id}
             title={gallery.title}

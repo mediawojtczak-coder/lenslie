@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import DownloadMenu from "./DownloadMenu";
+import { track } from "@/lib/track";
 
 export type LightboxItem = { url: string; name: string; downloadUrl?: string; webDownloadUrl?: string };
 
@@ -86,6 +87,7 @@ export default function Lightbox({
 
   useEffect(() => {
     const a = audioRef.current;
+    if (playing) track("slideshow");
     if (!a) return;
     if (playing) a.play().catch(() => undefined);
     else a.pause();

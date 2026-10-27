@@ -10,10 +10,12 @@ export default function Hero({
   coverUrl,
   locked,
   error,
+  studio,
 }: {
   id: string;
   title: string;
   subtitle?: string;
+  studio?: string | null;
   coverUrl: string | null;
   locked: boolean;
   error: boolean;
@@ -41,6 +43,7 @@ export default function Hero({
       <div className="hero-shade" />
 
       <div className="hero-content">
+        {studio && <p className="hero-studio">{studio}</p>}
         <h1 className="hero-title">{title}</h1>
         {subtitle && <p className="hero-sub">{subtitle}</p>}
 

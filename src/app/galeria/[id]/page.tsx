@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { getGallerySummary } from "@/lib/photos";
+import { getGalleryBrand } from "@/lib/profiles";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, hasAccess, accessCookieName, isExpired, type GalleryMeta } from "@/lib/galleries";
 import Hero from "./Hero";
@@ -71,12 +72,16 @@ export default async function Galeria({
   // Galeria chroniona hasłem: bez ważnego ciasteczka pokazujemy tylko okładkę z polem na hasło
   const cookieStore = await cookies();
   if (!error && !hasAccess(id, meta, cookieStore.get(accessCookieName(id))?.value)) {
-    const summary = await getGallerySummary(id, meta?.cover).catch(() => ({ count: 0, coverUrl: null }));
+    const [summary, brand] = await Promise.all([
+      getGallerySummary(id, meta?.cover).catch(() => ({ count: 0, coverUrl: null })),
+      getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null })),
+    ]);
     return (
       <Hero
         id={id}
         title={title}
         subtitle={formatEventDate(meta?.eventDate)}
+        studio={brand.studioName}
         coverUrl={summary.coverUrl}
         locked
         error={Boolean(blad)}

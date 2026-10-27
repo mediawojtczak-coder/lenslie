@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 
@@ -8,6 +9,7 @@ const MESSAGES: Record<string, string> = {
   niepotwierdzony: "Konto nie jest potwierdzone. W Supabase potwierdź użytkownika (Auto Confirm).",
   konfiguracja: "Brak kluczy Supabase w tej wersji strony. Zrób Redeploy w Vercelu.",
   serwer: "Serwer logowania nie odpowiada poprawnie. Spróbuj za chwilę.",
+  link: "Link z wiadomości wygasł albo był już użyty. Zaloguj się lub poproś o nowy.",
 };
 
 export default async function Logowanie({
@@ -45,6 +47,11 @@ export default async function Logowanie({
           )}
           <button className="btn btn-wide" type="submit">Zaloguj się</button>
         </form>
+        <p className="login-alt">
+          <Link href="/haslo">Nie pamiętasz hasła?</Link>
+          <span aria-hidden="true"> · </span>
+          <Link href="/rejestracja">Załóż konto</Link>
+        </p>
       </div>
 
       <div className="login-visual" aria-hidden="true">

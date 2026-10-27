@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { saveZip, type ZipItem, type ZipKind } from "@/lib/zip-client";
+import { track } from "@/lib/track";
 
 // Przycisk pobierania wielu zdjęć jako ZIP (cała galeria albo jedna sekcja)
 export default function DownloadAll({
@@ -40,7 +41,10 @@ export default function DownloadAll({
     try {
       const saved = await saveZip(items, zipName, kind, () => setCount((c) => c + 1));
       setState(saved ? "done" : "idle");
-      if (saved) onDone?.(kind);
+      if (saved) {
+        track("zip", `${items.length} zdjęć (${kind === "full" ? "pełna rozdzielczość" : "do internetu"})`);
+        onDone?.(kind);
+      }
     } catch {
       setState("error");
     }
