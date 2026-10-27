@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { uploadPhotos } from "@/lib/upload-client";
+import { uploadPhotos, type UploadJob } from "@/lib/upload-client";
+import UploadPanel, { type QueueItem } from "./UploadPanel";
 import Lightbox from "@/components/Lightbox";
 
 type Item = { name: string; fileName: string; url: string; size: number; uploadedAt: string; section: string | null };
@@ -37,6 +38,8 @@ export default function PhotoManager({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("");
   const [uploading, setUploading] = useState<{ done: number; total: number } | null>(null);
+  const [queue, setQueue] = useState<QueueItem[] | null>(null);
+  const jobRef = useRef<UploadJob | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
@@ -124,27 +127,62 @@ export default function PhotoManager({
 
   async function startUpload(list: FileList | File[] | null) {
     const files = Array.from(list ?? []).filter((f) => /^image\/(jpeg|png|webp)$/.test(f.type));
+    if (fileRef.current) fileRef.current.value = "";
     if (files.length === 0) {
       setError("Wybierz zdjęcia w formacie JPG, PNG lub WebP.");
       return;
     }
+    if (jobRef.current) return;
     setError("");
+    setQueue(files.map((f) => ({ name: f.name, state: { status: "queued", progress: 0 } })));
     setUploading({ done: 0, total: files.length });
+
+    let finished = 0;
+    const job = uploadPhotos(id, files, (index, state) => {
+      setQueue((q) => (q ? q.map((it, i) => (i === index ? { ...it, state } : it)) : q));
+      if (state.status === "done") {
+        finished += 1;
+        setUploading({ done: finished, total: files.length });
+        // Co 10 zdjęć odświeżamy siatkę, żeby nowe zdjęcia pojawiały się na bieżąco
+        if (finished % 10 === 0) router.refresh();
+      }
+    });
+    jobRef.current = job;
     try {
-      await uploadPhotos(id, files, (done) => setUploading({ done, total: files.length }));
-      router.refresh();
+      await job.done;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nie udało się przesłać zdjęć.");
       const code = (err as { code?: string }).code;
       if (code === "LIMIT" || code === "NO_PLAN" || code === "EXPIRED") {
         window.dispatchEvent(new Event("lenslie:plan"));
       }
-      router.refresh();
     } finally {
+      jobRef.current = null;
       setUploading(null);
-      if (fileRef.current) fileRef.current.value = "";
+      // Pliki, które nie zdążyły ruszyć (np. po anulowaniu całości), oznaczamy jako anulowane
+      setQueue((q) =>
+        q
+          ? q.map((it) =>
+              ["queued", "preparing", "uploading"].includes(it.state.status)
+                ? { ...it, state: { status: "canceled", progress: 0 } }
+                : it,
+            )
+          : q,
+      );
+      router.refresh();
     }
   }
+
+  // Nie pozwalamy przypadkiem zamknąć karty w trakcie przesyłania
+  useEffect(() => {
+    if (!uploading) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [uploading]);
 
   function chooseCover(item: Item) {
     setCover(item.name);
@@ -388,10 +426,15 @@ export default function PhotoManager({
         </div>
       )}
 
-      {uploading && (
-        <div className="progress" aria-live="polite">
-          <div className="bar" style={{ width: `${(uploading.done / uploading.total) * 100}%` }} />
-        </div>
+      {queue && (
+        <UploadPanel
+          items={queue}
+          onCancel={(i) => jobRef.current?.cancel(i)}
+          onCancelAll={() => {
+            if (window.confirm("Przerwać przesyłanie? Zdjęcia już przesłane zostaną w galerii.")) jobRef.current?.cancel();
+          }}
+          onClose={() => setQueue(null)}
+        />
       )}
       {error && (
         <p className="error" role="alert">
