@@ -53,10 +53,6 @@ export default function PhotoManager({
     setSelected((prev) => new Set([...prev].filter((n) => photos.some((p) => p.name === n))));
   }, [photos]);
 
-  useEffect(() => {
-    if (filter && filter !== "-" && !sections.some((s) => s.id === filter)) setFilter("");
-  }, [sections, filter]);
-
   const counts = useMemo(() => {
     const c: Record<string, number> = { "": items.length, "-": 0 };
     for (const p of items) {

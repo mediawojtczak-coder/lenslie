@@ -50,6 +50,9 @@ export default function Lightbox({
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      // Pisanie w polach formularza (np. okno ulubionych nad podglądem) nie steruje podglądem
+      const t = e.target as HTMLElement | null;
+      if (t?.closest?.("input, textarea, select, dialog")) return;
       if (e.key === "Escape") onClose();
       else if (e.key === " ") {
         e.preventDefault();
