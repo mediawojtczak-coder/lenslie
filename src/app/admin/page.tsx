@@ -39,7 +39,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   ]);
 
   const reminders = await getReminders().catch(() => []);
-  const orders = (await listOrders().catch(() => [])).filter((o) => o.status === "paid" || Date.now() - new Date(o.createdAt).getTime() < 24 * 3600 * 1000);
+  const allOrders = await listOrders(5000).catch(() => []);
+  const orders = allOrders.slice(0, 100).filter((o) => o.status === "paid" || Date.now() - new Date(o.createdAt).getTime() < 24 * 3600 * 1000);
   const users = usersRes.data?.users ?? [];
   const galleries = (galleriesRes.data ?? []) as G[];
   const studios = new Map(((profilesRes.data ?? []) as { id: string; studio_name: string | null }[]).map((p) => [p.id, p.studio_name]));
@@ -65,6 +66,41 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     return sum + (plan && m?.period ? plan.prices[m.period] : 0);
   }, 0);
   const storageCostUsd = Math.max(0, totalBytes / GB - 10) * 0.015;
+
+  // Statystyki sprzedaży: ostatnie 12 miesięcy
+  const monthKey = (d: Date) => d.toLocaleDateString("sv-SE", { timeZone: "Europe/Warsaw" }).slice(0, 7);
+  const months: { key: string; label: string; revenue: number; fee: number; count: number; topups: number; users: number }[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - i);
+    months.push({
+      key: monthKey(d),
+      label: d.toLocaleDateString("pl-PL", { month: "short", year: "2-digit" }),
+      revenue: 0,
+      fee: 0,
+      count: 0,
+      topups: 0,
+      users: 0,
+    });
+  }
+  const mIndex = new Map(months.map((m, i) => [m.key, i]));
+  for (const o of allOrders) {
+    if (o.status !== "paid" || !o.paidAt) continue;
+    const i = mIndex.get(monthKey(new Date(o.paidAt)));
+    if (i === undefined) continue;
+    months[i].revenue += o.amount;
+    months[i].fee += Math.round(o.amount * 0.0129 + 30);
+    months[i].count += 1;
+    if (o.action.action === "topup") months[i].topups += o.amount;
+  }
+  for (const u of users) {
+    const i = mIndex.get(monthKey(new Date(u.created_at)));
+    if (i !== undefined) months[i].users += 1;
+  }
+  const thisMonth = months[months.length - 1];
+  const maxRev = Math.max(1, ...months.map((m) => m.revenue));
+  const gr = (n: number) => `${(n / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`;
 
   const tiles = [
     { label: "Fotografowie", value: String(users.length) },
@@ -116,6 +152,68 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           <p className="hint-inline">Te same przypomnienia przychodzą raz w tygodniu mailem.</p>
         </section>
       )}
+
+      <section className="settings-card" id="sprzedaz">
+        <h2>Sprzedaż</h2>
+        <div className="stat-tiles">
+          <div className="stat-tile">
+            <p className="stat-value">{gr(thisMonth.revenue)}</p>
+            <p className="stat-label">Przychód w tym miesiącu (brutto)</p>
+          </div>
+          <div className="stat-tile">
+            <p className="stat-value">{thisMonth.count}</p>
+            <p className="stat-label">Płatności w tym miesiącu</p>
+          </div>
+          <div className="stat-tile">
+            <p className="stat-value">{thisMonth.users}</p>
+            <p className="stat-label">Nowi fotografowie w tym miesiącu</p>
+          </div>
+          <div className="stat-tile">
+            <p className="stat-value">{gr(months.reduce((s, m) => s + m.revenue, 0))}</p>
+            <p className="stat-label">Przychód z 12 miesięcy</p>
+          </div>
+        </div>
+        <div className="rev-chart" role="img" aria-label="Przychód miesiąc po miesiącu">
+          {months.map((m) => (
+            <div key={m.key} className="rev-col" title={`${m.label}: ${gr(m.revenue)}`}>
+              <span className="rev-val">{m.revenue ? Math.round(m.revenue / 100) : ""}</span>
+              <div className="rev-bar">
+                <span style={{ height: `${(m.revenue / maxRev) * 100}%` }} />
+              </div>
+              <span className="rev-label">{m.label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Miesiąc</th>
+                <th>Przychód brutto</th>
+                <th>w tym doładowania</th>
+                <th>Prowizja P24 (szac.)</th>
+                <th>Płatności</th>
+                <th>Nowi fotografowie</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...months].reverse().filter((m) => m.revenue || m.users).map((m) => (
+                <tr key={m.key}>
+                  <td>{m.label}</td>
+                  <td>{gr(m.revenue)}</td>
+                  <td>{gr(m.topups)}</td>
+                  <td>{gr(m.fee)}</td>
+                  <td>{m.count}</td>
+                  <td>{m.users}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="hint-inline">
+          Przychód to wpłaty przez Przelewy24 (publikacje, zmiany pakietu, doładowania). Zakupy z salda nie są liczone drugi raz.
+        </p>
+      </section>
 
       <section className="settings-card" id="platnosci">
         <h2>Płatności</h2>

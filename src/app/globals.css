@@ -1507,3 +1507,12 @@ ol.stat-list { counter-reset: s; }
 .rem-pilne { background: #fbefec; }
 .rem-pilne .rem-tag { color: #a4483c; }
 .rem-wkrótce { background: #fbf3e9; }
+.rev-chart { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; align-items: end; height: 180px; margin: 22px 0 18px; }
+.rev-col { display: flex; flex-direction: column; align-items: center; height: 100%; min-width: 0; }
+.rev-bar { flex: 1; width: 100%; display: flex; align-items: flex-end; }
+.rev-bar span { display: block; width: 100%; min-height: 2px; border-radius: 4px 4px 0 0; background: var(--blush-deep); }
+.rev-col:last-child .rev-bar span { background: var(--brass); }
+.rev-val { font-size: .68rem; color: var(--taupe); min-height: 1em; }
+.rev-label { margin-top: 6px; font-size: .68rem; color: var(--taupe); white-space: nowrap; }
+#sprzedaz .stat-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 860px) { #sprzedaz .stat-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rev-label { font-size: .58rem; } }
