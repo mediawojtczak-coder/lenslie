@@ -20,8 +20,8 @@ const MAIL: Record<string, string> = {
   blad: "Resend odrzucił wysyłkę. Sprawdź, czy klucz ma dostęp do domeny lenslie.com i czy domena jest zweryfikowana.",
 };
 
-export default async function Admin({ searchParams }: { searchParams: Promise<{ mail?: string; reset?: string; usuniete?: string }> }) {
-  const { mail, reset, usuniete } = await searchParams;
+export default async function Admin({ searchParams }: { searchParams: Promise<{ mail?: string; reset?: string; usuniete?: string; gratis?: string }> }) {
+  const { mail, reset, usuniete, gratis } = await searchParams;
   const db = adminClient();
   if (!db) {
     return (
@@ -269,6 +269,47 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             </table>
           </div>
         )}
+      </section>
+
+      <section className="settings-card" id="gratis">
+        <h2>Gratis dla fotografa</h2>
+        <p className="hint-inline">Dopisuje kwotę do salda konta – fotograf opłaca nią dowolny pakiet jednym kliknięciem („Zapłać z salda”).</p>
+        {gratis && (
+          <p className={gratis === "ok" ? "success-box" : "warn-inline"}>
+            {gratis === "ok"
+              ? "Gratis dopisany do salda."
+              : gratis === "brak"
+                ? "Nie ma konta z tym adresem e-mail."
+                : "Sprawdź e-mail i kwotę."}
+          </p>
+        )}
+        <form method="post" action="/api/admin/gift" className="slot-gen">
+          <div>
+            <label htmlFor="gift-email">E-mail fotografa</label>
+            <input id="gift-email" name="email" type="email" required list="gift-users" />
+            <datalist id="gift-users">
+              {users.map((u) => (
+                <option key={u.id} value={u.email ?? ""} />
+              ))}
+            </datalist>
+          </div>
+          <div>
+            <label htmlFor="gift-amount">Kwota</label>
+            <select id="gift-amount" name="amount" className="plain-select" defaultValue="25">
+              <option value="12">12 zł – galeria Mała na rok</option>
+              <option value="18">18 zł – galeria Średnia na rok</option>
+              <option value="25">25 zł – galeria Duża na rok</option>
+              <option value="99">99 zł – Zdjęcia od gości</option>
+              <option value="50">50 zł</option>
+              <option value="100">100 zł</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="gift-note">Opis w historii salda</label>
+            <input id="gift-note" name="note" defaultValue="Gratis od Lenslie" maxLength={80} />
+          </div>
+          <button type="submit" className="btn">Dodaj gratis</button>
+        </form>
       </section>
 
       <section className="settings-card">
