@@ -621,3 +621,39 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .hero-img, .hero-shade, .hero-content { transition: none; }
   .lightbox { animation: none; }
 }
+
+/* ===== Zdjęcia w galerii klienta: od krawędzi do krawędzi ===== */
+.g-photos { max-width: none; margin: 0; padding: 8px 8px 80px; }
+.client-grid { columns: 4; column-gap: 8px; }
+.client-grid .photo { position: relative; margin: 0 0 8px; break-inside: avoid; overflow: hidden; }
+.client-grid .photo-open img { transition: transform .6s ease, filter .6s ease; }
+.client-grid .photo:hover .photo-open img { transform: scale(1.015); filter: brightness(.92); }
+
+.client-grid.even { columns: auto; display: grid; gap: 8px; grid-template-columns: repeat(4, 1fr); }
+.client-grid.even .photo { margin: 0; aspect-ratio: 1; }
+.client-grid.even .photo-open, .client-grid.even .photo-open img { height: 100%; object-fit: cover; }
+
+.photo-actions {
+  position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: flex-end; gap: 4px;
+  padding: 36px 12px 10px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(20, 18, 17, 0), rgba(20, 18, 17, .45));
+  opacity: 0; transition: opacity .3s ease;
+}
+.photo:hover .photo-actions, .photo:focus-within .photo-actions { opacity: 1; }
+.pa-btn {
+  pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 64px; padding: 6px 8px; background: none; border: 0; color: #fff; cursor: pointer;
+  font: inherit; font-size: .72rem; letter-spacing: .04em; text-decoration: none;
+}
+.pa-btn:hover { color: #fff; opacity: .8; }
+
+@media (max-width: 1100px) { .client-grid { columns: 3; } .client-grid.even { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 760px) {
+  .g-photos { padding: 4px 4px 64px; }
+  .client-grid { columns: 2; column-gap: 4px; }
+  .client-grid .photo { margin-bottom: 4px; }
+  .client-grid.even { grid-template-columns: repeat(2, 1fr); gap: 4px; }
+  .photo-actions { opacity: 1; padding: 24px 6px 4px; }
+  .pa-btn span { display: none; }
+  .pa-btn { min-width: 40px; }
+}
