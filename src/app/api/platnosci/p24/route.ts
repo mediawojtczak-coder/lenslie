@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOrder, saveOrder, notificationValid, verifyTransaction, type Notification } from "@/lib/p24";
 import { applyAction } from "@/lib/plan-actions";
+import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -22,5 +23,28 @@ export async function POST(req: Request) {
 
   await applyAction(order.galleryId, order.action);
   await saveOrder({ ...order, status: "paid", paidAt: new Date().toISOString(), orderId: n.orderId });
+
+  // Mail do administratora: nowa płatność (z danymi do faktury, jeśli klient jej chce)
+  const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim()).filter(Boolean);
+  const zl = (order.amount / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2 }) + " zł";
+  const inv = order.invoice;
+  for (const to of admins) {
+    await sendEmail({
+      to,
+      subject: inv ? `Wystaw fakturę: ${zl} – ${inv.company}` : `Nowa płatność Lenslie: ${zl}`,
+      html: emailLayout(
+        inv ? "Nowa płatność – klient prosi o fakturę" : "Nowa płatność",
+        [
+          `Kwota: ${zl} (Przelewy24, nr ${n.orderId}).`,
+          `Za: ${order.description}.`,
+          `Konto: ${order.email}.`,
+          ...(inv
+            ? [`Faktura na: ${inv.company}, NIP ${inv.nip}, ${inv.street}, ${inv.postcode} ${inv.city}.`, "Fakturę wyślij na adres e-mail konta."]
+            : ["Klient nie prosił o fakturę."]),
+        ],
+        { label: "Płatności w panelu administratora", url: `${siteUrl()}/admin#platnosci` },
+      ),
+    }).catch(() => undefined);
+  }
   return NextResponse.json({ ok: true });
 }

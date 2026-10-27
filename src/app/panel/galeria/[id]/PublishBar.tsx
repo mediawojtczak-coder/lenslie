@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import InvoiceFields from "@/components/InvoiceFields";
+import type { Billing } from "@/lib/billing";
 import { PLANS, PERIODS, DEFAULT_PERIOD, fitPlan, formatBytes, perMonth, zl, hardLimitBytes, type Period, type PlanId } from "@/lib/plans";
 
 function photosLabel(n: number) {
@@ -19,13 +21,16 @@ export default function PublishBar({
   photoCount,
   usedBytes,
   deleteOn,
+  billing,
 }: {
   id: string;
   title: string;
   photoCount: number;
   usedBytes: number;
   deleteOn?: string | null;
+  billing: Billing;
 }) {
+  const [invoice, setInvoice] = useState<Billing>(billing);
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const fit = fitPlan(usedBytes);
@@ -52,7 +57,7 @@ export default function PublishBar({
       const res = await fetch(`/api/galleries/${id}/plan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "choose", plan: plan.id, period }),
+        body: JSON.stringify({ action: "choose", plan: plan.id, period, invoice }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Nie udało się opublikować galerii.");
@@ -184,6 +189,7 @@ export default function PublishBar({
                 <strong>{zl(price)}</strong>
               </div>
               <p className="pub-permonth">{plan && `To ${perMonth(price, period)}`}</p>
+              <InvoiceFields value={invoice} onChange={setInvoice} />
             </>
           )}
 

@@ -1449,3 +1449,16 @@ ol.stat-list { counter-reset: s; }
 .draft-del { margin: 6px 0 0 24px; font-size: .78rem; color: #8a4f4a; }
 .site-copy a { color: var(--taupe); }
 .pay-note { margin-bottom: 18px; }
+
+/* ===== Faktury ===== */
+.invoice { margin: 6px 0 16px; }
+.invoice .check { margin: 0 0 12px; }
+.invoice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.invoice-grid label { font-size: .8rem; }
+.invoice-grid input { margin: 2px 0 14px; padding: 8px 0 10px; }
+.invoice-grid .span2 { grid-column: 1 / -1; }
+.admin-table td.wrap { white-space: normal; min-width: 180px; }
+.inv-cell { display: flex; flex-direction: column; gap: 6px; font-size: .8rem; }
+.inv-btn { align-self: flex-start; border: 1px solid var(--blush-deep); background: #fff; border-radius: 999px; padding: 4px 12px; font: inherit; font-size: .75rem; cursor: pointer; }
+.inv-btn.done { border-color: #a9bca5; color: #3f5a3b; background: #e9f1e7; }
+@media (max-width: 560px) { .invoice-grid { grid-template-columns: 1fr; } }

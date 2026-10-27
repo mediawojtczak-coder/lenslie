@@ -4,6 +4,7 @@ import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET } from "@/lib/r2";
 import { getUser } from "@/lib/supabase/server";
+import { cleanBilling, saveBilling } from "@/lib/billing";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,8 @@ type Body =
   | { action: "logo-url"; type?: string; size?: number }
   | { action: "logo-done"; key?: string }
   | { action: "logo-remove" }
-  | { action: "password"; password?: string };
+  | { action: "password"; password?: string }
+  | { action: "billing"; billing?: unknown };
 
 const NO_TABLE = "Nie udało się zapisać profilu. Sprawdź, czy w Supabase uruchomiono SQL z tabelą profiles.";
 
@@ -24,6 +26,13 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: "Zaloguj się ponownie." }, { status: 401 });
   const body = (await req.json().catch(() => null)) as Body | null;
   if (!body) return NextResponse.json({ error: "Nieprawidłowe dane." }, { status: 400 });
+
+  if (body.action === "billing") {
+    const c = cleanBilling({ ...(body.billing as object), want: true });
+    if (!c.ok) return NextResponse.json({ error: c.error }, { status: 400 });
+    await saveBilling(user.id, c.billing);
+    return NextResponse.json({ ok: true });
+  }
 
   const current = await supabase.from("profiles").select("logo_key").eq("id", user.id).maybeSingle();
   const upsert = (fields: Record<string, unknown>) =>

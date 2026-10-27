@@ -3,6 +3,7 @@ import { listObjects } from "@/lib/photos";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
 import { getPlan, formatBytes } from "@/lib/plans";
 import ConfirmButton from "./ConfirmButton";
+import { listOrders } from "@/lib/p24";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     listObjects("galleries/").catch(() => []),
   ]);
 
+  const orders = (await listOrders().catch(() => [])).filter((o) => o.status === "paid" || Date.now() - new Date(o.createdAt).getTime() < 24 * 3600 * 1000);
   const users = usersRes.data?.users ?? [];
   const galleries = (galleriesRes.data ?? []) as G[];
   const studios = new Map(((profilesRes.data ?? []) as { id: string; studio_name: string | null }[]).map((p) => [p.id, p.studio_name]));
@@ -94,6 +96,62 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </div>
         ))}
       </div>
+
+      <section className="settings-card" id="platnosci">
+        <h2>Płatności</h2>
+        {orders.length === 0 ? (
+          <p className="hint-inline">Brak płatności.</p>
+        ) : (
+          <div className="table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Kwota</th>
+                  <th>Za co</th>
+                  <th>Konto</th>
+                  <th>Faktura</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((o) => (
+                  <tr key={o.sessionId}>
+                    <td>{fmtDate(o.paidAt ?? o.createdAt)}</td>
+                    <td>
+                      {(o.amount / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł
+                      {o.status !== "paid" && <span className="badge-soft">{o.status === "pending" ? "nieopłacona" : "błąd"}</span>}
+                    </td>
+                    <td className="wrap">{o.description.replace(/^Lenslie – /, "")}</td>
+                    <td>{o.email}</td>
+                    <td className="wrap">
+                      {o.status !== "paid" ? (
+                        "–"
+                      ) : o.invoice ? (
+                        <div className="inv-cell">
+                          <span>
+                            {o.invoice.company}, NIP {o.invoice.nip}
+                            <br />
+                            {o.invoice.street}, {o.invoice.postcode} {o.invoice.city}
+                          </span>
+                          <form method="post" action="/api/admin/invoice">
+                            <input type="hidden" name="sid" value={o.sessionId} />
+                            <input type="hidden" name="issued" value={o.invoiceIssued ? "0" : "1"} />
+                            <button type="submit" className={o.invoiceIssued ? "inv-btn done" : "inv-btn"}>
+                              {o.invoiceIssued ? "✓ Wystawiona" : "Oznacz jako wystawioną"}
+                            </button>
+                          </form>
+                        </div>
+                      ) : (
+                        <span className="hint-inline">nie chce</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       <section className="settings-card">
         <h2>Fotografowie</h2>

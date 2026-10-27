@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import InvoiceFields from "@/components/InvoiceFields";
+import type { Billing } from "@/lib/billing";
 
 async function call(body: unknown) {
   const res = await fetch("/api/profile", {
@@ -18,11 +20,14 @@ export default function AccountForms({
   email,
   studioName: initialName,
   logoUrl,
+  billing: initialBilling,
 }: {
   email: string;
   studioName: string;
   logoUrl: string | null;
+  billing: Billing;
 }) {
+  const [billing, setBilling] = useState<Billing>(initialBilling);
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [studioName, setStudioName] = useState(initialName);
@@ -133,6 +138,25 @@ export default function AccountForms({
         </div>
         {note("logo")}
       </div>
+
+      <form
+        className="settings-card"
+        onSubmit={(e) => {
+          e.preventDefault();
+          run("billing", async () => {
+            await call({ action: "billing", billing });
+            return "Dane do faktury zapisane.";
+          });
+        }}
+      >
+        <h2>Dane do faktury</h2>
+        <p>Podpowiemy je przy każdym zakupie. Fakturę wyślemy na adres e-mail konta.</p>
+        <InvoiceFields value={billing} onChange={setBilling} alwaysOpen />
+        {note("billing")}
+        <button type="submit" className="btn" disabled={busy !== null}>
+          {busy === "billing" ? "Zapisuję…" : "Zapisz dane"}
+        </button>
+      </form>
 
       <form
         className="settings-card"

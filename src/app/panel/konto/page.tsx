@@ -3,6 +3,7 @@ import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
 import { logoUrl } from "@/lib/profiles";
 import AccountForms from "./AccountForms";
+import { getBilling } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
             email={user!.email ?? ""}
             studioName={profile?.studio_name ?? ""}
             logoUrl={await logoUrl(profile?.logo_key)}
+            billing={await getBilling(user!.id)}
           />
         </div>
       </main>

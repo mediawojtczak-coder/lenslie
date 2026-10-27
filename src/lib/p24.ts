@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "crypto";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { r2, BUCKET } from "@/lib/r2";
 import type { PlanAction } from "@/lib/plan-actions";
+import type { Billing } from "@/lib/billing";
 
 // Przelewy24 (REST API v1). Dane w Vercelu: P24_MERCHANT_ID, P24_POS_ID, P24_CRC, P24_API_KEY, opcjonalnie P24_SANDBOX=1
 export function p24Enabled() {
@@ -30,6 +31,8 @@ export type Order = {
   createdAt: string;
   paidAt?: string;
   orderId?: number;
+  invoice?: Billing | null; // dane do faktury, gdy klient jej chce
+  invoiceIssued?: boolean;
 };
 
 const orderKey = (sid: string) => `payments/${sid}.json`;
@@ -130,4 +133,12 @@ export async function verifyTransaction(n: Notification) {
   });
   if (!res.ok) console.error("P24 verify:", res.status, await res.text().catch(() => ""));
   return res.ok;
+}
+
+// Ostatnie płatności (do panelu administratora)
+export async function listOrders(limit = 100): Promise<Order[]> {
+  const { listObjects } = await import("@/lib/photos");
+  const objs = (await listObjects("payments/")).sort((a, b) => b.modified.localeCompare(a.modified)).slice(0, limit);
+  const out = await Promise.all(objs.map((o) => getOrder(o.key.slice("payments/".length).replace(/\.json$/, ""))));
+  return out.filter((o): o is Order => Boolean(o));
 }

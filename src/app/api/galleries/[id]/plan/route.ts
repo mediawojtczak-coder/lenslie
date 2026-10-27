@@ -4,6 +4,7 @@ import { getMeta } from "@/lib/galleries";
 import { getUser } from "@/lib/supabase/server";
 import { checkAction, applyAction } from "@/lib/plan-actions";
 import { p24Enabled, newSessionId, saveOrder, registerTransaction } from "@/lib/p24";
+import { cleanBilling, saveBilling } from "@/lib/billing";
 
 export const runtime = "nodejs";
 
@@ -17,12 +18,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { data: own } = await supabase.from("galleries").select("id").eq("id", id).maybeSingle();
   if (!own) return NextResponse.json({ error: "To nie jest Twoja galeria." }, { status: 403 });
 
-  const body = ((await req.json().catch(() => null)) ?? {}) as { action?: string; plan?: string; period?: number };
+  const body = ((await req.json().catch(() => null)) ?? {}) as { action?: string; plan?: string; period?: number; invoice?: unknown };
   const meta = await getMeta(id);
   if (!meta) return NextResponse.json({ error: "Nie znaleziono galerii." }, { status: 404 });
 
   const checked = await checkAction(id, meta, body);
   if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 });
+
+  // Dane do faktury: sprawdzamy i zapamiętujemy na kolejne zakupy
+  const inv = cleanBilling(body.invoice);
+  if (!inv.ok) return NextResponse.json({ error: inv.error }, { status: 400 });
+  if (body.invoice) await saveBilling(user.id, inv.billing).catch(() => undefined);
 
   // Nic do zapłaty albo brak bramki (tryb testowy): od razu
   if (checked.amount <= 0 || !p24Enabled()) {
@@ -39,6 +45,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     action: checked.action,
     description: `Lenslie – ${checked.label} – ${meta.title}`.slice(0, 1024),
     status: "pending" as const,
+    invoice: inv.billing.want ? inv.billing : null,
     createdAt: new Date().toISOString(),
   };
   await saveOrder(order);

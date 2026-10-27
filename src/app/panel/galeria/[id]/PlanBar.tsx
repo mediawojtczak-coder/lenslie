@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import InvoiceFields from "@/components/InvoiceFields";
+import type { Billing } from "@/lib/billing";
 import {
   PLANS,
   PERIODS,
@@ -28,13 +30,16 @@ export default function PlanBar({
   period,
   expiresAt,
   usedBytes,
+  billing,
 }: {
   id: string;
   planId: PlanId | null;
   period: Period | null;
   expiresAt: string | null;
   usedBytes: number;
+  billing: Billing;
 }) {
+  const [invoice, setInvoice] = useState<Billing>(billing);
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<Mode>("upgrade");
@@ -71,10 +76,10 @@ export default function PlanBar({
     try {
       const body =
         mode === "upgrade"
-          ? { action: "upgrade", plan: target }
+          ? { action: "upgrade", plan: target, invoice }
           : mode === "extend"
-            ? { action: "extend", period: newPeriod }
-            : { action: "choose", plan: target, period: newPeriod };
+            ? { action: "extend", period: newPeriod, invoice }
+            : { action: "choose", plan: target, period: newPeriod, invoice };
       const res = await fetch(`/api/galleries/${id}/plan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -227,6 +232,8 @@ export default function PlanBar({
               {expired ? "dzisiaj" : dateFmt.format(new Date(expiresAt))}.
             </p>
           )}
+
+          <InvoiceFields value={invoice} onChange={setInvoice} />
 
           {error && (
             <p className="error" role="alert">
