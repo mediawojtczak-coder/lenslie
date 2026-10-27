@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json().catch(() => null)) as
-    | { gallery?: string; title?: string; clientPassword?: string }
+    | { gallery?: string; title?: string; clientPassword?: string; layout?: string }
     | null;
 
   const id = String(body?.gallery ?? "");
@@ -54,13 +54,18 @@ export async function POST(req: Request) {
     }
   }
 
+  const rawLayout = body?.layout;
+  const requestedLayout: GalleryMeta["layout"] =
+    rawLayout === "siatka" || rawLayout === "mozaika" ? rawLayout : undefined;
+
   const existing = await getMeta(id);
   const meta: GalleryMeta = {
     title,
     createdAt: existing?.createdAt ?? new Date().toISOString(),
     passwordHash: clientPassword ? hashPassword(clientPassword) : existing?.passwordHash,
+    layout: requestedLayout ?? existing?.layout ?? "mozaika",
   };
   await saveMeta(id, meta);
 
-  return NextResponse.json({ ok: true, protected: Boolean(meta.passwordHash) });
+  return NextResponse.json({ ok: true, id, protected: Boolean(meta.passwordHash) });
 }

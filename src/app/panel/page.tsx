@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getUser } from "@/lib/supabase/server";
 import { getGallerySummary } from "@/lib/photos";
 import { getMeta } from "@/lib/galleries";
+import CreateGallery from "./CreateGallery";
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +78,7 @@ export default async function Panel({
   return (
     <div className="app-body">
       <aside className="app-side">
-        <Link href="/panel/nowa" className="btn btn-wide">Nowa galeria</Link>
+        <CreateGallery label="Nowa galeria" className="btn btn-wide" />
         <nav aria-label="Filtry galerii">
           {FILTERS.map((f) => (
             <Link
@@ -104,7 +105,7 @@ export default async function Panel({
         {cards.length === 0 ? (
           <div className="empty-state">
             <p>Nie masz jeszcze żadnej galerii.</p>
-            <Link href="/panel/nowa" className="btn">Utwórz pierwszą galerię</Link>
+            <CreateGallery label="Utwórz pierwszą galerię" className="btn" />
           </div>
         ) : visible.length === 0 ? (
           <p className="notice-left">Brak galerii pasujących do wybranych filtrów.</p>

@@ -111,7 +111,7 @@ export default async function Galeria({
       )}
 
       {photos.length > 0 && (
-        <section className="masonry" aria-label="Zdjęcia">
+        <section className={meta?.layout === "siatka" ? "even-grid" : "masonry"} aria-label="Zdjęcia">
           {photos.map((p) => (
             <figure key={p.name} className="photo">
               {/* eslint-disable-next-line @next/next/no-img-element */}

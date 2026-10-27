@@ -343,3 +343,59 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .app-main { padding: 24px 16px 64px; }
   .app-narrow .uploader { padding: 20px; }
 }
+
+/* Okno „Nowa galeria” */
+.modal {
+  width: min(560px, calc(100vw - 32px)); padding: 0; border: 0; border-radius: 10px;
+  background: var(--paper); color: var(--ink);
+  box-shadow: 0 30px 80px rgba(59, 54, 51, .22);
+}
+.modal::backdrop { background: rgba(59, 54, 51, .38); backdrop-filter: blur(3px); }
+.modal[open] { animation: modal-in .22s ease-out; }
+@keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+.modal-body { padding: 32px 36px 28px; }
+.modal-body h2 {
+  font-family: var(--font-display), Georgia, serif; font-weight: 400;
+  font-size: 2rem; margin: 0 0 28px;
+}
+.modal-body .hint { margin: -20px 0 22px; }
+.pass-row { display: flex; gap: 12px; align-items: flex-end; }
+.pass-row input { flex: 1; letter-spacing: .06em; }
+.btn-small { padding: 9px 18px; font-size: .85rem; margin-bottom: 28px; white-space: nowrap; }
+
+.layout-pick { border: 0; padding: 0; margin: 4px 0 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.layout-pick legend { font-size: .85rem; color: var(--taupe); margin-bottom: 10px; padding: 0; }
+.pick {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 20px 14px 16px; border: 1px solid var(--hair); border-radius: 8px;
+  background: #fff; cursor: pointer; color: var(--ink); text-align: center;
+  transition: border-color .2s, background .2s;
+}
+.pick:hover { border-color: var(--blush-deep); }
+.pick.active { border-color: var(--brass); background: #fffaf7; }
+.pick input { position: absolute; opacity: 0; pointer-events: none; }
+.pick:has(input:focus-visible) { outline: 1px solid var(--brass); outline-offset: 3px; }
+.pick-title { font-family: var(--font-display), Georgia, serif; font-size: 1.2rem; margin-top: 8px; }
+.pick-desc { font-size: .78rem; color: var(--taupe); }
+.pick-icon { display: grid; gap: 3px; width: 56px; height: 40px; }
+.pick-icon i { display: block; background: var(--blush-deep); border-radius: 2px; }
+.pick.active .pick-icon i { background: var(--brass); opacity: .7; }
+.mosaic-icon { grid-template-columns: 3fr 2fr 3fr; grid-template-rows: 1fr 1fr; }
+.mosaic-icon i:nth-child(1) { grid-row: span 2; }
+.mosaic-icon i:nth-child(3) { grid-row: span 2; }
+.grid-icon { grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; }
+.grid-icon i:nth-child(n+7) { display: none; }
+.mosaic-icon i:nth-child(n+5) { display: none; }
+
+.modal-actions { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 8px; }
+.modal-actions .as-link { color: var(--taupe); }
+
+/* Galeria w układzie siatki */
+.even-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.even-grid .photo { margin: 0; aspect-ratio: 1; overflow: hidden; }
+.even-grid .photo img { height: 100%; object-fit: cover; }
+
+@media (max-width: 560px) {
+  .modal-body { padding: 24px 20px 20px; }
+  .layout-pick { grid-template-columns: 1fr; }
+}

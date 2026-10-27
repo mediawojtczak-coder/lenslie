@@ -45,9 +45,11 @@ async function put(url: string, body: Blob, type: string) {
 export default function Uploader({
   initialName = "",
   galleryId,
+  hidePassword = false,
 }: {
   initialName?: string;
   galleryId?: string;
+  hidePassword?: boolean;
 }) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
@@ -74,7 +76,7 @@ export default function Uploader({
       const metaRes = await fetch("/api/galleries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gallery: slug, title: name.trim(), clientPassword }),
+        body: JSON.stringify({ gallery: slug, title: name.trim(), clientPassword: hidePassword ? "" : clientPassword }),
       });
       const metaData = await metaRes.json();
       if (!metaRes.ok) throw new Error(metaData.error ?? "Błąd serwera");
@@ -132,6 +134,8 @@ export default function Uploader({
       />
       {slug && <p className="hint">Adres galerii: /galeria/{slug}</p>}
 
+      {!hidePassword && (
+        <>
       <label htmlFor="haslo-klienta">Hasło dla klienta (opcjonalne)</label>
       <input
         id="haslo-klienta"
@@ -145,6 +149,8 @@ export default function Uploader({
         Klient wpisze je przy otwieraniu galerii. Zostaw puste, aby nie zmieniać obecnego hasła
         albo zostawić galerię otwartą.
       </p>
+        </>
+      )}
 
       <label htmlFor="pliki">Zdjęcia (JPG, PNG lub WebP)</label>
       <input

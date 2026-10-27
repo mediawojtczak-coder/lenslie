@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 export default async function NowaGaleria({
   searchParams,
 }: {
-  searchParams: Promise<{ galeria?: string }>;
+  searchParams: Promise<{ galeria?: string; nowa?: string }>;
 }) {
-  const { galeria } = await searchParams;
+  const { galeria, nowa } = await searchParams;
 
   let existing: { id: string; title: string } | null = null;
   if (galeria && isValidGalleryId(galeria)) {
@@ -24,11 +24,13 @@ export default async function NowaGaleria({
       <Link href="/panel" className="link-quiet back-link">← Wróć do galerii</Link>
       <h1>{existing ? existing.title : "Nowa galeria"}</h1>
       <p className="lead">
-        {existing
+        {existing && nowa
+          ? "Galeria jest gotowa. Wybierz zdjęcia, które chcesz do niej dodać."
+          : existing
           ? "Dodaj kolejne zdjęcia do tej galerii. Możesz też ustawić nowe hasło dla klienta."
           : "Wpisz nazwę sesji i wybierz zdjęcia. Każde zdjęcie zapisze się w pełnej jakości do pobrania oraz w lżejszej wersji do oglądania."}
       </p>
-      <Uploader initialName={existing?.title ?? ""} galleryId={existing?.id} />
+      <Uploader initialName={existing?.title ?? ""} galleryId={existing?.id} hidePassword={Boolean(nowa)} />
     </main>
   );
 }

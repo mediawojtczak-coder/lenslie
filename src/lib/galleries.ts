@@ -7,6 +7,7 @@ export type GalleryMeta = {
   title: string;
   passwordHash?: string;
   createdAt: string;
+  layout?: "mozaika" | "siatka";
 };
 
 const metaKey = (id: string) => `${galleryPrefix(id)}meta.json`;
