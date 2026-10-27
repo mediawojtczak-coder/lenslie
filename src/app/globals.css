@@ -1248,3 +1248,24 @@ ol.stat-list { counter-reset: s; }
 .admin-table .is-expired { color: #a4483c; }
 .badge-soft { margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: #fbf3e9; font-size: .7rem; color: var(--taupe); }
 @media (max-width: 860px) { .admin-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ===== Stopka i dokumenty ===== */
+.site-footer {
+  margin-top: 80px; padding: 48px 24px 40px; border-top: 1px solid var(--hair); text-align: center;
+  display: grid; gap: 16px; justify-items: center;
+}
+.site-footer .wordmark { margin: 0; font-size: 1.5rem; }
+.site-footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 26px; }
+.site-footer nav a { color: var(--taupe); text-decoration: none; font-size: .88rem; }
+.site-footer nav a:hover { color: var(--ink); }
+.site-copy { margin: 0; font-size: .78rem; color: var(--taupe); }
+
+.legal { max-width: 760px; margin: 0 auto; padding: 48px 20px 20px; line-height: 1.7; }
+.legal h1 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: clamp(2rem, 4vw, 2.8rem); line-height: 1.15; margin: 0 0 8px; }
+.legal h2 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.45rem; margin: 40px 0 12px; }
+.legal p, .legal li { font-size: .95rem; }
+.legal ol, .legal ul { padding-left: 1.3em; }
+.legal li { margin-bottom: 8px; }
+.legal a { color: var(--brass); }
+.legal-meta { color: var(--taupe); margin: 0 0 24px; }
+.legal-draft { padding: 12px 16px; border-radius: 8px; background: #fbf3e9; font-size: .88rem !important; margin: 0 0 28px; }
