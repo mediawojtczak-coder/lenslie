@@ -880,3 +880,9 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .hero-collage-mobile { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .hero-collage-mobile img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; }
 }
+
+/* Wyśrodkowany nagłówek strony głównej */
+.hero { text-align: center; padding-bottom: 56px; }
+.hero h1 { margin-bottom: 22px; }
+.hero p { margin: 0 auto; }
+@media (max-width: 760px) { .hero { padding-bottom: 36px; } }
