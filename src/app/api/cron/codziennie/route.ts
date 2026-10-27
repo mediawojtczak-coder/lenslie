@@ -6,6 +6,7 @@ import { getMeta, saveMeta, DRAFT_REMIND_DAYS, DRAFT_DELETE_DAYS, draftDeleteDat
 import { adminClient } from "@/lib/supabase/admin";
 import { getOwnerContact } from "@/lib/profiles";
 import { getUserLang } from "@/lib/lang-server";
+import { deleteGalleryVideos, deleteVideo } from "@/lib/videos";
 import { sendEmail, emailLayout, siteUrl, notifyAdmins } from "@/lib/email";
 import { getReminders, lastReminderMail, markReminderMail } from "@/lib/reminders";
 import { listObjects } from "@/lib/photos";
@@ -43,6 +44,7 @@ async function galleryIds() {
 // Usuwa zdjęcia i wpis galerii, potem informuje fotografa
 async function removeGallery(id: string, meta: GalleryMeta, db: ReturnType<typeof adminClient>, reason: "draft" | "expired") {
   const owner = await getOwnerContact(id);
+  await deleteGalleryVideos(id, meta.videos ?? []);
   const keys = await listKeys(galleryPrefix(id));
   for (let i = 0; i < keys.length; i += 10) {
     await Promise.all(keys.slice(i, i + 10).map((Key) => r2.send(new DeleteObjectCommand({ Bucket: BUCKET, Key }))));
@@ -128,6 +130,19 @@ export async function GET(req: Request) {
         }
       }
       continue;
+    }
+
+    // Nieopłacone (i porzucone w trakcie wgrywania) filmy usuwamy po 7 dniach
+    const staleVideos = (meta.videos ?? []).filter(
+      (v) => (v.status === "unpaid" || v.status === "uploading") && now - new Date(v.createdAt).getTime() > 7 * DAY,
+    );
+    if (staleVideos.length) {
+      log.push(`${id}: usunięcie nieopłaconych filmów (${staleVideos.length})`);
+      if (!dry) {
+        for (const v of staleVideos) await deleteVideo(v);
+        meta.videos = (meta.videos ?? []).filter((v) => !staleVideos.includes(v));
+        await saveMeta(id, meta);
+      }
     }
 
     if (!meta.expiresAt) continue;

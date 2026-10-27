@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { Great_Vibes } from "next/font/google";
-import { getGuestEvent, getGuestPhotos, guestActive, guestCoverUrl, type GuestPhoto } from "@/lib/guest-events";
+import { getGuestEvent, getGuestPhotos, getGuestVideos, guestActive, guestCoverUrl, type GuestPhoto, type GuestVideo } from "@/lib/guest-events";
 
 // Odręczne pismo do imion pary – tylko na stronie gości
 const script = Great_Vibes({ weight: "400", subsets: ["latin", "latin-ext"], variable: "--font-script", display: "swap" });
@@ -21,7 +21,10 @@ export default async function Goscie({ params }: { params: Promise<{ id: string 
   const active = guestActive(e);
   const brand = await getUserBrand(e.uid).catch(() => null);
   const cover = await guestCoverUrl(e);
-  const photos: GuestPhoto[] = (active || owner) && (e.showWall || owner) ? await getGuestPhotos(e.id).catch(() => []) : [];
+  const showWall = (active || owner) && (e.showWall || owner);
+  const [photos, videos]: [GuestPhoto[], GuestVideo[]] = showWall
+    ? await Promise.all([getGuestPhotos(e.id).catch(() => []), getGuestVideos(e.id).catch(() => [])])
+    : [[], []];
 
   return (
     <div className={script.variable}>
@@ -31,6 +34,7 @@ export default async function Goscie({ params }: { params: Promise<{ id: string 
       state={active ? "active" : e.status === "draft" ? "draft" : "expired"}
       owner={owner}
       studio={brand?.studioName ?? null}
+      videos={videos.map((v) => ({ name: v.name, src: v.src, iframe: v.iframe, poster: v.poster, downloadUrl: v.downloadUrl, processing: v.processing }))}
       photos={photos.map((p) => ({ name: p.name, url: p.webUrl, downloadUrl: p.downloadUrl, webDownloadUrl: p.webDownloadUrl, fileName: p.fileName, webFileName: p.webFileName }))}
     />
     </div>

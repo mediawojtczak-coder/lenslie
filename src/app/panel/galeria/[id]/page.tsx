@@ -21,6 +21,9 @@ import GuestCard from "./GuestCard";
 import SelectionsTab from "./SelectionsTab";
 import StatsTab from "./StatsTab";
 import SaleCard from "./SaleCard";
+import VideoManager from "./VideoManager";
+import { refreshVideos } from "@/lib/videos";
+import { saveMeta } from "@/lib/galleries";
 import PickLimitCard from "./PickLimitCard";
 import { getPayout } from "@/lib/sales";
 
@@ -57,6 +60,8 @@ export default async function ZarzadzanieGalerii({
     getGalleryUsage(id).catch(() => 0),
   ]);
   const photos = applyOrder(rawPhotos, meta?.order);
+  // Stan przygotowania podglądu filmów (Cloudflare Stream)
+  if (meta?.videos?.length && (await refreshVideos(meta.videos).catch(() => false))) await saveMeta(id, meta).catch(() => undefined);
 
   // Zdjęcia, na które znak wodny nie został jeszcze nałożony
   let wmMissing: string[] = [];
@@ -174,6 +179,14 @@ export default async function ZarzadzanieGalerii({
             <GuestCard id={id} guest={meta?.guest ?? null} sections={meta?.sections ?? []} />
           </SettingsForm>
         ) : (
+          <>
+          <VideoManager
+            id={id}
+            videos={(meta?.videos ?? []).map((v) => ({ id: v.id, name: v.name, size: v.size, duration: v.duration, status: v.status, price: v.price, months: v.months, thumbnail: v.thumbnail }))}
+            published={Boolean(meta?.plan) && !(meta?.expiresAt && new Date(meta.expiresAt).getTime() < Date.now())}
+            balance={balance}
+            billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
+          />
           <PhotoManager
             id={id}
             layout={meta?.layout ?? "mozaika"}
@@ -188,6 +201,7 @@ export default async function ZarzadzanieGalerii({
               uploadedAt: p.uploadedAt,
             }))}
           />
+          </>
         )}
       </main>
     </div>

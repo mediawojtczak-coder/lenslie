@@ -4,6 +4,8 @@ import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { r2, BUCKET, isValidGalleryId, galleryPrefix } from "@/lib/r2";
 import { listKeys } from "@/lib/photos";
 import { getUser } from "@/lib/supabase/server";
+import { getMeta } from "@/lib/galleries";
+import { deleteGalleryVideos } from "@/lib/videos";
 
 export const runtime = "nodejs";
 
@@ -17,6 +19,8 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { data: own } = await supabase.from("galleries").select("id").eq("id", id).maybeSingle();
   if (!own) return NextResponse.json({ error: await E("To nie jest Twoja galeria.") }, { status: 403 });
 
+  const meta = await getMeta(id).catch(() => null);
+  await deleteGalleryVideos(id, meta?.videos ?? []);
   const keys = await listKeys(galleryPrefix(id));
   // Usuwamy po 10 plików naraz
   for (let i = 0; i < keys.length; i += 10) {

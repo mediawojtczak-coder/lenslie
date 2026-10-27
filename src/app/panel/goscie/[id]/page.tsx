@@ -8,7 +8,7 @@ import { siteUrl } from "@/lib/email";
 import { getBilling } from "@/lib/billing";
 import { getWallet } from "@/lib/wallet";
 import { getOrder } from "@/lib/p24";
-import { getGuestEvent, getGuestPhotos, guestActive, guestUsage, guestCoverUrl, GUEST_PRICE, GUEST_LIMIT_GB, GUEST_DELETE_AFTER } from "@/lib/guest-events";
+import { getGuestEvent, getGuestPhotos, getGuestVideos, guestActive, guestUsage, guestCoverUrl, GUEST_PRICE, GUEST_LIMIT_GB, GUEST_DELETE_AFTER } from "@/lib/guest-events";
 import RefreshSoon from "../../galeria/[id]/RefreshSoon";
 import GuestEditor from "./GuestEditor";
 
@@ -22,12 +22,13 @@ export default async function Wydarzenie({ params, searchParams }: { params: Pro
   if (!e || e.uid !== user!.id) notFound();
   const lang = await getLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
-  const [photos, used, billing, wallet, order] = await Promise.all([
+  const [photos, used, billing, wallet, order, videos] = await Promise.all([
     getGuestPhotos(e.id).catch(() => []),
     guestUsage(e.id).catch(() => 0),
     getBilling(user!.id),
     getWallet(user!.id),
     platnosc ? getOrder(platnosc) : Promise.resolve(null),
+    getGuestVideos(e.id).catch(() => []),
   ]);
   const active = guestActive(e);
   const cover = await guestCoverUrl(e);
@@ -62,6 +63,7 @@ export default async function Wydarzenie({ params, searchParams }: { params: Pro
           used={used}
           balance={wallet.balance}
           billing={billing}
+          videos={videos.map((v) => ({ name: v.name, poster: v.poster, src: v.src, downloadUrl: v.downloadUrl, size: v.size, processing: v.processing }))}
           photos={photos.map((p) => ({ name: p.name, url: p.webUrl, downloadUrl: p.downloadUrl, webDownloadUrl: p.webDownloadUrl, fileName: p.fileName, webFileName: p.webFileName }))}
         />
       </main>

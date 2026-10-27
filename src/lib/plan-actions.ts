@@ -1,5 +1,6 @@
 import { getMeta, saveMeta, type GalleryMeta } from "@/lib/galleries";
 import { getGalleryUsage } from "@/lib/photos";
+import { videoPrice } from "@/lib/videos";
 import { PLANS, getPlan, isPeriod, addMonths, upgradeCost, planBytes, type Period, type PlanId } from "@/lib/plans";
 
 export type PlanAction =
@@ -41,11 +42,14 @@ export async function checkAction(id: string, meta: GalleryMeta, body: { action?
   }
   if (body.action === "extend") {
     if (!isPeriod(body.period)) return { ok: false, error: "Wybierz okres." };
+    // Filmy w galerii przedłużamy razem z nią (koszt przechowania × 2)
+    const vids = (meta.videos ?? []).filter((v) => v.status === "processing" || v.status === "ready");
+    const videos = vids.reduce((s, v) => s + videoPrice(v.size, v.duration, body.period as number, false), 0);
     return {
       ok: true,
-      amount: current.prices[body.period],
+      amount: current.prices[body.period] + videos,
       action: { action: "extend", period: body.period },
-      label: `przedłużenie dostępu o ${body.period} mies.`,
+      label: `przedłużenie dostępu o ${body.period} mies.${vids.length ? ` (z filmami: ${vids.length})` : ""}`,
     };
   }
   return { ok: false, error: "Nieznana operacja." };

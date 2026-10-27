@@ -3,6 +3,7 @@ import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
 import type { Period, PlanId } from "@/lib/plans";
 import type { Sale } from "@/lib/sales";
+import type { Video } from "@/lib/videos";
 
 // Opis galerii zapisany obok zdjęć w R2: galleries/<id>/meta.json
 export type GalleryMeta = {
@@ -38,6 +39,8 @@ export type GalleryMeta = {
   sale?: Sale;
   // Limit wyboru ulubionych (np. 60 zdjęć do albumu)
   pickLimit?: { max: number; label: string };
+  // Filmy (oryginały w videos/<id>/, podgląd w Cloudflare Stream) – wyświetlane na górze galerii
+  videos?: Video[];
   // Wysłane automatyczne powiadomienia (daty), czyszczone po przedłużeniu
   // Język galerii widzianej przez klienta
   lang?: "pl" | "en";

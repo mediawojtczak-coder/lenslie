@@ -13,6 +13,9 @@ import Track from "./Track";
 import { T } from "@/lib/i18n";
 import { saleOn, getSaleOrder, getPayoutForGallery, type SaleOrder } from "@/lib/sales";
 import type { SaleInfo } from "./PhotoGrid";
+import VideoSection, { type ClientVideo } from "./VideoSection";
+import { refreshVideos, signedVideoUrl, iframeUrl } from "@/lib/videos";
+import { saveMeta } from "@/lib/galleries";
 
 const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
@@ -128,6 +131,24 @@ export default async function GalleryView({
   const subtitle =
     [formatEventDate(meta?.eventDate, lang), shown.length > 0 ? t.photos(shown.length) : null].filter(Boolean).join(" · ") ||
     undefined;
+  // Filmy: gotowe (opłacone) – na samej górze galerii
+  if (meta?.videos?.some((v) => v.status === "processing") && (await refreshVideos(meta.videos).catch(() => false))) {
+    await saveMeta(id, meta).catch(() => undefined);
+  }
+  const videoDownload = mode === "client" && !selling && clientDownloads === "all" && !preview;
+  const clientVideos: ClientVideo[] = await Promise.all(
+    (meta?.videos ?? [])
+      .filter((v) => v.status === "ready" || (preview && v.status === "processing"))
+      .map(async (v) => ({
+        id: v.id,
+        name: v.name,
+        iframe: iframeUrl(v.preview),
+        src: v.preview ? "" : await signedVideoUrl(v.key),
+        poster: v.thumbnail,
+        size: v.size,
+        download: videoDownload ? await signedVideoUrl(v.key, v.name) : undefined,
+      })),
+  );
   const musicUrl = meta?.music ? await getMusicUrl(id).catch(() => null) : null;
   const cover = pickCover(shown, meta?.cover) ?? pickCover(photos, meta?.cover);
 
@@ -207,6 +228,7 @@ export default async function GalleryView({
       </div>
 
       <main className="g-photos">
+        {clientVideos.length > 0 && <VideoSection videos={clientVideos} lang={lang} />}
         {meta?.welcome && <p className="g-welcome">{meta.welcome}</p>}
         {error && <p className="notice">{t.loadError}</p>}
         {!error && visible.length === 0 && <p className="notice">{t.empty}</p>}

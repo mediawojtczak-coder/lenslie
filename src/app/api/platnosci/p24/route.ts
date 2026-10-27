@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getOrder, saveOrder, notificationValid, verifyTransaction, type Notification } from "@/lib/p24";
 import { applyAction } from "@/lib/plan-actions";
 import { activateGuestEvent } from "@/lib/guest-events";
+import { getMeta, saveMeta } from "@/lib/galleries";
+import { startVideos } from "@/lib/videos";
 import { addEntries } from "@/lib/wallet";
 import { referralPayment } from "@/lib/referrals";
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
@@ -30,6 +32,12 @@ export async function POST(req: Request) {
       { type: "topup", amount: a.amount * 100, description: `Doładowanie konta (Przelewy24)`, ref: order.sessionId },
       ...(a.bonus ? [{ type: "bonus" as const, amount: a.bonus * 100, description: `Bonus do doładowania ${a.amount} zł`, ref: order.sessionId }] : []),
     ]);
+  } else if (order.action.action === "videos") {
+    const meta = await getMeta(order.action.galleryId);
+    if (meta?.videos) {
+      await startVideos(meta.videos, order.action.ids);
+      await saveMeta(order.action.galleryId, meta);
+    }
   } else if (order.action.action === "guest-event") {
     await activateGuestEvent(order.action.eventId);
   } else {

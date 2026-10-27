@@ -13,6 +13,7 @@ import {
   activateGuestEvent,
   deleteGuestEvent,
   deleteGuestPhoto,
+  deleteGuestVideo,
   GUEST_PRICE,
   guestCoverKey,
 } from "@/lib/guest-events";
@@ -112,6 +113,12 @@ export async function POST(req: Request) {
       await r2.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: guestCoverKey(e.id) })).catch(() => undefined);
       e.cover = undefined;
       await saveGuestEvent(e);
+      return NextResponse.json({ ok: true });
+    }
+    case "delete-video": {
+      const name = String(body.name ?? "");
+      if (!/^[A-Za-z0-9._-]{1,200}$/.test(name)) return NextResponse.json({ error: await E("Nieprawidłowe dane.") }, { status: 400 });
+      await deleteGuestVideo(e.id, name);
       return NextResponse.json({ ok: true });
     }
     case "delete-photo": {

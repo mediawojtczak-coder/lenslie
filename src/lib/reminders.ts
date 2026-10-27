@@ -23,6 +23,14 @@ export async function getReminders(): Promise<Reminder[]> {
       text: "Lenslie przyjmuje płatności, a darmowy plan Vercel jest tylko do użytku niekomercyjnego. Przenieś stronę na Cloudflare Workers (ok. 5 USD/mies.) albo przejdź na Vercel Pro (20 USD/mies.). Po przejściu dodaj w Vercelu zmienną VERCEL_PLAN=pro albo HOSTING=cloudflare, żeby wyłączyć to przypomnienie.",
     });
   }
+  if (!process.env.CLOUDFLARE_STREAM_TOKEN) {
+    out.push({
+      id: "stream",
+      level: "info",
+      title: "Filmy: włącz Cloudflare Stream dla lekkiego podglądu",
+      text: "Bez Stream filmy odtwarzają się z oryginału (ciężkie pliki, nie każdy format zagra w przeglądarce). W Cloudflare: Stream → kup pakiet (od 5 USD/mies. za 1000 minut), potem utwórz API Token z uprawnieniem Stream: Edit i dodaj go w Vercelu jako CLOUDFLARE_STREAM_TOKEN, a następnie zrób Redeploy.",
+    });
+  }
   if (total > TB) {
     out.push({
       id: "storage-1tb",

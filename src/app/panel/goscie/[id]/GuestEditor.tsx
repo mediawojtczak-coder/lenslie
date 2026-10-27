@@ -36,6 +36,7 @@ export default function GuestEditor({
   balance,
   billing,
   photos,
+  videos = [],
 }: {
   event: Ev;
   status: "active" | "draft" | "expired";
@@ -49,6 +50,7 @@ export default function GuestEditor({
   balance: number;
   billing: Billing;
   photos: P[];
+  videos?: { name: string; poster?: string; src: string; downloadUrl: string; size: number; processing: boolean }[];
 }) {
   const lang = useLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
@@ -241,9 +243,43 @@ export default function GuestEditor({
         <p className="hint-inline">
           {gb(used)} {t("z", "of")} {limitGb} GB
         </p>
-        {photos.length === 0 ? (
-          <p className="hint-inline">{t("Goście nie dodali jeszcze zdjęć.", "Guests haven't added any photos yet.")}</p>
-        ) : (
+        {videos.length > 0 && (
+          <ul className="video-list">
+            {videos.map((v) => (
+              <li key={v.name} className="video-row">
+                <div className="video-thumb">
+                  {v.poster ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={v.poster} alt="" />
+                  ) : (
+                    <video src={`${v.src}#t=0.5`} preload="metadata" muted playsInline />
+                  )}
+                </div>
+                <div className="video-info">
+                  <strong className="video-name">{t("Film od gościa", "Guest video")}</strong>
+                  <small>
+                    {v.size >= 1024 ** 3 ? `${(v.size / 1024 ** 3).toFixed(1)} GB` : `${Math.max(1, Math.round(v.size / 1024 ** 2))} MB`}
+                    {v.processing && ` · ${t("przygotowuję podgląd…", "preparing preview…")}`}
+                  </small>
+                </div>
+                <a className="as-link" href={v.downloadUrl}>
+                  {t("Pobierz", "Download")}
+                </a>
+                <button
+                  type="button"
+                  className="as-link danger"
+                  disabled={Boolean(busy)}
+                  onClick={() => window.confirm(t("Usunąć ten film?", "Delete this video?")) && run("photos", { action: "delete-video", name: v.name })}
+                >
+                  {t("Usuń", "Delete")}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {photos.length === 0 && videos.length === 0 ? (
+          <p className="hint-inline">{t("Goście nie dodali jeszcze zdjęć ani filmów.", "Guests haven't added any photos or videos yet.")}</p>
+        ) : photos.length === 0 ? null : (
           <div className="gu-grid">
             {photos.map((p) => (
               <figure key={p.name} className="gu-tile gu-admin">

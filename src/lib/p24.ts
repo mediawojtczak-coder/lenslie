@@ -21,6 +21,7 @@ const sign = (o: Record<string, unknown>) => createHash("sha384").update(JSON.st
 // Zamówienie zapisane w magazynie: payments/<sessionId>.json
 export type TopupAction = { action: "topup"; amount: number; bonus: number };
 export type GuestEventAction = { action: "guest-event"; eventId: string };
+export type VideosAction = { action: "videos"; galleryId: string; ids: string[] };
 
 export type Order = {
   sessionId: string;
@@ -28,7 +29,7 @@ export type Order = {
   ownerId: string;
   email: string;
   amount: number; // grosze
-  action: PlanAction | TopupAction | GuestEventAction;
+  action: PlanAction | TopupAction | GuestEventAction | VideosAction;
   returnPath?: string;
   description: string;
   status: "pending" | "paid" | "error";

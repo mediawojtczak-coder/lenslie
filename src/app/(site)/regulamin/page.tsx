@@ -73,6 +73,20 @@ function RegulaminPl() {
         <li>Fotograf powinien przechowywać własną kopię zdjęć. Serwis nie jest archiwum ani kopią zapasową.</li>
       </ol>
 
+      <h2>§ 5a. Filmy w Galeriach</h2>
+      <ol>
+        <li>
+          Fotograf może dodać do opublikowanej Galerii filmy. Oryginał jest przechowywany bez zmiany jakości i może być
+          pobrany przez Klienta, a do oglądania Serwis przygotowuje automatycznie lżejszą wersję (do 1080p).
+        </li>
+        <li>
+          Cena filmu jest wyliczana po jego przesłaniu, na podstawie wielkości pliku, długości filmu i czasu pozostałego do
+          końca dostępu do Galerii, i jest widoczna przed zapłatą. Nieopłacone filmy są usuwane po 7 dniach.
+        </li>
+        <li>Przy przedłużeniu dostępu do Galerii filmy są przedłużane razem z nią; ich koszt jest doliczany do ceny przedłużenia.</li>
+        <li>W usłudze „Zdjęcia od gości” goście mogą przesyłać także filmy (do 4 GB każdy) w ramach opłaty za wydarzenie.</li>
+      </ol>
+
       <h2>§ 6. Płatności</h2>
       <ol>
         <li>Opłata za Pakiet jest pobierana z góry, przy tworzeniu Galerii, zmianie Pakietu lub przedłużeniu dostępu.</li>
@@ -251,6 +265,14 @@ function TermsEn() {
         <li>After access expires, the Client can no longer view the Gallery. Photos are kept for another 30 days and then permanently deleted. The Provider sends reminders to the Photographer’s email before expiry and before deletion.</li>
         <li>Unpublished gallery drafts are deleted 20 days after creation, with a reminder sent after 10 days.</li>
         <li>The Photographer should keep their own copy of the photos. The Service is not an archive or a backup.</li>
+      </ol>
+
+      <h2>§ 5a. Videos in Galleries</h2>
+      <ol>
+        <li>The Photographer may add videos to a published Gallery. The original is stored without any change in quality and can be downloaded by the Client; for viewing, the Service automatically prepares a lighter version (up to 1080p).</li>
+        <li>The video price is calculated after upload, based on file size, video length and the time left until the Gallery access ends, and is shown before payment. Unpaid videos are deleted after 7 days.</li>
+        <li>When Gallery access is extended, its videos are extended with it; their cost is added to the extension price.</li>
+        <li>In the “Guest uploads” service guests may also upload videos (up to 4 GB each) within the event fee.</li>
       </ol>
 
       <h2>§ 6. Payments</h2>

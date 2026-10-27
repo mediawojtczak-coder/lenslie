@@ -3,6 +3,7 @@ import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sd
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET, baseName } from "@/lib/r2";
 import { listObjects } from "@/lib/photos";
+import { streamEnabled, streamCopy, streamStatus, streamDelete, iframeUrl } from "@/lib/videos";
 
 // Zdjęcia od gości: galeria wesela, do której goście wgrywają zdjęcia z telefonów (kod QR na stołach).
 // Płatna jednorazowo za wydarzenie; aktywna przez rok, potem 30 dni na pobranie i usunięcie.
@@ -106,6 +107,10 @@ export async function activateGuestEvent(id: string) {
 }
 
 export async function deleteGuestEvent(e: GuestEvent) {
+  for (const o of await listObjects(`${guestPrefix(e.id)}vmeta/`).catch(() => [])) {
+    const vm = await getJson<GuestVideoMeta>(o.key);
+    if (vm?.streamUid) await streamDelete(vm.streamUid);
+  }
   const objs = await listObjects(guestPrefix(e.id)).catch(() => []);
   for (let i = 0; i < objs.length; i += 10) {
     await Promise.all(objs.slice(i, i + 10).map((o) => r2.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: o.key }))));
@@ -145,6 +150,67 @@ export async function getGuestPhotos(id: string): Promise<GuestPhoto[]> {
       return { name, webUrl, downloadUrl, webDownloadUrl, fileName, webFileName, at: w.modified, size: (orig?.size ?? 0) + w.size };
     }),
   );
+}
+
+// ===== Filmy od gości (w cenie wydarzenia) =====
+export type GuestVideoMeta = { streamUid?: string; state: "processing" | "ready" | "error"; preview?: string; thumbnail?: string };
+export type GuestVideo = { name: string; fileName: string; src: string; iframe?: string; poster?: string; downloadUrl: string; size: number; at: string; processing: boolean };
+export const GUEST_VIDEO_MAX = 4 * 1024 ** 3;
+const vmetaKey = (id: string, name: string) => `${guestPrefix(id)}vmeta/${name}.json`;
+
+// Po wgraniu filmu przez gościa: Stream przygotowuje lekki podgląd (gdy jest włączony)
+export async function guestVideoDone(id: string, name: string, fileName: string) {
+  let vm: GuestVideoMeta = { state: "ready" };
+  if (streamEnabled()) {
+    try {
+      vm = { state: "processing", streamUid: await streamCopy(`${guestPrefix(id)}video/${fileName}`, fileName) };
+    } catch (err) {
+      console.error("Stream (goście):", err);
+    }
+  }
+  await putJson(vmetaKey(id, name), vm);
+}
+
+export async function getGuestVideos(id: string): Promise<GuestVideo[]> {
+  const p = guestPrefix(id);
+  const objs = await listObjects(`${p}video/`).catch(() => []);
+  objs.sort((a, b) => b.modified.localeCompare(a.modified));
+  return Promise.all(
+    objs.map(async (o) => {
+      const fileName = o.key.slice(`${p}video/`.length);
+      const name = baseName(fileName);
+      let vm = (await getJson<GuestVideoMeta>(vmetaKey(id, name))) ?? { state: "ready" as const };
+      if (vm.state === "processing" && vm.streamUid && streamEnabled()) {
+        const s = await streamStatus(vm.streamUid).catch(() => null);
+        if (s?.ready) vm = { ...vm, state: "ready", preview: s.preview, thumbnail: s.thumbnail };
+        else if (s?.error) vm = { ...vm, state: "error" };
+        if (vm.state !== "processing") await putJson(vmetaKey(id, name), vm);
+      }
+      const [src, downloadUrl] = await Promise.all([
+        getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: o.key }), { expiresIn: 7200 }),
+        getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: o.key, ResponseContentDisposition: `attachment; filename="${fileName}"` }), { expiresIn: 7200 }),
+      ]);
+      return {
+        name,
+        fileName,
+        src,
+        iframe: vm.state === "ready" ? iframeUrl(vm.preview) : undefined,
+        poster: vm.thumbnail,
+        downloadUrl,
+        size: o.size,
+        at: o.modified,
+        processing: vm.state === "processing",
+      };
+    }),
+  );
+}
+
+export async function deleteGuestVideo(id: string, name: string) {
+  const p = guestPrefix(id);
+  const vm = await getJson<GuestVideoMeta>(vmetaKey(id, name));
+  if (vm?.streamUid) await streamDelete(vm.streamUid);
+  for (const o of await listObjects(`${p}video/${name}.`).catch(() => [])) await r2.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: o.key }));
+  await r2.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: vmetaKey(id, name) })).catch(() => undefined);
 }
 
 export const guestCoverKey = (id: string) => `${guestPrefix(id)}cover.jpg`;

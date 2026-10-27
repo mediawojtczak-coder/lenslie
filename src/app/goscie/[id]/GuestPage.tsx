@@ -8,6 +8,20 @@ import { uploadPhotos, type FileState } from "@/lib/upload-client";
 
 type Ev = { id: string; title: string; date: string; welcome: string; lang: "pl" | "en"; showWall: boolean; allowDownload: boolean };
 type P = { name: string; url: string; downloadUrl: string; webDownloadUrl: string; fileName: string; webFileName: string };
+type V = { name: string; src: string; iframe?: string; poster?: string; downloadUrl: string; processing: boolean };
+
+// Wysyłka jednego pliku z postępem (filmy gości idą prosto do magazynu)
+function putFile(url: string, file: File, type: string, onProgress: (loaded: number) => void) {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", url);
+    xhr.setRequestHeader("Content-Type", type);
+    xhr.upload.onprogress = (e) => onProgress(e.loaded);
+    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(String(xhr.status))));
+    xhr.onerror = () => reject(new Error("network"));
+    xhr.send(file);
+  });
+}
 
 // Delikatna gałązka – ozdobnik w stylu zaproszeń ślubnych
 function Sprig({ className = "" }: { className?: string }) {
@@ -31,6 +45,7 @@ export default function GuestPage({
   studio,
   cover,
   photos,
+  videos = [],
 }: {
   event: Ev;
   state: "active" | "draft" | "expired";
@@ -38,7 +53,9 @@ export default function GuestPage({
   studio: string | null;
   cover: string | null;
   photos: P[];
+  videos?: V[];
 }) {
+  const [playing, setPlaying] = useState<V | null>(null);
   const lang = event.lang;
   const t = (pl: string, en: string) => (lang === "en" ? en : pl);
   const router = useRouter();
@@ -53,7 +70,11 @@ export default function GuestPage({
   const canDownload = event.allowDownload || owner;
 
   async function upload(list: FileList | null) {
-    const files = [...(list ?? [])].filter((f) => f.type.startsWith("image/") || /\.(heic|heif|jpe?g|png|webp)$/i.test(f.name));
+    const all = [...(list ?? [])];
+    const isVideo = (f: File) => f.type.startsWith("video/") || /\.(mov|mp4|m4v|3gp|webm)$/i.test(f.name);
+    const images = all.filter((f) => !isVideo(f) && (f.type.startsWith("image/") || /\.(heic|heif|jpe?g|png|webp)$/i.test(f.name)));
+    const vids = all.filter(isVideo);
+    const files = [...images, ...vids];
     if (inputRef.current) inputRef.current.value = "";
     if (files.length === 0) return;
     setError("");
@@ -66,21 +87,51 @@ export default function GuestPage({
     };
     update();
     try {
-      const job = uploadPhotos(
-        event.id,
-        files,
-        (i, s) => {
-          states[i] = s;
-          update();
-        },
-        `/api/goscie/${event.id}/upload`,
-      );
-      await job.done;
+      if (images.length) {
+        const job = uploadPhotos(
+          event.id,
+          images,
+          (i, s) => {
+            states[i] = s;
+            update();
+          },
+          `/api/goscie/${event.id}/upload`,
+        );
+        await job.done;
+      }
+      // Filmy po kolei, w oryginalnej jakości
+      for (let k = 0; k < vids.length; k++) {
+        const i = images.length + k;
+        const f = vids[k];
+        try {
+          const res = await fetch(`/api/goscie/${event.id}/video`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: f.name, size: f.size, type: f.type }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          await putFile(data.url, f, data.type, (l) => {
+            states[i] = { status: "uploading", progress: Math.min(0.99, l / f.size) };
+            update();
+          });
+          await fetch(`/api/goscie/${event.id}/video`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "done", fileName: data.fileName }),
+          });
+          states[i] = { status: "done", progress: 1 };
+        } catch (err) {
+          states[i] = { status: "error", progress: 0 };
+          setError(err instanceof Error && err.message.length > 4 ? err.message : t("Nie udało się wysłać filmu.", "Could not send the video."));
+        }
+        update();
+      }
       const ok = states.filter((s) => s.status === "done").length;
       setThanks(
         ok === files.length
-          ? t(`Dziękujemy! Dodano ${ok === 1 ? "zdjęcie" : `zdjęcia: ${ok}`}.`, `Thank you! ${ok === 1 ? "Photo" : `${ok} photos`} added.`)
-          : t(`Dodano ${ok} z ${files.length} zdjęć. Pozostałe spróbuj wysłać jeszcze raz.`, `Added ${ok} of ${files.length} photos. Please try sending the rest again.`),
+          ? t(`Dziękujemy! Dodano: ${ok}.`, `Thank you! Added: ${ok}.`)
+          : t(`Dodano ${ok} z ${files.length}. Pozostałe spróbuj wysłać jeszcze raz.`, `Added ${ok} of ${files.length}. Please try sending the rest again.`),
       );
       router.refresh();
     } catch (err) {
@@ -155,7 +206,7 @@ export default function GuestPage({
         {progress ? (
           <div className="gu-progress" aria-live="polite">
             <p>
-              {t("Wysyłam zdjęcia", "Sending photos")} · {progress.done} {t("z", "of")} {progress.total}
+              {t("Wysyłam", "Sending")} · {progress.done} {t("z", "of")} {progress.total}
             </p>
             <div className="gu-bar">
               <span style={{ width: `${Math.max(4, Math.round(progress.part * 100))}%` }} />
@@ -168,10 +219,10 @@ export default function GuestPage({
               <path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
               <circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
             </svg>
-            {t("Dodaj swoje zdjęcia", "Add your photos")}
+            {t("Dodaj swoje zdjęcia i filmy", "Add your photos and videos")}
           </button>
         )}
-        <input ref={inputRef} type="file" accept="image/*" multiple hidden onChange={(e) => upload(e.target.files)} />
+        <input ref={inputRef} type="file" accept="image/*,video/*" multiple hidden onChange={(e) => upload(e.target.files)} />
         {thanks && <p className="gu-thanks">{thanks}</p>}
         {error && (
           <p className="error" role="alert">
@@ -182,11 +233,11 @@ export default function GuestPage({
         <ol className="gu-steps">
           <li>
             <span>1</span>
-            {t("Kliknij „Dodaj swoje zdjęcia”", "Tap “Add your photos”")}
+            {t("Kliknij „Dodaj swoje zdjęcia i filmy”", "Tap “Add your photos and videos”")}
           </li>
           <li>
             <span>2</span>
-            {t("Wybierz kilka zdjęć naraz", "Pick several photos at once")}
+            {t("Wybierz kilka zdjęć lub filmów naraz", "Pick several photos or videos at once")}
           </li>
           <li>
             <span>3</span>
@@ -195,16 +246,36 @@ export default function GuestPage({
         </ol>
       </section>
 
-      {(event.showWall || owner) && photos.length > 0 && (
+      {(event.showWall || owner) && (photos.length > 0 || videos.length > 0) && (
         <section className="gu-wall" aria-label={t("Zdjęcia gości", "Guest photos")}>
           <div className="gu-wall-head">
             <Sprig className="small" />
             <h2>{t("Wasze zdjęcia", "Your photos")}</h2>
             <p>
-              {photos.length} {t(photos.length === 1 ? "zdjęcie" : "zdjęć od gości", photos.length === 1 ? "photo" : "photos from guests")}
+              {photos.length} {t(photos.length === 1 ? "zdjęcie" : "zdjęć", photos.length === 1 ? "photo" : "photos")}
+              {videos.length > 0 && ` · ${videos.length} ${t(videos.length === 1 ? "film" : "filmów", videos.length === 1 ? "video" : "videos")}`}
             </p>
-            {canDownload && <DownloadAll items={photos.map((p) => ({ url: p.downloadUrl, fileName: p.fileName, webUrl: p.webDownloadUrl, webFileName: p.webFileName }))} zipName={`${event.id}.zip`} lang={lang} />}
+            {canDownload && photos.length > 0 && <DownloadAll items={photos.map((p) => ({ url: p.downloadUrl, fileName: p.fileName, webUrl: p.webDownloadUrl, webFileName: p.webFileName }))} zipName={`${event.id}.zip`} lang={lang} />}
           </div>
+          {videos.length > 0 && (
+            <div className="gu-videos">
+              {videos.map((v) => (
+                <button key={v.name} type="button" className="gu-vtile" onClick={() => setPlaying(v)} aria-label={t("Odtwórz film", "Play video")}>
+                  {v.poster ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={v.poster} alt="" loading="lazy" />
+                  ) : (
+                    <video src={`${v.src}#t=0.5`} preload="metadata" muted playsInline />
+                  )}
+                  <span className="gu-play" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="22" height="22">
+                      <path d="M9 7v10l8-5z" fill="currentColor" />
+                    </svg>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
           <div className="gu-masonry">
             {photos.map((p, i) => (
               <button key={p.name} type="button" className="gu-tile" onClick={() => setOpen(i)} aria-label={t("Powiększ zdjęcie", "Enlarge photo")}>
@@ -230,6 +301,30 @@ export default function GuestPage({
           allowDownload={canDownload}
           lang={lang}
         />
+      )}
+
+      {playing && (
+        <div className="gu-player" role="dialog" aria-modal="true" onClick={(e) => e.target === e.currentTarget && setPlaying(null)}>
+          <div className="gu-player-in">
+            <div className="g-video-frame">
+              {playing.iframe ? (
+                <iframe src={`${playing.iframe}?autoplay=true`} title={t("Film", "Video")} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />
+              ) : (
+                <video src={playing.src} controls autoPlay playsInline />
+              )}
+            </div>
+            <div className="gu-player-bar">
+              {canDownload && (
+                <a href={playing.downloadUrl} className="g-video-dl">
+                  {t("Pobierz film", "Download video")}
+                </a>
+              )}
+              <button type="button" className="g-video-dl" onClick={() => setPlaying(null)}>
+                {t("Zamknij", "Close")}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <footer className="gu-foot">
