@@ -13,14 +13,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const galleryUrl = new URL(`/galeria/${id}`, req.url);
   const form = await req.formData().catch(() => null);
-  const password = String(form?.get("password") ?? "");
+  // Spacje z kopiowania i wielka litera dodana przez telefon nie blokują dostępu
+  const password = String(form?.get("password") ?? "").trim();
 
   const meta = await getMeta(id);
   if (!meta?.passwordHash) {
     return NextResponse.redirect(galleryUrl, 303);
   }
 
-  if (!verifyPassword(password, meta.passwordHash)) {
+  const ok = verifyPassword(password, meta.passwordHash) || (password !== password.toLowerCase() && verifyPassword(password.toLowerCase(), meta.passwordHash));
+  if (!ok) {
     galleryUrl.searchParams.set("blad", "1");
     return NextResponse.redirect(galleryUrl, 303);
   }

@@ -62,7 +62,12 @@ export default function Hero({
                 name="password"
                 type="password"
                 placeholder={t.password}
-                autoComplete="off"
+                autoComplete="new-password"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                data-1p-ignore
+                data-lpignore="true"
                 required
                 autoFocus
               />
