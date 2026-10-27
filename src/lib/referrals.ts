@@ -4,6 +4,7 @@ import { r2, BUCKET } from "@/lib/r2";
 import { addEntries } from "@/lib/wallet";
 import { adminClient } from "@/lib/supabase/admin";
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
+import { getUserLang } from "@/lib/lang-server";
 
 // Program poleceń: obie strony dostają REWARD zł na saldo, gdy polecony wpłaci łącznie co najmniej THRESHOLD zł
 export const REWARD = 20;
@@ -88,7 +89,18 @@ export async function referralPayment(uid: string, amountGr: number) {
   // Mail do polecającego
   const db = adminClient();
   const to = db ? (await db.auth.admin.getUserById(ref.referrer)).data?.user?.email : null;
-  if (to) {
+  if (to && (await getUserLang(ref.referrer)) === "en") {
+    await sendEmail({
+      to,
+      subject: `You get PLN ${REWARD} for recommending Lenslie`,
+      html: emailLayout(
+        "Thank you for the referral!",
+        [`The photographer you referred has started using Lenslie. PLN ${REWARD} has been added to your balance – you can use it to publish galleries.`],
+        { label: "See balance", url: `${siteUrl()}/panel/konto#saldo` },
+        "en",
+      ),
+    }).catch(() => undefined);
+  } else if (to) {
     await sendEmail({
       to,
       subject: `Dostajesz ${REWARD} zł za polecenie Lenslie`,

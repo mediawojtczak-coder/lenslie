@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { E } from "@/lib/api-lang";
 import { randomBytes } from "crypto";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -23,13 +24,13 @@ const NO_TABLE = "Nie udało się zapisać profilu. Sprawdź, czy w Supabase uru
 // Konto fotografa: nazwa studia, logo i hasło
 export async function POST(req: Request) {
   const { supabase, user } = await getUser();
-  if (!user) return NextResponse.json({ error: "Zaloguj się ponownie." }, { status: 401 });
+  if (!user) return NextResponse.json({ error: await E("Zaloguj się ponownie.") }, { status: 401 });
   const body = (await req.json().catch(() => null)) as Body | null;
-  if (!body) return NextResponse.json({ error: "Nieprawidłowe dane." }, { status: 400 });
+  if (!body) return NextResponse.json({ error: await E("Nieprawidłowe dane.") }, { status: 400 });
 
   if (body.action === "billing") {
     const c = cleanBilling({ ...(body.billing as object), want: true });
-    if (!c.ok) return NextResponse.json({ error: c.error }, { status: 400 });
+    if (!c.ok) return NextResponse.json({ error: await E(c.error) }, { status: 400 });
     await saveBilling(user.id, c.billing);
     return NextResponse.json({ ok: true });
   }
@@ -42,14 +43,14 @@ export async function POST(req: Request) {
     case "save": {
       const studioName = String(body.studioName ?? "").trim().slice(0, 80) || null;
       const { error } = await upsert({ studio_name: studioName });
-      if (error) return NextResponse.json({ error: NO_TABLE }, { status: 500 });
+      if (error) return NextResponse.json({ error: await E(NO_TABLE) }, { status: 500 });
       return NextResponse.json({ ok: true });
     }
     case "logo-url": {
       const ext = LOGO_TYPES[String(body.type)];
-      if (!ext) return NextResponse.json({ error: "Logo musi być plikiem PNG, JPG lub WebP." }, { status: 400 });
+      if (!ext) return NextResponse.json({ error: await E("Logo musi być plikiem PNG, JPG lub WebP.") }, { status: 400 });
       if (!body.size || body.size > 2 * 1024 * 1024) {
-        return NextResponse.json({ error: "Logo może mieć najwyżej 2 MB." }, { status: 400 });
+        return NextResponse.json({ error: await E("Logo może mieć najwyżej 2 MB.") }, { status: 400 });
       }
       const key = `profiles/${user.id}/logo-${randomBytes(4).toString("hex")}.${ext}`;
       const url = await getSignedUrl(r2, new PutObjectCommand({ Bucket: BUCKET, Key: key, ContentType: String(body.type) }), {
@@ -60,29 +61,29 @@ export async function POST(req: Request) {
     case "logo-done": {
       const key = String(body.key ?? "");
       if (!key.startsWith(`profiles/${user.id}/logo-`)) {
-        return NextResponse.json({ error: "Nieprawidłowy plik." }, { status: 400 });
+        return NextResponse.json({ error: await E("Nieprawidłowy plik.") }, { status: 400 });
       }
       const old = current.data?.logo_key as string | undefined;
       const { error } = await upsert({ logo_key: key });
-      if (error) return NextResponse.json({ error: NO_TABLE }, { status: 500 });
+      if (error) return NextResponse.json({ error: await E(NO_TABLE) }, { status: 500 });
       if (old && old !== key) await r2.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: old })).catch(() => undefined);
       return NextResponse.json({ ok: true });
     }
     case "logo-remove": {
       const old = current.data?.logo_key as string | undefined;
       const { error } = await upsert({ logo_key: null });
-      if (error) return NextResponse.json({ error: NO_TABLE }, { status: 500 });
+      if (error) return NextResponse.json({ error: await E(NO_TABLE) }, { status: 500 });
       if (old) await r2.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: old })).catch(() => undefined);
       return NextResponse.json({ ok: true });
     }
     case "password": {
       const password = String(body.password ?? "");
-      if (password.length < 8) return NextResponse.json({ error: "Hasło musi mieć co najmniej 8 znaków." }, { status: 400 });
+      if (password.length < 8) return NextResponse.json({ error: await E("Hasło musi mieć co najmniej 8 znaków.") }, { status: 400 });
       const { error } = await supabase.auth.updateUser({ password });
-      if (error) return NextResponse.json({ error: "Nie udało się zmienić hasła. Zaloguj się ponownie i spróbuj jeszcze raz." }, { status: 400 });
+      if (error) return NextResponse.json({ error: await E("Nie udało się zmienić hasła. Zaloguj się ponownie i spróbuj jeszcze raz.") }, { status: 400 });
       return NextResponse.json({ ok: true });
     }
     default:
-      return NextResponse.json({ error: "Nieznana operacja." }, { status: 400 });
+      return NextResponse.json({ error: await E("Nieznana operacja.") }, { status: 400 });
   }
 }

@@ -1,6 +1,9 @@
 // Wgrywanie zdjęć z przeglądarki prosto do R2 (używane w panelu galerii)
 import { drawWatermark, canvasToJpeg } from "@/lib/watermark-client";
 
+// Język strony (z <html lang>), żeby komunikaty błędów pasowały do panelu
+const L = (pl: string, en: string) => (typeof document !== "undefined" && document.documentElement.lang === "en" ? en : pl);
+
 type Upload = { name: string; type: string; originalUrl: string; webUrl: string; wmUrl?: string };
 
 export type FileStatus = "queued" | "preparing" | "uploading" | "done" | "error" | "canceled";
@@ -19,7 +22,7 @@ async function makeWebVersion(file: File, watermark?: string): Promise<{ web: Bl
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Przeglądarka nie obsługuje przetwarzania zdjęć.");
+  if (!ctx) throw new Error(L("Przeglądarka nie obsługuje przetwarzania zdjęć.", "This browser cannot process photos."));
   ctx.drawImage(bitmap, 0, 0, w, h);
   bitmap.close();
   const web = await canvasToJpeg(canvas);
@@ -30,7 +33,7 @@ async function makeWebVersion(file: File, watermark?: string): Promise<{ web: Bl
 
 class Canceled extends Error {
   constructor() {
-    super("Anulowano");
+    super(L("Anulowano", "Cancelled"));
     this.name = "Canceled";
   }
 }
@@ -46,11 +49,11 @@ function put(url: string, body: Blob, type: string, onProgress: (loaded: number)
     xhr.onload = () => {
       onXhr(null);
       if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new Error(`Wgrywanie nie powiodło się (${xhr.status}).`));
+      else reject(new Error(`${L("Wgrywanie nie powiodło się", "Upload failed")} (${xhr.status}).`));
     };
     xhr.onerror = () => {
       onXhr(null);
-      reject(new Error("Brak połączenia. Spróbuj ponownie."));
+      reject(new Error(L("Brak połączenia. Spróbuj ponownie.", "No connection. Please try again.")));
     };
     xhr.onabort = () => {
       onXhr(null);
@@ -101,7 +104,7 @@ export function uploadPhotos(
         for (let i = start; i < files.length; i++) {
           if (!canceled.has(i)) onState(i, { status: "error", progress: 0, error: data.error });
         }
-        const err = new Error(data.error ?? "Błąd serwera.") as Error & { code?: string };
+        const err = new Error(data.error ?? L("Błąd serwera.", "Server error.")) as Error & { code?: string };
         err.code = data.code;
         throw err;
       }
@@ -144,7 +147,7 @@ export function uploadPhotos(
             if (err instanceof Canceled || canceled.has(i)) {
               onState(i, { status: "canceled", progress: 0 });
             } else {
-              onState(i, { status: "error", progress: 0, error: err instanceof Error ? err.message : "Błąd" });
+              onState(i, { status: "error", progress: 0, error: err instanceof Error ? err.message : L("Błąd", "Error") });
             }
           }
         }

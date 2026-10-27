@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { E } from "@/lib/api-lang";
+import { getLang } from "@/lib/lang-server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET, isValidGalleryId, safeFileName, baseName, galleryPrefix } from "@/lib/r2";
@@ -20,20 +22,20 @@ const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
 export async function POST(req: Request) {
   const { supabase, user } = await getUser();
   if (!user) {
-    return NextResponse.json({ error: "Zaloguj się ponownie." }, { status: 401 });
+    return NextResponse.json({ error: await E("Zaloguj się ponownie.") }, { status: 401 });
   }
 
   const body = (await req.json().catch(() => null)) as
     | { gallery?: string; files?: FileInfo[] }
     | null;
   if (!body) {
-    return NextResponse.json({ error: "Nieprawidłowe dane." }, { status: 400 });
+    return NextResponse.json({ error: await E("Nieprawidłowe dane.") }, { status: 400 });
   }
 
   const gallery = String(body.gallery ?? "");
   if (!isValidGalleryId(gallery)) {
     return NextResponse.json(
-      { error: "Adres galerii może zawierać tylko małe litery, cyfry i myślniki." },
+      { error: await E("Adres galerii może zawierać tylko małe litery, cyfry i myślniki.") },
       { status: 400 },
     );
   }
@@ -41,12 +43,12 @@ export async function POST(req: Request) {
   // Wgrywać można tylko do własnej galerii
   const { data: own } = await supabase.from("galleries").select("id").eq("id", gallery).maybeSingle();
   if (!own) {
-    return NextResponse.json({ error: "To nie jest Twoja galeria." }, { status: 403 });
+    return NextResponse.json({ error: await E("To nie jest Twoja galeria.") }, { status: 403 });
   }
 
   const files = Array.isArray(body.files) ? body.files.slice(0, 50) : [];
   if (files.length === 0) {
-    return NextResponse.json({ error: "Nie wybrano żadnych zdjęć." }, { status: 400 });
+    return NextResponse.json({ error: await E("Nie wybrano żadnych zdjęć.") }, { status: 400 });
   }
 
   // Pakiet: musi być wybrany, aktywny i mieć wolne miejsce (z 2% zapasem)
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
   const plan = chosen ?? MAX_PLAN;
   if (isExpired(meta)) {
     return NextResponse.json(
-      { error: "Dostęp do tej galerii wygasł. Przedłuż go, aby dodać zdjęcia.", code: "EXPIRED" },
+      { error: await E("Dostęp do tej galerii wygasł. Przedłuż go, aby dodać zdjęcia."), code: "EXPIRED" },
       { status: 402 },
     );
   }
@@ -65,9 +67,14 @@ export async function POST(req: Request) {
   const incoming = files.reduce((sum, f) => sum + Math.max(0, Number(f.size) || 0), 0) * (1 + WEB_SHARE * (wm ? 2 : 1));
   if (used + incoming > hardLimitBytes(plan)) {
     const free = Math.max(0, planBytes(plan) - used);
+    const en = (await getLang()) === "en";
     return NextResponse.json(
       {
-        error: chosen
+        error: en
+          ? chosen
+            ? `These photos will not fit in the ${plan.nameEn} plan (${plan.limitGb} GB). Free space: ${formatBytes(free)}. Upgrade to a larger plan or choose fewer photos.`
+            : `A gallery can have at most ${plan.limitGb} GB. Free space: ${formatBytes(free)}. Split the session into two galleries or choose fewer photos.`
+          : chosen
           ? `Te zdjęcia nie zmieszczą się w pakiecie ${plan.name} (${plan.limitGb.toLocaleString("pl-PL")} GB). Wolne miejsce: ${formatBytes(free)}. Zmień pakiet na większy albo wybierz mniej zdjęć.`
           : `Galeria może mieć najwyżej ${plan.limitGb.toLocaleString("pl-PL")} GB. Wolne miejsce: ${formatBytes(free)}. Podziel sesję na dwie galerie albo wybierz mniej zdjęć.`,
         code: chosen ? "LIMIT" : "DRAFT_LIMIT",

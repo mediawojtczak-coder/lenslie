@@ -1,6 +1,7 @@
 "use client";
 
-const fmt = (gr: number) => `${(gr / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`;
+import { useLang } from "./LangProvider";
+import { money, tr } from "@/lib/lang";
 
 // Wybór płatności: z salda konta albo od razu przez Przelewy24
 export default function PayButtons({
@@ -18,6 +19,9 @@ export default function PayButtons({
   label: string; // np. „i opublikuj”
   onPay: (pay: "wallet" | "p24") => void;
 }) {
+  const lang = useLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
+  const fmt = (gr: number) => money(gr / 100, lang, true);
   const priceGr = Math.round(price * 100);
   const enough = balance >= priceGr;
   return (
@@ -25,26 +29,26 @@ export default function PayButtons({
       {enough ? (
         <>
           <p className="pay-balance">
-            Stan konta: <strong>{fmt(balance)}</strong> · po zakupie {fmt(balance - priceGr)}
+            {t("Stan konta", "Balance")}: <strong>{fmt(balance)}</strong> · {t("po zakupie", "after purchase")} {fmt(balance - priceGr)}
           </p>
           <button type="button" className="btn btn-wide btn-dark" disabled={busy || disabled} onClick={() => onPay("wallet")}>
-            {busy ? "Chwileczkę…" : `Zapłać z salda ${fmt(priceGr)} ${label}`}
+            {busy ? t("Chwileczkę…", "One moment…") : `${t("Zapłać z salda", "Pay from balance")} ${fmt(priceGr)} ${label}`}
           </button>
           <button type="button" className="as-link pay-alt" disabled={busy || disabled} onClick={() => onPay("p24")}>
-            albo zapłać teraz BLIK-iem, przelewem lub kartą
+            {t("albo zapłać teraz BLIK-iem, przelewem lub kartą", "or pay now by BLIK, bank transfer or card")}
           </button>
         </>
       ) : (
         <>
           <p className="pay-short">
-            Stan konta: <strong>{fmt(balance)}</strong>
-            {balance > 0 && <> · do dopłaty {fmt(priceGr - balance)}</>} ·{" "}
-            <a href="/panel/konto#saldo">Doładuj konto ›</a>
+            {t("Stan konta", "Balance")}: <strong>{fmt(balance)}</strong>
+            {balance > 0 && <> · {t("do dopłaty", "missing")} {fmt(priceGr - balance)}</>} ·{" "}
+            <a href="/panel/konto#saldo">{t("Doładuj konto ›", "Top up ›")}</a>
           </p>
           <button type="button" className="btn btn-wide btn-dark" disabled={busy || disabled} onClick={() => onPay("p24")}>
-            {busy ? "Przechodzę do płatności…" : `Zapłać ${fmt(priceGr)} ${label}`}
+            {busy ? t("Przechodzę do płatności…", "Redirecting to payment…") : `${t("Zapłać", "Pay")} ${fmt(priceGr)} ${label}`}
           </button>
-          <p className="test-note">BLIK, przelew lub karta przez Przelewy24.</p>
+          <p className="test-note">{t("BLIK, przelew lub karta przez Przelewy24.", "BLIK, bank transfer or card via Przelewy24 (PLN).")}</p>
         </>
       )}
     </div>

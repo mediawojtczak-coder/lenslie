@@ -2,6 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useTr } from "@/components/LangProvider";
 
 function toSlug(text: string) {
   return text
@@ -26,6 +27,7 @@ type Layout = "mozaika" | "siatka";
 
 export default function CreateGallery({ label, className }: { label: string; className?: string }) {
   const router = useRouter();
+  const t = useTr();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -49,9 +51,9 @@ export default function CreateGallery({ label, className }: { label: string; cla
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!slug) return setError("Wpisz nazwę galerii.");
+    if (!slug) return setError(t("Wpisz nazwę galerii.", "Enter a gallery name."));
     if (password.trim() && password.trim().length < 4) {
-      return setError("Hasło musi mieć co najmniej 4 znaki.");
+      return setError(t("Hasło musi mieć co najmniej 4 znaki.", "The password must have at least 4 characters."));
     }
     setBusy(true);
     setError("");
@@ -67,12 +69,12 @@ export default function CreateGallery({ label, className }: { label: string; cla
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Nie udało się utworzyć galerii.");
+      if (!res.ok) throw new Error(data.error ?? t("Nie udało się utworzyć galerii.", "Could not create the gallery."));
       close();
       router.push(`/panel/galeria/${slug}`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nie udało się utworzyć galerii.");
+      setError(err instanceof Error ? err.message : t("Nie udało się utworzyć galerii.", "Could not create the gallery."));
     } finally {
       setBusy(false);
     }
@@ -93,21 +95,21 @@ export default function CreateGallery({ label, className }: { label: string; cla
         }}
       >
         <form onSubmit={handleSubmit} className="modal-body">
-          <h2 id="nowa-galeria-tytul">Nowa galeria</h2>
+          <h2 id="nowa-galeria-tytul">{t("Nowa galeria", "New gallery")}</h2>
 
-          <label htmlFor="ng-nazwa">Nazwa galerii</label>
+          <label htmlFor="ng-nazwa">{t("Nazwa galerii", "Gallery name")}</label>
           <input
             id="ng-nazwa"
             type="text"
-            placeholder="np. Anna i Marek"
+            placeholder={t("np. Anna i Marek", "e.g. Anna & Mark")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoFocus
             required
           />
-          {slug && <p className="hint">Adres: /galeria/{slug}</p>}
+          {slug && <p className="hint">{t("Adres", "Address")}: /galeria/{slug}</p>}
 
-          <label htmlFor="ng-haslo">Hasło dla klienta</label>
+          <label htmlFor="ng-haslo">{t("Hasło dla klienta", "Client password")}</label>
           <div className="pass-row">
             <input
               id="ng-haslo"
@@ -118,13 +120,13 @@ export default function CreateGallery({ label, className }: { label: string; cla
               spellCheck={false}
             />
             <button type="button" className="btn btn-ghost btn-small" onClick={() => setPassword(generatePassword())}>
-              Generuj
+              {t("Generuj", "Generate")}
             </button>
           </div>
-          <p className="hint">Wyślij je klientowi razem z linkiem. Usuń, jeśli galeria ma być otwarta.</p>
+          <p className="hint">{t("Wyślij je klientowi razem z linkiem. Usuń, jeśli galeria ma być otwarta.", "Send it to your client with the link. Clear it if the gallery should be open.")}</p>
 
           <fieldset className="layout-pick">
-            <legend>Układ zdjęć</legend>
+            <legend>{t("Układ zdjęć", "Photo layout")}</legend>
             <label className={layout === "mozaika" ? "pick active" : "pick"}>
               <input
                 type="radio"
@@ -136,8 +138,8 @@ export default function CreateGallery({ label, className }: { label: string; cla
               <span className="pick-icon mosaic-icon" aria-hidden="true">
                 <i /><i /><i /><i /><i />
               </span>
-              <span className="pick-title">Mozaika</span>
-              <span className="pick-desc">Zdjęcia w naturalnych proporcjach</span>
+              <span className="pick-title">{t("Mozaika", "Mosaic")}</span>
+              <span className="pick-desc">{t("Zdjęcia w naturalnych proporcjach", "Photos in natural proportions")}</span>
             </label>
             <label className={layout === "siatka" ? "pick active" : "pick"}>
               <input
@@ -150,12 +152,12 @@ export default function CreateGallery({ label, className }: { label: string; cla
               <span className="pick-icon grid-icon" aria-hidden="true">
                 <i /><i /><i /><i /><i /><i />
               </span>
-              <span className="pick-title">Siatka</span>
-              <span className="pick-desc">Równe, kwadratowe kadry</span>
+              <span className="pick-title">{t("Siatka", "Grid")}</span>
+              <span className="pick-desc">{t("Równe, kwadratowe kadry", "Even, square crops")}</span>
             </label>
           </fieldset>
 
-          <p className="hint">Najpierw prześlij zdjęcia. Pakiet i cenę wybierzesz przy publikacji, gdy będzie wiadomo, ile miejsca zajmuje galeria.</p>
+          <p className="hint">{t("Najpierw prześlij zdjęcia. Pakiet i cenę wybierzesz przy publikacji, gdy będzie wiadomo, ile miejsca zajmuje galeria.", "Upload your photos first. You choose the plan and price when publishing, once the gallery size is known.")}</p>
 
           {error && (
             <p className="error" role="alert">
@@ -165,10 +167,10 @@ export default function CreateGallery({ label, className }: { label: string; cla
 
           <div className="modal-actions">
             <button type="button" className="as-link" onClick={close}>
-              Anuluj
+              {t("Anuluj", "Cancel")}
             </button>
             <button type="submit" className="btn" disabled={busy}>
-              {busy ? "Tworzę…" : "Utwórz galerię"}
+              {busy ? t("Tworzę…", "Creating…") : t("Utwórz galerię", "Create gallery")}
             </button>
           </div>
         </form>

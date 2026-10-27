@@ -1,5 +1,6 @@
 "use client";
 
+import { useTr } from "@/components/LangProvider";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -16,6 +17,7 @@ export default function SelectionActions({
   fileNames: string[];
 }) {
   const router = useRouter();
+  const t = useTr();
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -34,7 +36,7 @@ export default function SelectionActions({
   }
 
   async function remove() {
-    if (!window.confirm(`Usunąć wybór klienta ${name}?`)) return;
+    if (!window.confirm(t(`Usunąć wybór klienta ${name}?`, `Delete the selection of ${name}?`))) return;
     await fetch(`/api/galleries/${galleryId}/selections`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -46,13 +48,13 @@ export default function SelectionActions({
   return (
     <div className="selection-actions">
       <button type="button" className="btn btn-ghost btn-small" onClick={copy} disabled={fileNames.length === 0}>
-        {copied ? "Skopiowano" : "Kopiuj nazwy plików"}
+        {copied ? t("Skopiowano", "Copied") : t("Kopiuj nazwy plików", "Copy file names")}
       </button>
       <button type="button" className="as-link" onClick={download} disabled={fileNames.length === 0}>
-        Pobierz listę
+        {t("Pobierz listę", "Download list")}
       </button>
       <button type="button" className="as-link danger" onClick={remove}>
-        Usuń
+        {t("Usuń", "Delete")}
       </button>
     </div>
   );

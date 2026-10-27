@@ -5,6 +5,9 @@ import { getGallerySummary } from "@/lib/photos";
 import { getMeta, isExpired } from "@/lib/galleries";
 import { getPlan } from "@/lib/plans";
 import CreateGallery from "./CreateGallery";
+import { getLang } from "@/lib/lang-server";
+import { tr, locale } from "@/lib/lang";
+import { planName } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -19,16 +22,9 @@ type Card = GalleryRow & {
   expired: boolean;
 };
 
-const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric" });
 
-const FILTERS = [
-  { key: "", label: "Wszystkie" },
-  { key: "haslo", label: "Z hasłem" },
-  { key: "otwarte", label: "Otwarte" },
-  { key: "puste", label: "Bez zdjęć" },
-] as const;
 
-function photosLabel(n: number) {
+function photosLabelPl(n: number) {
   if (n === 1) return "1 zdjęcie";
   const lastTwo = n % 100;
   const last = n % 10;
@@ -42,6 +38,16 @@ export default async function Panel({
   searchParams: Promise<{ q?: string; filtr?: string }>;
 }) {
   const { q = "", filtr = "" } = await searchParams;
+  const lang = await getLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
+  const dateFmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", year: "numeric" });
+  const photosLabel = (n: number) => (lang === "en" ? (n === 1 ? "1 photo" : `${n} photos`) : photosLabelPl(n));
+  const FILTERS = [
+    { key: "", label: t("Wszystkie", "All") },
+    { key: "haslo", label: t("Z hasłem", "Password protected") },
+    { key: "otwarte", label: t("Otwarte", "Open") },
+    { key: "puste", label: t("Bez zdjęć", "Empty") },
+  ] as const;
   const { supabase } = await getUser();
 
   const { data } = await supabase
@@ -58,7 +64,7 @@ export default async function Panel({
         ...g,
         ...summary,
         protected: Boolean(meta?.passwordHash),
-        planName: getPlan(meta?.plan)?.name ?? null,
+        planName: (() => { const p = getPlan(meta?.plan); return p ? planName(p, lang) : null; })(),
         expiresAt: meta?.expiresAt ?? null,
         expired: isExpired(meta),
       };
@@ -92,8 +98,8 @@ export default async function Panel({
   return (
     <div className="app-body">
       <aside className="app-side">
-        <CreateGallery label="Nowa galeria" className="btn btn-wide" />
-        <nav aria-label="Filtry galerii">
+        <CreateGallery label={t("Nowa galeria", "New gallery")} className="btn btn-wide" />
+        <nav aria-label={t("Filtry galerii", "Gallery filters")}>
           {FILTERS.map((f) => (
             <Link
               key={f.key}
@@ -112,18 +118,18 @@ export default async function Panel({
       <main className="app-main">
         {query && (
           <div className="app-head">
-            <p className="search-note">Wyniki dla „{q.trim()}”</p>
-            <Link href={linkFor(filtr)} className="link-quiet">Wyczyść wyszukiwanie</Link>
+            <p className="search-note">{t("Wyniki dla", "Results for")} „{q.trim()}”</p>
+            <Link href={linkFor(filtr)} className="link-quiet">{t("Wyczyść wyszukiwanie", "Clear search")}</Link>
           </div>
         )}
 
         {cards.length === 0 ? (
           <div className="empty-state">
-            <p>Nie masz jeszcze żadnej galerii.</p>
-            <CreateGallery label="Utwórz pierwszą galerię" className="btn" />
+            <p>{t("Nie masz jeszcze żadnej galerii.", "You don’t have any galleries yet.")}</p>
+            <CreateGallery label={t("Utwórz pierwszą galerię", "Create your first gallery")} className="btn" />
           </div>
         ) : visible.length === 0 ? (
-          <p className="notice-left">Brak galerii pasujących do wybranych filtrów.</p>
+          <p className="notice-left">{t("Brak galerii pasujących do wybranych filtrów.", "No galleries match the selected filters.")}</p>
         ) : (
           <ul className="card-grid">
             {visible.map((c) => (
@@ -133,14 +139,14 @@ export default async function Panel({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={c.coverUrl} alt="" loading="lazy" />
                   ) : (
-                    <span className="g-cover-empty">Brak zdjęć</span>
+                    <span className="g-cover-empty">{t("Brak zdjęć", "No photos")}</span>
                   )}
                   {!c.planName ? (
-                    <span className="g-badge g-badge-draft">Wersja robocza</span>
+                    <span className="g-badge g-badge-draft">{t("Wersja robocza", "Draft")}</span>
                   ) : c.expired ? (
-                    <span className="g-badge g-badge-exp">Wygasła</span>
+                    <span className="g-badge g-badge-exp">{t("Wygasła", "Expired")}</span>
                   ) : (
-                    c.protected && <span className="g-badge">Hasło</span>
+                    c.protected && <span className="g-badge">{t("Hasło", "Password")}</span>
                   )}
                 </Link>
                 <div className="g-info">
@@ -149,14 +155,14 @@ export default async function Panel({
                   </Link>
                   <p className="g-meta">
                     {photosLabel(c.count)}
-                    {c.planName ? ` · ${c.planName}` : " · nieopublikowana"}
+                    {c.planName ? ` · ${c.planName}` : ` · ${t("nieopublikowana", "unpublished")}`}
                     <br />
                     {c.planName && c.expiresAt
-                      ? `${c.expired ? "Wygasła" : "Dostęp do"} ${dateFmt.format(new Date(c.expiresAt))}`
-                      : `Utworzona ${dateFmt.format(new Date(c.created_at))}`}
+                      ? `${c.expired ? t("Wygasła", "Expired") : t("Dostęp do", "Available until")} ${dateFmt.format(new Date(c.expiresAt))}`
+                      : `${t("Utworzona", "Created")} ${dateFmt.format(new Date(c.created_at))}`}
                   </p>
                   <a href={`/galeria/${c.id}`} className="g-action" target="_blank" rel="noreferrer">
-                    Podgląd dla klienta
+                    {t("Podgląd dla klienta", "Client preview")}
                   </a>
                 </div>
               </li>

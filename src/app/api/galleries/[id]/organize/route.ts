@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { E } from "@/lib/api-lang";
 import { randomBytes } from "crypto";
 import { getMeta, saveMeta, type Section } from "@/lib/galleries";
 import { requireOwner } from "@/lib/owner";
@@ -23,21 +24,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const body = (await req.json().catch(() => null)) as Body | null;
   const meta = await getMeta(id);
-  if (!body || !meta) return NextResponse.json({ error: "Nieprawidłowe dane." }, { status: 400 });
+  if (!body || !meta) return NextResponse.json({ error: await E("Nieprawidłowe dane.") }, { status: 400 });
 
   const sections: Section[] = meta.sections ?? [];
   const map: Record<string, string> = { ...(meta.photoSection ?? {}) };
 
   switch (body.action) {
     case "order": {
-      if (!Array.isArray(body.order)) return NextResponse.json({ error: "Nieprawidłowe dane." }, { status: 400 });
+      if (!Array.isArray(body.order)) return NextResponse.json({ error: await E("Nieprawidłowe dane.") }, { status: 400 });
       meta.order = body.order.map(String).slice(0, 10000);
       break;
     }
     case "add-section": {
       const name = cleanName(body.name);
-      if (!name) return NextResponse.json({ error: "Wpisz nazwę sekcji." }, { status: 400 });
-      if (sections.length >= 30) return NextResponse.json({ error: "Galeria może mieć najwyżej 30 sekcji." }, { status: 400 });
+      if (!name) return NextResponse.json({ error: await E("Wpisz nazwę sekcji.") }, { status: 400 });
+      if (sections.length >= 30) return NextResponse.json({ error: await E("Galeria może mieć najwyżej 30 sekcji.") }, { status: 400 });
       const section = { id: randomBytes(4).toString("hex"), name };
       meta.sections = [...sections, section];
       await saveMeta(id, meta);
@@ -46,7 +47,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     case "rename-section": {
       const name = cleanName(body.name);
       const s = sections.find((x) => x.id === body.section);
-      if (!s || !name) return NextResponse.json({ error: "Wpisz nazwę sekcji." }, { status: 400 });
+      if (!s || !name) return NextResponse.json({ error: await E("Wpisz nazwę sekcji.") }, { status: 400 });
       s.name = name;
       meta.sections = sections;
       break;
@@ -68,7 +69,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     case "assign": {
       const target = body.section;
       if (target && !sections.some((x) => x.id === target)) {
-        return NextResponse.json({ error: "Nie ma takiej sekcji." }, { status: 400 });
+        return NextResponse.json({ error: await E("Nie ma takiej sekcji.") }, { status: 400 });
       }
       for (const n of (body.names ?? []).map(String)) {
         if (target) map[n] = target;
@@ -78,7 +79,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       break;
     }
     default:
-      return NextResponse.json({ error: "Nieznana operacja." }, { status: 400 });
+      return NextResponse.json({ error: await E("Nieznana operacja.") }, { status: 400 });
   }
 
   await saveMeta(id, meta);

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { E } from "@/lib/api-lang";
 import { getUser } from "@/lib/supabase/server";
 import { TOPUPS } from "@/lib/wallet";
 import { cleanBilling, saveBilling } from "@/lib/billing";
@@ -9,15 +10,15 @@ export const runtime = "nodejs";
 // Doładowanie salda przez Przelewy24
 export async function POST(req: Request) {
   const { user } = await getUser();
-  if (!user) return NextResponse.json({ error: "Zaloguj się ponownie." }, { status: 401 });
-  if (!p24Enabled()) return NextResponse.json({ error: "Płatności nie są jeszcze włączone." }, { status: 503 });
+  if (!user) return NextResponse.json({ error: await E("Zaloguj się ponownie.") }, { status: 401 });
+  if (!p24Enabled()) return NextResponse.json({ error: await E("Płatności nie są jeszcze włączone.") }, { status: 503 });
 
   const body = ((await req.json().catch(() => null)) ?? {}) as { amount?: number; invoice?: unknown };
   const pack = TOPUPS.find((t) => t.amount === Number(body.amount));
-  if (!pack) return NextResponse.json({ error: "Wybierz kwotę doładowania." }, { status: 400 });
+  if (!pack) return NextResponse.json({ error: await E("Wybierz kwotę doładowania.") }, { status: 400 });
 
   const inv = cleanBilling(body.invoice);
-  if (!inv.ok) return NextResponse.json({ error: inv.error }, { status: 400 });
+  if (!inv.ok) return NextResponse.json({ error: await E(inv.error) }, { status: 400 });
   if (body.invoice) await saveBilling(user.id, inv.billing).catch(() => undefined);
 
   const order = {
@@ -37,6 +38,6 @@ export async function POST(req: Request) {
   try {
     return NextResponse.json({ ok: true, redirect: await registerTransaction(order, new URL(req.url).origin) });
   } catch (err) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Błąd płatności." }, { status: 502 });
+    return NextResponse.json({ error: await E(err instanceof Error ? err.message : "Błąd płatności.") }, { status: 502 });
   }
 }

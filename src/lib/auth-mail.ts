@@ -1,5 +1,6 @@
 import { adminClient } from "@/lib/supabase/admin";
 import { sendEmail, emailLayout } from "@/lib/email";
+import type { SiteLang } from "@/lib/lang";
 
 // Maile logowania wysyłane przez Lenslie (po polsku, w stylu strony) zamiast szablonów Supabase.
 // Supabase tylko tworzy bezpieczny jednorazowy token, a link prowadzi do /auth/potwierdz na naszej stronie.
@@ -23,7 +24,7 @@ function confirmUrl(origin: string, tokenHash: string, type: string, next: strin
 }
 
 // Zwraca true, gdy mail został wysłany przez Lenslie; false, gdy trzeba użyć wysyłki Supabase
-export async function sendResetMail(email: string, origin: string): Promise<boolean> {
+export async function sendResetMail(email: string, origin: string, lang: SiteLang = "pl"): Promise<boolean> {
   const db = adminClient();
   if (!db || !process.env.RESEND_API_KEY) return false;
   if (tooSoon(`reset:${email.toLowerCase()}`)) return true;
@@ -37,8 +38,17 @@ export async function sendResetMail(email: string, origin: string): Promise<bool
   const url = confirmUrl(origin, data.properties.hashed_token, "recovery", "/panel/konto?nowe-haslo=1");
   const sent = await sendEmail({
     to: email,
-    subject: "Ustaw nowe hasło do Lenslie",
-    html: emailLayout(
+    subject: lang === "en" ? "Set a new Lenslie password" : "Ustaw nowe hasło do Lenslie",
+    html: lang === "en" ? emailLayout(
+      "Set a new password",
+      [
+        "We received a request to change the password for your Lenslie account.",
+        "Click the button, then enter a new password in “My account”. The link works for one hour and only once.",
+        "If this wasn't you, ignore this message – your password won't change.",
+      ],
+      { label: "Set a new password", url },
+      "en",
+    ) : emailLayout(
       "Ustaw nowe hasło",
       [
         "Otrzymaliśmy prośbę o zmianę hasła do Twojego konta w Lenslie.",
@@ -88,6 +98,7 @@ export async function sendSignupMail(
   password: string,
   studio: string | null,
   origin: string,
+  lang: SiteLang = "pl",
 ): Promise<SignupResult> {
   const db = adminClient();
   if (!db || !process.env.RESEND_API_KEY) return { status: "fallback" };
@@ -103,8 +114,16 @@ export async function sendSignupMail(
   const url = confirmUrl(origin, hashed, data.properties.verification_type ?? "signup", "/panel");
   const ok = await sendEmail({
     to: email,
-    subject: "Potwierdź konto w Lenslie",
-    html: emailLayout(
+    subject: lang === "en" ? "Confirm your Lenslie account" : "Potwierdź konto w Lenslie",
+    html: lang === "en" ? emailLayout(
+      "Welcome to Lenslie",
+      [
+        "Thank you for creating an account. Click the button to confirm your email address and go to your photographer dashboard.",
+        "If you didn't create a Lenslie account, ignore this message.",
+      ],
+      { label: "Confirm my account", url },
+      "en",
+    ) : emailLayout(
       "Witaj w Lenslie",
       [
         "Dziękujemy za założenie konta. Kliknij przycisk, aby potwierdzić adres e-mail i przejść do panelu fotografa.",

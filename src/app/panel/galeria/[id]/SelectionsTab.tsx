@@ -1,5 +1,8 @@
 import { getUser } from "@/lib/supabase/server";
 import SelectionActions from "./SelectionActions";
+import { getLang } from "@/lib/lang-server";
+import { tr, locale } from "@/lib/lang";
+
 
 type Row = {
   id: string;
@@ -10,7 +13,6 @@ type Row = {
   updated_at: string;
 };
 
-const fmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Warsaw" });
 
 // Ulubione zdjęcia wybrane przez klientów tej galerii
 export default async function SelectionsTab({
@@ -21,6 +23,9 @@ export default async function SelectionsTab({
   photos: { name: string; fileName: string; url: string }[];
 }) {
   const { supabase } = await getUser();
+  const lang = await getLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
+  const fmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Warsaw" });
   const { data, error } = await supabase
     .from("selections")
     .select("id, client_name, client_email, photos, note, updated_at")
@@ -30,11 +35,10 @@ export default async function SelectionsTab({
   if (error) {
     return (
       <p className="warn-inline">
-        Wybory klientów nie są jeszcze włączone: w Supabase trzeba uruchomić SQL z tabelą „selections” i dodać klucz
-        SUPABASE_SECRET_KEY w Vercelu.
+        {t("Wybory klientów nie są jeszcze włączone.", "Client selections are not enabled yet.")}
         <br />
         <small>
-          Szczegóły: {error.code ?? ""} {error.message}
+          {t("Szczegóły", "Details")}: {error.code ?? ""} {error.message}
         </small>
       </p>
     );
@@ -46,8 +50,8 @@ export default async function SelectionsTab({
   if (rows.length === 0) {
     return (
       <div className="empty-state">
-        <p>Nikt jeszcze nie wybrał ulubionych zdjęć.</p>
-        <p className="hint-inline">Klient zaznacza serduszkiem zdjęcia w galerii, a jego wybór pojawi się tutaj.</p>
+        <p>{t("Nikt jeszcze nie wybrał ulubionych zdjęć.", "No one has picked favourite photos yet.")}</p>
+        <p className="hint-inline">{t("Klient zaznacza serduszkiem zdjęcia w galerii, a jego wybór pojawi się tutaj.", "Your client marks photos with a heart in the gallery, and the selection appears here.")}</p>
       </div>
     );
   }
@@ -67,7 +71,7 @@ export default async function SelectionsTab({
                       <a href={`mailto:${r.client_email}`}>{r.client_email}</a> ·{" "}
                     </>
                   )}
-                  {items.length} {items.length === 1 ? "zdjęcie" : "zdjęć"} · zmiana {fmt.format(new Date(r.updated_at))}
+                  {items.length} {items.length === 1 ? t("zdjęcie", "photo") : t("zdjęć", "photos")} · {t("zmiana", "updated")} {fmt.format(new Date(r.updated_at))}
                 </p>
               </div>
               <SelectionActions galleryId={id} selectionId={r.id} name={r.client_name} fileNames={items.map((p) => p.fileName)} />
@@ -84,7 +88,7 @@ export default async function SelectionsTab({
                 ))}
               </ul>
             ) : (
-              <p className="hint-inline">Brak zaznaczonych zdjęć.</p>
+              <p className="hint-inline">{t("Brak zaznaczonych zdjęć.", "No photos selected.")}</p>
             )}
           </article>
         );

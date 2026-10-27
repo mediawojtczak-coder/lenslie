@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { E } from "@/lib/api-lang";
 import { randomBytes } from "crypto";
 import { getMeta, saveMeta } from "@/lib/galleries";
 import { requireOwner } from "@/lib/owner";
@@ -15,7 +16,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     | { enabled?: boolean; sections?: string[]; downloads?: string; newLink?: boolean }
     | null;
   const meta = await getMeta(id);
-  if (!body || !meta) return NextResponse.json({ error: "Nieprawidłowe dane." }, { status: 400 });
+  if (!body || !meta) return NextResponse.json({ error: await E("Nieprawidłowe dane.") }, { status: 400 });
 
   const known = new Set((meta.sections ?? []).map((s) => s.id));
   const current = meta.guest;

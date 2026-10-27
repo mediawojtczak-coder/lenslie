@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { E } from "@/lib/api-lang";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
@@ -17,7 +18,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const body = (await req.json().catch(() => null)) as { step?: string; size?: number } | null;
   const meta = await getMeta(id);
-  if (!meta) return NextResponse.json({ error: "Nie znaleziono galerii." }, { status: 404 });
+  if (!meta) return NextResponse.json({ error: await E("Nie znaleziono galerii.") }, { status: 404 });
 
   if (body?.step === "done") {
     meta.music = true;
@@ -26,7 +27,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   if (!body?.size || body.size > MAX) {
-    return NextResponse.json({ error: "Plik muzyki może mieć najwyżej 25 MB." }, { status: 400 });
+    return NextResponse.json({ error: await E("Plik muzyki może mieć najwyżej 25 MB.") }, { status: 400 });
   }
   const url = await getSignedUrl(
     r2,

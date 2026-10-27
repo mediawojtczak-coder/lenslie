@@ -1,5 +1,6 @@
 "use client";
 
+import { useTr } from "@/components/LangProvider";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -16,6 +17,7 @@ export default function GuestCard({
   sections: { id: string; name: string }[];
 }) {
   const router = useRouter();
+  const t = useTr();
   const [guest, setGuest] = useState<Guest | null>(initial);
   const [chosen, setChosen] = useState<string[]>(initial?.sections ?? []);
   const [downloads, setDownloads] = useState<"web" | "none">(initial?.downloads ?? "web");
@@ -36,11 +38,11 @@ export default function GuestCard({
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Nie udało się zapisać.");
+      if (!res.ok) throw new Error(data.error ?? t("Nie udało się zapisać.", "Could not save."));
       setGuest(data.guest);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nie udało się zapisać.");
+      setError(err instanceof Error ? err.message : t("Nie udało się zapisać.", "Could not save."));
     } finally {
       setBusy(false);
     }
@@ -56,10 +58,9 @@ export default function GuestCard({
 
   return (
     <div className="settings-card">
-      <h2>Link dla gości</h2>
+      <h2>{t("Link dla gości", "Guest link")}</h2>
       <p>
-        Osobny link bez hasła, np. dla gości weselnych. Pokazuje tylko wybrane sekcje i nigdy nie daje oryginałów w pełnej
-        rozdzielczości.
+        {t("Osobny link bez hasła, np. dla gości weselnych. Pokazuje tylko wybrane sekcje i nigdy nie daje oryginałów w pełnej rozdzielczości.", "A separate link without a password, e.g. for wedding guests. It shows only the chosen sections and never gives full-resolution originals.")}
       </p>
 
       <label className="check">
@@ -69,7 +70,7 @@ export default function GuestCard({
           disabled={busy}
           onChange={(e) => send({ enabled: e.target.checked, sections: chosen, downloads })}
         />
-        Włącz link dla gości
+        {t("Włącz link dla gości", "Turn on the guest link")}
       </label>
 
       {guest?.enabled && (
@@ -77,13 +78,13 @@ export default function GuestCard({
           <div className="copy-row guest-link">
             <span className="share-url">{link}</span>
             <button type="button" className="btn btn-ghost btn-small" onClick={copy}>
-              {copied ? "Skopiowano" : "Kopiuj link"}
+              {copied ? t("Skopiowano", "Copied") : t("Kopiuj link", "Copy link")}
             </button>
           </div>
 
           {sections.length > 0 && (
             <>
-              <p className="field-title">Sekcje widoczne dla gości</p>
+              <p className="field-title">{t("Sekcje widoczne dla gości", "Sections visible to guests")}</p>
               <div className="chips">
                 {sections.map((s) => {
                   const on = chosen.includes(s.id);
@@ -100,41 +101,41 @@ export default function GuestCard({
                   );
                 })}
               </div>
-              <p className="hint">{chosen.length === 0 ? "Nic nie zaznaczono – goście widzą wszystkie zdjęcia." : "Goście zobaczą tylko zaznaczone sekcje."}</p>
+              <p className="hint">{chosen.length === 0 ? t("Nic nie zaznaczono – goście widzą wszystkie zdjęcia.", "Nothing selected – guests see all photos.") : t("Goście zobaczą tylko zaznaczone sekcje.", "Guests will see only the selected sections.")}</p>
             </>
           )}
 
-          <p className="field-title">Pobieranie dla gości</p>
+          <p className="field-title">{t("Pobieranie dla gości", "Guest downloads")}</p>
           <div className="option-list">
             <label className={downloads === "web" ? "option active" : "option"}>
               <input type="radio" name="guest-dl" checked={downloads === "web"} onChange={() => setDownloads("web")} />
               <span>
-                <strong>Wersje do internetu</strong>
-                <small>Goście mogą pobrać mniejsze pliki</small>
+                <strong>{t("Wersje do internetu", "Web versions")}</strong>
+                <small>{t("Goście mogą pobrać mniejsze pliki", "Guests can download smaller files")}</small>
               </span>
             </label>
             <label className={downloads === "none" ? "option active" : "option"}>
               <input type="radio" name="guest-dl" checked={downloads === "none"} onChange={() => setDownloads("none")} />
               <span>
-                <strong>Tylko oglądanie</strong>
-                <small>Bez pobierania</small>
+                <strong>{t("Tylko oglądanie", "View only")}</strong>
+                <small>{t("Bez pobierania", "No downloads")}</small>
               </span>
             </label>
           </div>
 
           <div className="modal-actions left">
             <button type="button" className="btn" disabled={busy} onClick={() => send({ sections: chosen, downloads })}>
-              {busy ? "Zapisuję…" : "Zapisz"}
+              {busy ? t("Zapisuję…", "Saving…") : t("Zapisz", "Save")}
             </button>
             <button
               type="button"
               className="as-link"
               disabled={busy}
               onClick={() => {
-                if (window.confirm("Utworzyć nowy link? Stary link przestanie działać.")) send({ newLink: true });
+                if (window.confirm(t("Utworzyć nowy link? Stary link przestanie działać.", "Create a new link? The old link will stop working."))) send({ newLink: true });
               }}
             >
-              Utwórz nowy link
+              {t("Utwórz nowy link", "Create a new link")}
             </button>
           </div>
         </>

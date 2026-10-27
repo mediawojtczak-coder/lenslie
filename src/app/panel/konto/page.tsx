@@ -13,12 +13,16 @@ import { getDomainByUser, domainActive, DOMAIN_PRICE, vercelEnabled } from "@/li
 import { getRefUser, REWARD, THRESHOLD } from "@/lib/referrals";
 import { siteUrl } from "@/lib/email";
 import RefreshSoon from "../galeria/[id]/RefreshSoon";
+import { getLang } from "@/lib/lang-server";
+import { tr } from "@/lib/lang";
 
 export const dynamic = "force-dynamic";
 
 // Konto fotografa: nazwa studia i logo widoczne w galeriach klientów, zmiana hasła
 export default async function Konto({ searchParams }: { searchParams: Promise<{ "nowe-haslo"?: string; platnosc?: string }> }) {
   const sp = await searchParams;
+  const lang = await getLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
   const { supabase, user } = await getUser();
   const { data, error } = await supabase.from("profiles").select("studio_name, logo_key").eq("id", user!.id).maybeSingle();
   const [wallet, billing, refUser] = await Promise.all([
@@ -34,20 +38,20 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
   return (
     <div className="app-body">
       <aside className="app-side">
-        <Link href="/panel" className="link-quiet back-link">← Wszystkie galerie</Link>
-        <nav aria-label="Konto">
-          <span className="side-link active">Moje konto</span>
+        <Link href="/panel" className="link-quiet back-link">← {t("Wszystkie galerie", "All galleries")}</Link>
+        <nav aria-label={t("Konto", "Account")}>
+          <span className="side-link active">{t("Moje konto", "My account")}</span>
         </nav>
         <SideLogout />
       </aside>
       <main className="app-main">
         <div className="settings">
           {payment && payment.status === "paid" && (
-            <p className="success-box">Doładowanie przyjęte. Dziękujemy!</p>
+            <p className="success-box">{t("Doładowanie przyjęte. Dziękujemy!", "Top-up received. Thank you!")}</p>
           )}
           {payment && payment.status !== "paid" && (
             <p className="warn-inline">
-              Czekamy na potwierdzenie płatności od Przelewy24. Strona odświeży się sama.
+              {t("Czekamy na potwierdzenie płatności od Przelewy24. Strona odświeży się sama.", "Waiting for payment confirmation from Przelewy24. The page refreshes by itself.")}
               <RefreshSoon />
             </p>
           )}
@@ -67,10 +71,10 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
               threshold={THRESHOLD}
             />
           )}
-          {sp["nowe-haslo"] && <p className="warn-inline">Ustaw nowe hasło w sekcji „Logowanie” poniżej.</p>}
+          {sp["nowe-haslo"] && <p className="warn-inline">{t("Ustaw nowe hasło w sekcji „Logowanie” poniżej.", "Set a new password in the “Sign-in” section below.")}</p>}
           {error && (
             <p className="warn-inline">
-              Profil nie jest jeszcze gotowy: w Supabase trzeba uruchomić SQL z tabelą „profiles”.
+              {t("Profil nie jest jeszcze gotowy.", "Your profile is not ready yet.")}
             </p>
           )}
           <AccountForms

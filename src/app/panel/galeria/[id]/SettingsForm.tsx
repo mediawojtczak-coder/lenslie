@@ -1,5 +1,6 @@
 "use client";
 
+import { useTr } from "@/components/LangProvider";
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
@@ -38,6 +39,7 @@ export default function SettingsForm({
   const [music, setMusic] = useState<"idle" | "busy">("idle");
   const [musicMsg, setMusicMsg] = useState("");
   const router = useRouter();
+  const t = useTr();
   const [title, setTitle] = useState(initialTitle);
   const [password, setPassword] = useState("");
   const [removePassword, setRemovePassword] = useState(false);
@@ -67,13 +69,13 @@ export default function SettingsForm({
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Nie udało się zapisać zmian.");
+      if (!res.ok) throw new Error(data.error ?? t("Nie udało się zapisać zmian.", "Could not save the changes."));
       setPassword("");
       setRemovePassword(false);
-      setMessage("Zapisano zmiany.");
+      setMessage(t("Zapisano zmiany.", "Changes saved."));
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nie udało się zapisać zmian.");
+      setError(err instanceof Error ? err.message : t("Nie udało się zapisać zmian.", "Could not save the changes."));
     } finally {
       setBusy(false);
     }
@@ -82,7 +84,7 @@ export default function SettingsForm({
   async function uploadMusic(file: File | undefined) {
     if (!file) return;
     if (!/\.mp3$/i.test(file.name) && file.type !== "audio/mpeg") {
-      setMusicMsg("Wybierz plik w formacie MP3.");
+      setMusicMsg(t("Wybierz plik w formacie MP3.", "Choose an MP3 file."));
       return;
     }
     setMusic("busy");
@@ -94,18 +96,18 @@ export default function SettingsForm({
         body: JSON.stringify({ size: file.size }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Nie udało się przesłać muzyki.");
+      if (!res.ok) throw new Error(data.error ?? t("Nie udało się przesłać muzyki.", "Could not upload the music."));
       const put = await fetch(data.url, { method: "PUT", headers: { "Content-Type": "audio/mpeg" }, body: file });
-      if (!put.ok) throw new Error("Nie udało się przesłać muzyki.");
+      if (!put.ok) throw new Error(t("Nie udało się przesłać muzyki.", "Could not upload the music."));
       await fetch(`/api/galleries/${id}/music`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ step: "done" }),
       });
-      setMusicMsg("Muzyka dodana. Zagra podczas pokazu slajdów.");
+      setMusicMsg(t("Muzyka dodana. Zagra podczas pokazu slajdów.", "Music added. It will play during the slideshow."));
       router.refresh();
     } catch (err) {
-      setMusicMsg(err instanceof Error ? err.message : "Nie udało się przesłać muzyki.");
+      setMusicMsg(err instanceof Error ? err.message : t("Nie udało się przesłać muzyki.", "Could not upload the music."));
     } finally {
       setMusic("idle");
       if (musicRef.current) musicRef.current.value = "";
@@ -116,13 +118,13 @@ export default function SettingsForm({
     setMusic("busy");
     await fetch(`/api/galleries/${id}/music`, { method: "DELETE" });
     setMusic("idle");
-    setMusicMsg("Muzyka usunięta.");
+    setMusicMsg(t("Muzyka usunięta.", "Music removed."));
     router.refresh();
   }
 
   async function removeGallery() {
     const ok = window.confirm(
-      `Usunąć galerię „${initialTitle}” razem ze wszystkimi zdjęciami? Tej operacji nie można cofnąć.`,
+      t(`Usunąć galerię „${initialTitle}” razem ze wszystkimi zdjęciami? Tej operacji nie można cofnąć.`, `Delete the gallery “${initialTitle}” with all its photos? This cannot be undone.`),
     );
     if (!ok) return;
     setBusy(true);
@@ -132,42 +134,42 @@ export default function SettingsForm({
       router.refresh();
     } else {
       setBusy(false);
-      setError("Nie udało się usunąć galerii.");
+      setError(t("Nie udało się usunąć galerii.", "Could not delete the gallery."));
     }
   }
 
   return (
     <div className="settings">
       <form onSubmit={save} className="settings-card">
-        <h2>Ustawienia galerii</h2>
+        <h2>{t("Ustawienia galerii", "Gallery settings")}</h2>
 
-        <label htmlFor="s-title">Nazwa galerii</label>
+        <label htmlFor="s-title">{t("Nazwa galerii", "Gallery name")}</label>
         <input id="s-title" value={title} onChange={(e) => setTitle(e.target.value)} required />
-        <p className="hint">Adres galerii pozostaje bez zmian: /galeria/{id}</p>
+        <p className="hint">{t("Adres galerii pozostaje bez zmian", "The gallery address stays the same")}: /galeria/{id}</p>
 
-        <label htmlFor="s-lang">Język galerii dla klienta</label>
+        <label htmlFor="s-lang">{t("Język galerii dla klienta", "Client gallery language")}</label>
         <select id="s-lang" className="plain-select" value={lang} onChange={(e) => setLang(e.target.value as "pl" | "en")}>
           <option value="pl">Polski</option>
-          <option value="en">English – dla par i gości z zagranicy</option>
+          <option value="en">{t("English – dla par i gości z zagranicy", "English – for couples and guests from abroad")}</option>
         </select>
-        <p className="hint">Przyciski, menu i komunikaty w galerii klienta będą w tym języku. Tytuł, sekcje i powitanie wpisujesz sam.</p>
+        <p className="hint">{t("Przyciski, menu i komunikaty w galerii klienta będą w tym języku. Tytuł, sekcje i powitanie wpisujesz sam.", "Buttons, menus and messages in the client gallery will be in this language. You write the title, sections and welcome message yourself.")}</p>
 
-        <label htmlFor="s-date">Data wydarzenia</label>
+        <label htmlFor="s-date">{t("Data wydarzenia", "Event date")}</label>
         <input id="s-date" type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
-        <p className="hint">Wyświetla się na okładce galerii pod tytułem.</p>
+        <p className="hint">{t("Wyświetla się na okładce galerii pod tytułem.", "Shown on the gallery cover under the title.")}</p>
 
-        <label htmlFor="s-welcome">Wiadomość powitalna</label>
+        <label htmlFor="s-welcome">{t("Wiadomość powitalna", "Welcome message")}</label>
         <textarea
           id="s-welcome"
           rows={4}
           maxLength={1500}
           value={welcome}
           onChange={(e) => setWelcome(e.target.value)}
-          placeholder="np. Kochani, dziękuję, że mogłam być z Wami tego dnia. Miłego oglądania!"
+          placeholder={t("np. Kochani, dziękuję, że mogłam być z Wami tego dnia. Miłego oglądania!", "e.g. Dear both, thank you for having me on your day. Enjoy the photos!")}
         />
-        <p className="hint">Klient zobaczy ją nad zdjęciami. Zostaw puste, jeśli nie chcesz jej pokazywać.</p>
+        <p className="hint">{t("Klient zobaczy ją nad zdjęciami. Zostaw puste, jeśli nie chcesz jej pokazywać.", "Your client sees it above the photos. Leave empty to hide it.")}</p>
 
-        <label htmlFor="s-pass">{hasPassword ? "Nowe hasło dla klienta" : "Hasło dla klienta"}</label>
+        <label htmlFor="s-pass">{hasPassword ? t("Nowe hasło dla klienta", "New client password") : t("Hasło dla klienta", "Client password")}</label>
         <div className="pass-row">
           <input
             id="s-pass"
@@ -176,7 +178,7 @@ export default function SettingsForm({
               setPassword(e.target.value);
               setRemovePassword(false);
             }}
-            placeholder={hasPassword ? "Zostaw puste, aby nie zmieniać" : "Brak hasła – galeria otwarta"}
+            placeholder={hasPassword ? t("Zostaw puste, aby nie zmieniać", "Leave empty to keep it") : t("Brak hasła – galeria otwarta", "No password – gallery is open")}
             autoComplete="off"
             spellCheck={false}
           />
@@ -188,7 +190,7 @@ export default function SettingsForm({
               setRemovePassword(false);
             }}
           >
-            Generuj
+            {t("Generuj", "Generate")}
           </button>
         </div>
         {hasPassword && (
@@ -201,19 +203,19 @@ export default function SettingsForm({
                 if (e.target.checked) setPassword("");
               }}
             />
-            Usuń hasło (galeria będzie otwarta dla każdego z linkiem)
+            {t("Usuń hasło (galeria będzie otwarta dla każdego z linkiem)", "Remove password (anyone with the link can open the gallery)")}
           </label>
         )}
 
-        <label htmlFor="s-layout">Układ zdjęć</label>
+        <label htmlFor="s-layout">{t("Układ zdjęć", "Photo layout")}</label>
         <select
           id="s-layout"
           className="plain-select"
           value={layout}
           onChange={(e) => setLayout(e.target.value as "mozaika" | "siatka")}
         >
-          <option value="mozaika">Mozaika – naturalne proporcje</option>
-          <option value="siatka">Siatka – równe, kwadratowe kadry</option>
+          <option value="mozaika">{t("Mozaika – naturalne proporcje", "Mosaic – natural proportions")}</option>
+          <option value="siatka">{t("Siatka – równe, kwadratowe kadry", "Grid – even, square crops")}</option>
         </select>
 
         {error && (
@@ -224,23 +226,22 @@ export default function SettingsForm({
         {message && <p className="success">{message}</p>}
 
         <button type="submit" className="btn" disabled={busy}>
-          {busy ? "Zapisuję…" : "Zapisz zmiany"}
+          {busy ? t("Zapisuję…", "Saving…") : t("Zapisz zmiany", "Save changes")}
         </button>
       </form>
 
       <div className="settings-card">
-        <h2>Muzyka do pokazu slajdów</h2>
+        <h2>{t("Muzyka do pokazu slajdów", "Slideshow music")}</h2>
         <p>
-          Klient może uruchomić pokaz slajdów przyciskiem w galerii. Jeśli dodasz plik MP3 (do 25 MB), zagra w tle.
-          Używaj tylko muzyki, do której masz prawa.
+          {t("Klient może uruchomić pokaz slajdów przyciskiem w galerii. Jeśli dodasz plik MP3 (do 25 MB), zagra w tle. Używaj tylko muzyki, do której masz prawa.", "Your client can start a slideshow with a button in the gallery. If you add an MP3 file (up to 25 MB), it plays in the background. Only use music you have the rights to.")}
         </p>
         <div className="music-row">
           <button type="button" className="btn btn-ghost btn-small" onClick={() => musicRef.current?.click()} disabled={music === "busy"}>
-            {music === "busy" ? "Przesyłam…" : hasMusic ? "Zmień muzykę" : "Dodaj muzykę"}
+            {music === "busy" ? t("Przesyłam…", "Uploading…") : hasMusic ? t("Zmień muzykę", "Change music") : t("Dodaj muzykę", "Add music")}
           </button>
           {hasMusic && (
             <button type="button" className="as-link" onClick={removeMusic} disabled={music === "busy"}>
-              Usuń muzykę
+              {t("Usuń muzykę", "Remove music")}
             </button>
           )}
           <input ref={musicRef} type="file" accept="audio/mpeg,.mp3" hidden onChange={(e) => uploadMusic(e.target.files?.[0])} />
@@ -251,10 +252,10 @@ export default function SettingsForm({
       {children}
 
       <div className="settings-card danger">
-        <h2>Usuń galerię</h2>
-        <p>Usuwa galerię i wszystkie zdjęcia z magazynu. Klient straci do nich dostęp.</p>
+        <h2>{t("Usuń galerię", "Delete gallery")}</h2>
+        <p>{t("Usuwa galerię i wszystkie zdjęcia z magazynu. Klient straci do nich dostęp.", "Deletes the gallery and all photos from storage. Your client will lose access.")}</p>
         <button type="button" className="btn btn-danger" onClick={removeGallery} disabled={busy}>
-          Usuń galerię
+          {t("Usuń galerię", "Delete gallery")}
         </button>
       </div>
     </div>

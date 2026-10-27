@@ -1,23 +1,27 @@
 import { getUser } from "@/lib/supabase/server";
+import { getLang } from "@/lib/lang-server";
+import { tr, locale } from "@/lib/lang";
+
 
 type Ev = { kind: string; photo: string | null; created_at: string };
 
-const dayFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "short", timeZone: "Europe/Warsaw" });
-const timeFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Warsaw" });
-
-const LABELS: Record<string, string> = {
-  view: "Klient otworzył galerię",
-  guest_view: "Gość otworzył galerię",
-  download: "Pobrano zdjęcie",
-  zip: "Pobrano ZIP",
-  slideshow: "Pokaz slajdów",
-};
 
 const dayKey = (d: Date) => d.toLocaleDateString("sv-SE", { timeZone: "Europe/Warsaw" });
 
 // Statystyki galerii: otwarcia, pobrania i ostatnia aktywność
 export default async function StatsTab({ id }: { id: string }) {
   const { supabase } = await getUser();
+  const lang = await getLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
+  const dayFmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "short", timeZone: "Europe/Warsaw" });
+  const timeFmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Warsaw" });
+  const LABELS: Record<string, string> = {
+    view: t("Klient otworzył galerię", "Client opened the gallery"),
+    guest_view: t("Gość otworzył galerię", "A guest opened the gallery"),
+    download: t("Pobrano zdjęcie", "Photo downloaded"),
+    zip: t("Pobrano ZIP", "ZIP downloaded"),
+    slideshow: t("Pokaz slajdów", "Slideshow"),
+  };
   const since = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString();
   const { data, error } = await supabase
     .from("gallery_events")
@@ -30,11 +34,10 @@ export default async function StatsTab({ id }: { id: string }) {
   if (error) {
     return (
       <p className="warn-inline">
-        Statystyki nie są jeszcze włączone: w Supabase trzeba uruchomić SQL z tabelą „gallery_events” i dodać klucz
-        SUPABASE_SECRET_KEY w Vercelu.
+        {t("Statystyki nie są jeszcze włączone.", "Statistics are not enabled yet.")}
         <br />
         <small>
-          Szczegóły: {error.code ?? ""} {error.message}
+          {t("Szczegóły", "Details")}: {error.code ?? ""} {error.message}
         </small>
       </p>
     );
@@ -64,30 +67,30 @@ export default async function StatsTab({ id }: { id: string }) {
   const topList = [...top.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   const tiles = [
-    { label: "Otwarcia przez klienta", value: count("view") },
-    { label: "Otwarcia przez gości", value: count("guest_view") },
-    { label: "Pobrane zdjęcia", value: count("download") },
-    { label: "Pobrane ZIP-y", value: count("zip") },
+    { label: t("Otwarcia przez klienta", "Opens by client"), value: count("view") },
+    { label: t("Otwarcia przez gości", "Opens by guests"), value: count("guest_view") },
+    { label: t("Pobrane zdjęcia", "Photos downloaded"), value: count("download") },
+    { label: t("Pobrane ZIP-y", "ZIPs downloaded"), value: count("zip") },
   ];
 
   return (
     <div className="stats">
       <div className="stat-tiles">
-        {tiles.map((t) => (
-          <div key={t.label} className="stat-tile">
-            <p className="stat-value">{t.value}</p>
-            <p className="stat-label">{t.label}</p>
+        {tiles.map((x) => (
+          <div key={x.label} className="stat-tile">
+            <p className="stat-value">{x.value}</p>
+            <p className="stat-label">{x.label}</p>
           </div>
         ))}
       </div>
       <p className="hint-inline">
-        Ostatnie 90 dni.{" "}
-        {lastView ? `Ostatnie otwarcie: ${timeFmt.format(new Date(lastView.created_at))}.` : "Galeria nie była jeszcze otwierana."}
+        {t("Ostatnie 90 dni.", "Last 90 days.")}{" "}
+        {lastView ? `${t("Ostatnie otwarcie", "Last opened")}: ${timeFmt.format(new Date(lastView.created_at))}.` : t("Galeria nie była jeszcze otwierana.", "The gallery has not been opened yet.")}
       </p>
 
       <div className="settings-card">
-        <h2>Otwarcia w ostatnich 30 dniach</h2>
-        <div className="day-chart" role="img" aria-label="Liczba otwarć galerii dzień po dniu">
+        <h2>{t("Otwarcia w ostatnich 30 dniach", "Opens in the last 30 days")}</h2>
+        <div className="day-chart" role="img" aria-label={t("Liczba otwarć galerii dzień po dniu", "Gallery opens day by day")}>
           {days.map((d) => (
             <div key={d.key} className="day-bar" title={`${d.label}: ${d.n}`}>
               <span style={{ height: `${(d.n / max) * 100}%` }} />
@@ -102,9 +105,9 @@ export default async function StatsTab({ id }: { id: string }) {
 
       <div className="stats-cols">
         <div className="settings-card">
-          <h2>Najczęściej pobierane</h2>
+          <h2>{t("Najczęściej pobierane", "Most downloaded")}</h2>
           {topList.length === 0 ? (
-            <p className="hint-inline">Nikt jeszcze nie pobrał pojedynczego zdjęcia.</p>
+            <p className="hint-inline">{t("Nikt jeszcze nie pobrał pojedynczego zdjęcia.", "No single photo has been downloaded yet.")}</p>
           ) : (
             <ol className="stat-list">
               {topList.map(([name, n]) => (
@@ -117,9 +120,9 @@ export default async function StatsTab({ id }: { id: string }) {
           )}
         </div>
         <div className="settings-card">
-          <h2>Ostatnia aktywność</h2>
+          <h2>{t("Ostatnia aktywność", "Recent activity")}</h2>
           {events.length === 0 ? (
-            <p className="hint-inline">Brak aktywności.</p>
+            <p className="hint-inline">{t("Brak aktywności.", "No activity.")}</p>
           ) : (
             <ul className="stat-list">
               {events.slice(0, 12).map((e, i) => (

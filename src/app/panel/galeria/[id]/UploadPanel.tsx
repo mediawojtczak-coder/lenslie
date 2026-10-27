@@ -2,10 +2,21 @@
 
 import { useState } from "react";
 import type { FileState } from "@/lib/upload-client";
+import { useLang } from "@/components/LangProvider";
+import { tr } from "@/lib/lang";
 
 export type QueueItem = { name: string; state: FileState };
 
-const LABEL: Record<FileState["status"], string> = {
+const LABEL_EN: Record<FileState["status"], string> = {
+  queued: "Queued",
+  preparing: "Preparing…",
+  uploading: "",
+  done: "Done",
+  error: "Error",
+  canceled: "Cancelled",
+};
+
+const LABEL_PL: Record<FileState["status"], string> = {
   queued: "W kolejce",
   preparing: "Przygotowuję…",
   uploading: "",
@@ -36,6 +47,9 @@ export default function UploadPanel({
   onClose: () => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const lang = useLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
+  const LABEL = lang === "en" ? LABEL_EN : LABEL_PL;
   const total = items.length;
   const done = items.filter((i) => i.state.status === "done").length;
   const failed = items.filter((i) => i.state.status === "error").length;
@@ -48,28 +62,28 @@ export default function UploadPanel({
   const rest = total - shown.length;
 
   return (
-    <aside className={collapsed ? "upload-panel collapsed" : "upload-panel"} aria-live="polite" aria-label="Przesyłanie plików">
+    <aside className={collapsed ? "upload-panel collapsed" : "upload-panel"} aria-live="polite" aria-label={t("Przesyłanie plików", "Uploading files")}>
       <header className="up-head">
         <div>
-          <h2>{active ? "Przesyłanie plików" : failed ? "Przesyłanie zakończone z błędami" : "Przesłano wszystkie zdjęcia"}</h2>
+          <h2>{active ? t("Przesyłanie plików", "Uploading files") : failed ? t("Przesyłanie zakończone z błędami", "Upload finished with errors") : t("Przesłano wszystkie zdjęcia", "All photos uploaded")}</h2>
           <p>
-            {done} z {total}
-            {failed > 0 && ` · błędy: ${failed}`}
+            {done} {t("z", "of")} {total}
+            {failed > 0 && ` · ${t("błędy", "errors")}: ${failed}`}
           </p>
         </div>
         <button
           type="button"
           className="up-icon"
           onClick={() => setCollapsed((c) => !c)}
-          aria-label={collapsed ? "Rozwiń" : "Zwiń"}
-          title={collapsed ? "Rozwiń" : "Zwiń"}
+          aria-label={collapsed ? t("Rozwiń", "Expand") : t("Zwiń", "Collapse")}
+          title={collapsed ? t("Rozwiń", "Expand") : t("Zwiń", "Collapse")}
         >
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
             <path d={collapsed ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
         {!active && (
-          <button type="button" className="up-icon" onClick={onClose} aria-label="Zamknij" title="Zamknij">
+          <button type="button" className="up-icon" onClick={onClose} aria-label={t("Zamknij", "Close")} title={t("Zamknij", "Close")}>
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
               <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
@@ -96,7 +110,7 @@ export default function UploadPanel({
                       {s.status === "uploading" ? `${Math.round(s.progress * 100)}%` : LABEL[s.status]}
                     </span>
                     {canCancel ? (
-                      <button type="button" className="up-x" onClick={() => onCancel(it.index)} aria-label={`Anuluj ${it.name}`} title="Anuluj">
+                      <button type="button" className="up-x" onClick={() => onCancel(it.index)} aria-label={`${t("Anuluj", "Cancel")} ${it.name}`} title={t("Anuluj", "Cancel")}>
                         <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
                           <path d="M7 7l10 10M17 7 7 17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
@@ -120,14 +134,14 @@ export default function UploadPanel({
             })}
           </ul>
           <footer className="up-foot">
-            <span>{rest > 0 ? `i ${rest} ${rest === 1 ? "pozostałe zdjęcie" : "pozostałych zdjęć"}` : ""}</span>
+            <span>{rest > 0 ? (lang === "en" ? `and ${rest} more ${rest === 1 ? "photo" : "photos"}` : `i ${rest} ${rest === 1 ? "pozostałe zdjęcie" : "pozostałych zdjęć"}`) : ""}</span>
             {active ? (
               <button type="button" className="btn btn-ghost btn-small" onClick={onCancelAll}>
-                Anuluj przesyłanie
+                {t("Anuluj przesyłanie", "Cancel upload")}
               </button>
             ) : (
               <button type="button" className="btn btn-ghost btn-small" onClick={onClose}>
-                Zamknij
+                {t("Zamknij", "Close")}
               </button>
             )}
           </footer>

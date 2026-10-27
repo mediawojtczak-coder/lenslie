@@ -4,7 +4,7 @@ import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, hasAccess, accessCookieName, isExpired } from "@/lib/galleries";
 import { adminClient } from "@/lib/supabase/admin";
 import { getSelection, selectionCookie } from "@/lib/selections";
-import { getOwnerEmail } from "@/lib/profiles";
+import { getOwnerContact } from "@/lib/profiles";
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -73,10 +73,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await db.from("selections").update({ note, updated_at: new Date().toISOString() }).eq("id", sel.id);
     let notified = false;
     if (body.notify) {
-      const to = await getOwnerEmail(id);
-      if (to) {
+      const owner = await getOwnerContact(id);
+      if (owner?.lang === "en") {
         notified = await sendEmail({
-          to,
+          to: owner.email,
+          subject: `${sel.client_name} picked favourite photos – ${meta.title}`,
+          html: emailLayout(
+            "New photo selection",
+            [
+              `${sel.client_name} marked ${sel.photos.length} favourite photos in the gallery “${meta.title}”.`,
+              ...(note ? [`Note: ${note}`] : []),
+            ],
+            { label: "See the selection", url: `${siteUrl()}/panel/galeria/${id}?tab=wybory` },
+            "en",
+          ),
+        });
+      } else if (owner) {
+        notified = await sendEmail({
+          to: owner.email,
           subject: `${sel.client_name} wybrał(a) ulubione zdjęcia – ${meta.title}`,
           html: emailLayout(
             "Nowy wybór zdjęć",

@@ -21,6 +21,18 @@ export async function getGalleryBrand(galleryId: string): Promise<Brand> {
 }
 
 // E-mail właściciela galerii (do powiadomień)
+// E-mail i język fotografa – do maili w jego języku
+export async function getOwnerContact(galleryId: string): Promise<{ email: string; lang: "pl" | "en" } | null> {
+  const db = adminClient();
+  if (!db) return null;
+  const { data: g } = await db.from("galleries").select("owner_id").eq("id", galleryId).maybeSingle();
+  if (!g?.owner_id) return null;
+  const { data } = await db.auth.admin.getUserById(g.owner_id);
+  if (!data?.user?.email) return null;
+  const { getUserLang } = await import("@/lib/lang-server");
+  return { email: data.user.email, lang: await getUserLang(g.owner_id) };
+}
+
 export async function getOwnerEmail(galleryId: string): Promise<string | null> {
   const db = adminClient();
   if (!db) return null;

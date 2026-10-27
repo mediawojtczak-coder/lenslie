@@ -1,16 +1,13 @@
 "use client";
 
+import { useTr } from "@/components/LangProvider";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { watermarkFromUrl } from "@/lib/watermark-client";
 
 type Downloads = "all" | "web" | "none";
 
-const OPTIONS: { value: Downloads; title: string; desc: string }[] = [
-  { value: "all", title: "Wszystko", desc: "Pełna rozdzielczość i wersje do internetu" },
-  { value: "web", title: "Tylko do internetu", desc: "Mniejsze pliki, bez oryginałów do druku" },
-  { value: "none", title: "Bez pobierania", desc: "Klient tylko ogląda, np. do czasu zapłaty" },
-];
 
 // Ochrona zdjęć: co klient może pobrać i znak wodny
 export default function ProtectionCard({
@@ -27,6 +24,12 @@ export default function ProtectionCard({
   photoCount: number;
 }) {
   const router = useRouter();
+  const t = useTr();
+  const OPTIONS: { value: Downloads; title: string; desc: string }[] = [
+    { value: "all", title: t("Wszystko", "Everything"), desc: t("Pełna rozdzielczość i wersje do internetu", "Full resolution and web versions") },
+    { value: "web", title: t("Tylko do internetu", "Web only"), desc: t("Mniejsze pliki, bez oryginałów do druku", "Smaller files, no print originals") },
+    { value: "none", title: t("Bez pobierania", "No downloads"), desc: t("Klient tylko ogląda, np. do czasu zapłaty", "Client can only view, e.g. until payment") },
+  ];
   const [downloads, setDownloads] = useState(initialDownloads);
   const [enabled, setEnabled] = useState(initialWm.enabled);
   const [text, setText] = useState(initialWm.text);
@@ -46,7 +49,7 @@ export default function ProtectionCard({
         body: JSON.stringify({ action: "wm-urls", names: names.slice(start, start + 30) }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Nie udało się nałożyć znaku wodnego.");
+      if (!res.ok) throw new Error(data.error ?? t("Nie udało się nałożyć znaku wodnego.", "Could not apply the watermark."));
       const items: { name: string; src: string; put: string }[] = data.items;
       let next = 0;
       const worker = async () => {
@@ -54,7 +57,7 @@ export default function ProtectionCard({
           const it = items[next++];
           const blob = await watermarkFromUrl(it.src, wmText);
           const put = await fetch(it.put, { method: "PUT", body: blob, headers: { "Content-Type": "image/jpeg" } });
-          if (!put.ok) throw new Error("Nie udało się zapisać zdjęcia ze znakiem wodnym.");
+          if (!put.ok) throw new Error(t("Nie udało się zapisać zdjęcia ze znakiem wodnym.", "Could not save the watermarked photo."));
           done += 1;
           setProgress({ done, total: names.length });
         }
@@ -69,20 +72,20 @@ export default function ProtectionCard({
     setError("");
     setMessage("");
     try {
-      if (enabled && !text.trim()) throw new Error("Wpisz tekst znaku wodnego, np. nazwę studia.");
+      if (enabled && !text.trim()) throw new Error(t("Wpisz tekst znaku wodnego, np. nazwę studia.", "Enter the watermark text, e.g. your studio name."));
       const res = await fetch(`/api/galleries/${id}/protection`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "save", downloads, watermark: { enabled, text } }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Nie udało się zapisać.");
+      if (!res.ok) throw new Error(data.error ?? t("Nie udało się zapisać.", "Could not save."));
       if (data.regenerate?.length) await applyWatermark(data.regenerate, text.trim());
-      setMessage("Zapisano.");
+      setMessage(t("Zapisano.", "Saved."));
       router.refresh();
     } catch (err) {
       setProgress(null);
-      setError(err instanceof Error ? err.message : "Nie udało się zapisać.");
+      setError(err instanceof Error ? err.message : t("Nie udało się zapisać.", "Could not save."));
     } finally {
       setBusy(false);
     }
@@ -93,11 +96,11 @@ export default function ProtectionCard({
     setError("");
     try {
       await applyWatermark(wmMissing, initialWm.text);
-      setMessage("Znak wodny jest na wszystkich zdjęciach.");
+      setMessage(t("Znak wodny jest na wszystkich zdjęciach.", "The watermark is on all photos."));
       router.refresh();
     } catch (err) {
       setProgress(null);
-      setError(err instanceof Error ? err.message : "Nie udało się nałożyć znaku wodnego.");
+      setError(err instanceof Error ? err.message : t("Nie udało się nałożyć znaku wodnego.", "Could not apply the watermark."));
     } finally {
       setBusy(false);
     }
@@ -105,9 +108,9 @@ export default function ProtectionCard({
 
   return (
     <div className="settings-card">
-      <h2>Ochrona zdjęć</h2>
+      <h2>{t("Ochrona zdjęć", "Photo protection")}</h2>
 
-      <p className="field-title">Co klient może pobrać</p>
+      <p className="field-title">{t("Co klient może pobrać", "What your client can download")}</p>
       <div className="option-list">
         {OPTIONS.map((o) => (
           <label key={o.value} className={downloads === o.value ? "option active" : "option"}>
@@ -122,30 +125,29 @@ export default function ProtectionCard({
 
       <label className="check">
         <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
-        Znak wodny na zdjęciach w galerii klienta
+        {t("Znak wodny na zdjęciach w galerii klienta", "Watermark on photos in the client gallery")}
       </label>
       {enabled && (
         <>
-          <label htmlFor="wm-text">Tekst znaku wodnego</label>
+          <label htmlFor="wm-text">{t("Tekst znaku wodnego", "Watermark text")}</label>
           <input
             id="wm-text"
             value={text}
             maxLength={60}
             onChange={(e) => setText(e.target.value)}
-            placeholder="np. © Anna Nowak Fotografia"
+            placeholder={t("np. © Anna Nowak Fotografia", "e.g. © Anna Smith Photography")}
           />
         </>
       )}
       <p className="hint">
-        Znak wodny trafia na podgląd i wersje do internetu. Oryginały w pełnej rozdzielczości zostają czyste, dlatego
-        przy znaku wodnym zwykle wybiera się „Tylko do internetu” albo „Bez pobierania”.
+        {t("Znak wodny trafia na podgląd i wersje do internetu. Oryginały w pełnej rozdzielczości zostają czyste, dlatego przy znaku wodnym zwykle wybiera się „Tylko do internetu” albo „Bez pobierania”.", "The watermark goes on previews and web versions. Full-resolution originals stay clean, so with a watermark you usually pick “Web only” or “No downloads”.")}
       </p>
 
       {initialWm.enabled && wmMissing.length > 0 && !progress && (
         <p className="warn-inline">
-          Znak wodny nie jest jeszcze nałożony na {wmMissing.length} z {photoCount} zdjęć.{" "}
+          {t("Znak wodny nie jest jeszcze nałożony na", "The watermark is not yet applied to")} {wmMissing.length} {t("z", "of")} {photoCount} {t("zdjęć", "photos")}.{" "}
           <button type="button" className="as-link" onClick={finish} disabled={busy}>
-            Dokończ teraz
+            {t("Dokończ teraz", "Finish now")}
           </button>
         </p>
       )}
@@ -153,7 +155,7 @@ export default function ProtectionCard({
       {progress && (
         <div className="wm-progress" aria-live="polite">
           <p>
-            Nakładam znak wodny: {progress.done} z {progress.total}. Nie zamykaj tej strony.
+            {t("Nakładam znak wodny", "Applying watermark")}: {progress.done} {t("z", "of")} {progress.total}. {t("Nie zamykaj tej strony.", "Do not close this page.")}
           </p>
           <div className="progress">
             <div className="bar" style={{ width: `${(progress.done / Math.max(1, progress.total)) * 100}%` }} />
@@ -168,7 +170,7 @@ export default function ProtectionCard({
       {message && <p className="success">{message}</p>}
 
       <button type="button" className="btn" onClick={save} disabled={busy}>
-        {busy ? "Zapisuję…" : "Zapisz ochronę zdjęć"}
+        {busy ? t("Zapisuję…", "Saving…") : t("Zapisz ochronę zdjęć", "Save photo protection")}
       </button>
     </div>
   );

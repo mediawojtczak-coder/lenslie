@@ -3,11 +3,14 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import InvoiceFields from "@/components/InvoiceFields";
+import { useLang } from "@/components/LangProvider";
+import { tr, money, locale } from "@/lib/lang";
+import { planName } from "@/lib/plans";
 import PayButtons from "@/components/PayButtons";
 import type { Billing } from "@/lib/billing";
-import { PLANS, PERIODS, DEFAULT_PERIOD, fitPlan, formatBytes, perMonth, zl, hardLimitBytes, type Period, type PlanId } from "@/lib/plans";
+import { PLANS, PERIODS, DEFAULT_PERIOD, fitPlan, formatBytes, perMonthL, hardLimitBytes, type Period, type PlanId } from "@/lib/plans";
 
-function photosLabel(n: number) {
+function photosLabelPl(n: number) {
   if (n === 1) return "1 zdjęcie";
   const lastTwo = n % 100;
   const last = n % 10;
@@ -34,6 +37,10 @@ export default function PublishBar({
   balance: number;
 }) {
   const [invoice, setInvoice] = useState<Billing>(billing);
+  const lang = useLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
+  const zl = (n: number) => money(n, lang, true);
+  const photosLabel = (n: number) => (lang === "en" ? (n === 1 ? "1 photo" : `${n} photos`) : photosLabelPl(n));
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const fit = fitPlan(usedBytes);
@@ -63,7 +70,7 @@ export default function PublishBar({
         body: JSON.stringify({ action: "choose", plan: plan.id, period, invoice, pay }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Nie udało się opublikować galerii.");
+      if (!res.ok) throw new Error(data.error ?? t("Nie udało się opublikować galerii.", "Could not publish the gallery."));
       if (data.redirect) {
         window.location.href = data.redirect;
         return;
@@ -71,7 +78,7 @@ export default function PublishBar({
       dialogRef.current?.close();
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nie udało się opublikować galerii.");
+      setError(err instanceof Error ? err.message : t("Nie udało się opublikować galerii.", "Could not publish the gallery."));
     } finally {
       setBusy(false);
     }
@@ -80,18 +87,18 @@ export default function PublishBar({
   return (
     <section className="draft-bar">
       <div className="draft-text">
-        <p className="draft-title">Wersja robocza</p>
+        <p className="draft-title">{t("Wersja robocza", "Draft")}</p>
         <p className="draft-note">
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
             <path d="M12 11v5M12 8v.01" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
-          Twoja galeria jest w wersji roboczej. Opublikuj ją, aby klienci mogli ją zobaczyć.
+          {t("Twoja galeria jest w wersji roboczej. Opublikuj ją, aby klienci mogli ją zobaczyć.", "Your gallery is a draft. Publish it so your clients can see it.")}
         </p>
         {deleteOn && (
           <p className="draft-del">
-            Nieopublikowana galeria zostanie usunięta{" "}
-            {new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long" }).format(new Date(deleteOn))}.
+            {t("Nieopublikowana galeria zostanie usunięta", "This unpublished gallery will be deleted on")}{" "}
+            {new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long" }).format(new Date(deleteOn))}.
           </p>
         )}
       </div>
@@ -101,13 +108,13 @@ export default function PublishBar({
             <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" strokeWidth="1.5" />
             <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
           </svg>
-          Podgląd galerii
+          {t("Podgląd galerii", "Preview gallery")}
         </a>
-        <button type="button" className="btn btn-small btn-dark" onClick={open} disabled={photoCount === 0} title={photoCount === 0 ? "Najpierw prześlij zdjęcia" : undefined}>
-          Opublikuj
+        <button type="button" className="btn btn-small btn-dark" onClick={open} disabled={photoCount === 0} title={photoCount === 0 ? t("Najpierw prześlij zdjęcia", "Upload photos first") : undefined}>
+          {t("Opublikuj", "Publish")}
         </button>
-        <button type="button" className="btn btn-ghost btn-small" disabled title="Dostępne po opublikowaniu">
-          Udostępnij galerię
+        <button type="button" className="btn btn-ghost btn-small" disabled title={t("Dostępne po opublikowaniu", "Available after publishing")}>
+          {t("Udostępnij galerię", "Share gallery")}
         </button>
       </div>
 
@@ -120,25 +127,26 @@ export default function PublishBar({
         }}
       >
         <div className="modal-body">
-          <h2 id="publish-title">Publikujesz galerię</h2>
+          <h2 id="publish-title">{t("Publikujesz galerię", "Publish gallery")}</h2>
 
           <div className="pub-summary">
             <p className="pub-name">{title}</p>
             <div className="pub-meta">
               <span>{photosLabel(photoCount)}</span>
               <span>{formatBytes(usedBytes)}</span>
-              {plan && <span className="pub-tag">{plan.name} galeria</span>}
+              {plan && <span className="pub-tag">{lang === "en" ? `${planName(plan, lang)} gallery` : `${plan.name} galeria`}</span>}
             </div>
           </div>
 
           {!fit ? (
             <p className="error">
-              Galeria zajmuje {formatBytes(usedBytes)} i nie mieści się w największym pakiecie (
-              {PLANS[PLANS.length - 1].limitGb.toLocaleString("pl-PL")} GB). Usuń część zdjęć albo podziel sesję na dwie galerie.
+              {t("Galeria zajmuje", "The gallery takes up")} {formatBytes(usedBytes)}{" "}
+              {t("i nie mieści się w największym pakiecie", "and does not fit the largest plan")} ({PLANS[PLANS.length - 1].limitGb} GB).{" "}
+              {t("Usuń część zdjęć albo podziel sesję na dwie galerie.", "Remove some photos or split the session into two galleries.")}
             </p>
           ) : (
             <>
-              <p className="pub-label">Pakiet</p>
+              <p className="pub-label">{t("Pakiet", "Plan")}</p>
               <div className="pub-plans">
                 {PLANS.map((p) => {
                   const fits = usedBytes <= hardLimitBytes(p);
@@ -149,16 +157,16 @@ export default function PublishBar({
                       className={planId === p.id ? "pub-plan active" : "pub-plan"}
                       disabled={!fits}
                       onClick={() => setPlanId(p.id)}
-                      title={fits ? undefined : "Zdjęcia nie mieszczą się w tym pakiecie"}
+                      title={fits ? undefined : t("Zdjęcia nie mieszczą się w tym pakiecie", "Your photos don’t fit this plan")}
                     >
-                      <strong>{p.name}</strong>
-                      <small>do {p.limitGb.toLocaleString("pl-PL")} GB</small>
+                      <strong>{planName(p, lang)}</strong>
+                      <small>{t("do", "up to")} {p.limitGb.toLocaleString(locale(lang))} GB</small>
                     </button>
                   );
                 })}
               </div>
 
-              <p className="pub-label">Wybierz okres publikacji</p>
+              <p className="pub-label">{t("Wybierz okres publikacji", "Choose the publishing period")}</p>
               <div className="pub-periods">
                 {PERIODS.map((n) => (
                   <button
@@ -167,31 +175,31 @@ export default function PublishBar({
                     className={period === n ? "pub-period active" : "pub-period"}
                     onClick={() => setPeriod(n)}
                   >
-                    {n === DEFAULT_PERIOD && <span className="pub-badge">Polecane</span>}
+                    {n === DEFAULT_PERIOD && <span className="pub-badge">{t("Polecane", "Recommended")}</span>}
                     <b>{n}</b>
-                    <span>{n === 1 ? "miesiąc" : n < 5 ? "miesiące" : "miesięcy"}</span>
+                    <span>{lang === "en" ? (n === 1 ? "month" : "months") : n === 1 ? "miesiąc" : n < 5 ? "miesiące" : "miesięcy"}</span>
                     {plan && (
                       <>
-                        <em>{plan.prices[n]} zł</em>
-                        <small>{perMonth(plan.prices[n], n)}</small>
+                        <em>{money(plan.prices[n], lang)}</em>
+                        <small>{perMonthL(plan.prices[n], n, lang)}</small>
                       </>
                     )}
                   </button>
                 ))}
               </div>
 
-              <p className="pub-label">Podsumowanie kosztu</p>
+              <p className="pub-label">{t("Podsumowanie kosztu", "Cost summary")}</p>
               <div className="pub-line">
                 <span>
-                  {plan?.name} galeria × {period} mies.
+                  {plan && (lang === "en" ? `${planName(plan, lang)} gallery × ${period} mo.` : `${plan.name} galeria × ${period} mies.`)}
                 </span>
                 <span>{zl(price)}</span>
               </div>
               <div className="pub-total">
-                <span>Koszt publikacji</span>
+                <span>{t("Koszt publikacji", "Total")}</span>
                 <strong>{zl(price)}</strong>
               </div>
-              <p className="pub-permonth">{plan && `To ${perMonth(price, period)}`}</p>
+              <p className="pub-permonth">{plan && `${t("To", "That is")} ${perMonthL(price, period, lang)}`}</p>
               <InvoiceFields value={invoice} onChange={setInvoice} />
             </>
           )}
@@ -202,7 +210,7 @@ export default function PublishBar({
             </p>
           )}
 
-          <PayButtons price={price} balance={balance} busy={busy} disabled={!plan} label="i opublikuj" onPay={publish} />
+          <PayButtons price={price} balance={balance} busy={busy} disabled={!plan} label={t("i opublikuj", "and publish")} onPay={publish} />
         </div>
       </dialog>
     </section>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { E } from "@/lib/api-lang";
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
@@ -20,7 +21,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const body = (await req.json().catch(() => null)) as Body | null;
   const meta = await getMeta(id);
-  if (!body || !meta) return NextResponse.json({ error: "Nieprawidłowe dane." }, { status: 400 });
+  if (!body || !meta) return NextResponse.json({ error: await E("Nieprawidłowe dane.") }, { status: 400 });
   const prefix = galleryPrefix(id);
 
   // Linki do nałożenia znaku wodnego na już wgrane zdjęcia (robi to przeglądarka fotografa)

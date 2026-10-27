@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import InvoiceFields from "@/components/InvoiceFields";
+import { useLang } from "@/components/LangProvider";
+import { tr, money, locale } from "@/lib/lang";
+import { planName, planPhotos, periodText, periodShort, perMonthL } from "@/lib/plans";
 import PayButtons from "@/components/PayButtons";
 import type { Billing } from "@/lib/billing";
 import {
@@ -21,8 +24,6 @@ import {
 
 type Mode = "upgrade" | "extend" | "choose";
 
-const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric" });
-const zl = (n: number) => `${n.toLocaleString("pl-PL", { maximumFractionDigits: 2 })} zł`;
 
 // Pakiet galerii: zajęte miejsce, data wygaśnięcia, zmiana pakietu i przedłużenie
 export default function PlanBar({
@@ -43,6 +44,10 @@ export default function PlanBar({
   balance: number;
 }) {
   const [invoice, setInvoice] = useState<Billing>(billing);
+  const lang = useLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
+  const zl = (n: number) => money(n, lang);
+  const dateFmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", year: "numeric" });
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<Mode>("upgrade");
@@ -89,16 +94,16 @@ export default function PlanBar({
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Nie udało się zapisać zmiany.");
+      if (!res.ok) throw new Error(data.error ?? t("Nie udało się zapisać zmiany.", "Could not save the change."));
       if (data.redirect) {
         window.location.href = data.redirect;
         return;
       }
       dialogRef.current?.close();
-      setDone(data.wallet ? `Zapłacono z salda: ${zl(data.charged)}.` : data.test ? "Zapisano (tryb testowy, bez płatności)." : "Zapisano.");
+      setDone(data.wallet ? `${t("Zapłacono z salda", "Paid from balance")}: ${zl(data.charged)}.` : data.test ? t("Zapisano (tryb testowy, bez płatności).", "Saved (test mode, no payment).") : t("Zapisano.", "Saved."));
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nie udało się zapisać zmiany.");
+      setError(err instanceof Error ? err.message : t("Nie udało się zapisać zmiany.", "Could not save the change."));
     } finally {
       setBusy(false);
     }
@@ -120,24 +125,24 @@ export default function PlanBar({
         <>
           <div className="plan-info">
             <p className="plan-name">
-              Pakiet <strong>{plan.name}</strong>
-              {period && <span> · {periodLabel(period)}</span>}
+              {t("Pakiet", "Plan")} <strong>{planName(plan, lang)}</strong>
+              {period && <span> · {periodText(period, lang)}</span>}
             </p>
             <div className={share >= 1 ? "usage full" : share > 0.85 ? "usage warn" : "usage"}>
               <div className="usage-bar">
                 <span style={{ width: `${Math.max(2, share * 100)}%` }} />
               </div>
               <p>
-                {formatBytes(usedBytes)} z {plan.limitGb.toLocaleString("pl-PL")} GB
+                {formatBytes(usedBytes)} {t("z", "of")} {plan.limitGb.toLocaleString(locale(lang))} GB
               </p>
             </div>
             {expiresAt && (
               <p className={expired ? "plan-exp expired" : "plan-exp"}>
-                {expired ? "Dostęp wygasł " : "Dostęp dla klienta do "}
+                {expired ? t("Dostęp wygasł ", "Access expired on ") : t("Dostęp dla klienta do ", "Client access until ")}
                 {dateFmt.format(new Date(expiresAt))}
                 {expired && (
                   <>
-                    . Zdjęcia zostaną usunięte {dateFmt.format(new Date(new Date(expiresAt).getTime() + 30 * 24 * 3600 * 1000))}
+                    . {t("Zdjęcia zostaną usunięte", "Photos will be deleted on")} {dateFmt.format(new Date(new Date(expiresAt).getTime() + 30 * 24 * 3600 * 1000))}
                   </>
                 )}
               </p>
@@ -146,23 +151,23 @@ export default function PlanBar({
           <div className="plan-actions">
             {bigger.length > 0 && (
               <button type="button" className="btn btn-ghost btn-small" onClick={() => open("upgrade")}>
-                Zmień pakiet
+                {t("Zmień pakiet", "Change plan")}
               </button>
             )}
             <button type="button" className="btn btn-ghost btn-small" onClick={() => open("extend")}>
-              Przedłuż dostęp
+              {t("Przedłuż dostęp", "Extend access")}
             </button>
           </div>
         </>
       ) : (
         <>
           <div className="plan-info">
-            <p className="plan-name">Ta galeria nie ma jeszcze pakietu</p>
-            <p className="plan-exp">Wybierz pakiet, aby przesyłać zdjęcia i udostępnić galerię klientowi.</p>
+            <p className="plan-name">{t("Ta galeria nie ma jeszcze pakietu", "This gallery has no plan yet")}</p>
+            <p className="plan-exp">{t("Wybierz pakiet, aby przesyłać zdjęcia i udostępnić galerię klientowi.", "Choose a plan to upload photos and share the gallery.")}</p>
           </div>
           <div className="plan-actions">
             <button type="button" className="btn btn-small" onClick={() => open("choose")}>
-              Wybierz pakiet
+              {t("Wybierz pakiet", "Choose plan")}
             </button>
           </div>
         </>
@@ -179,7 +184,7 @@ export default function PlanBar({
       >
         <div className="modal-body">
           <h2 id="plan-title">
-            {mode === "upgrade" ? "Zmień pakiet" : mode === "extend" ? "Przedłuż dostęp" : "Wybierz pakiet"}
+            {mode === "upgrade" ? t("Zmień pakiet", "Change plan") : mode === "extend" ? t("Przedłuż dostęp", "Extend access") : t("Wybierz pakiet", "Choose plan")}
           </h2>
 
           {(mode === "upgrade" || mode === "choose") && (
@@ -187,13 +192,13 @@ export default function PlanBar({
               {(mode === "upgrade" ? bigger : PLANS).map((p) => (
                 <label key={p.id} className={target === p.id ? "pick active" : "pick"}>
                   <input type="radio" name="plan" checked={target === p.id} onChange={() => setTarget(p.id)} />
-                  <span className="pick-title">{p.name}</span>
+                  <span className="pick-title">{planName(p, lang)}</span>
                   <span className="pick-desc">
-                    do {p.limitGb.toLocaleString("pl-PL")} GB · {p.photos}
+                    {t("do", "up to")} {p.limitGb.toLocaleString(locale(lang))} GB · {planPhotos(p, lang)}
                   </span>
                   <span className="pick-price">
                     {mode === "upgrade" && plan && period
-                      ? `dopłata ${zl(upgradeCost(plan, p, period))}`
+                      ? `${t("dopłata", "extra")} ${zl(upgradeCost(plan, p, period))}`
                       : zl(p.prices[newPeriod])}
                   </span>
                 </label>
@@ -203,7 +208,7 @@ export default function PlanBar({
 
           {(mode === "extend" || mode === "choose") && (
             <>
-              <p className="share-sub">{mode === "extend" ? "Przedłuż o" : "Dostęp dla klienta"}</p>
+              <p className="share-sub">{mode === "extend" ? t("Przedłuż o", "Extend by") : t("Dostęp dla klienta", "Client access")}</p>
               <div className="period-switch">
                 {PERIODS.map((p) => (
                   <button
@@ -212,10 +217,10 @@ export default function PlanBar({
                     className={newPeriod === p ? "period active" : "period"}
                     onClick={() => setNewPeriod(p)}
                   >
-                    {p === 1 ? "1 mies." : `${p} mies.`}
+                    {periodShort(p, lang)}
                     {plan && mode === "extend" && (
                       <small className="period-sub">
-                        {plan.prices[p]} zł · {perMonth(plan.prices[p], p)}
+                        {zl(plan.prices[p])} · {perMonthL(plan.prices[p], p, lang)}
                       </small>
                     )}
                   </button>
@@ -226,13 +231,13 @@ export default function PlanBar({
 
           {mode === "upgrade" && (
             <p className="hint-inline">
-              Płacisz tylko różnicę w cenie. Data wygaśnięcia galerii się nie zmienia.
+              {t("Płacisz tylko różnicę w cenie. Data wygaśnięcia galerii się nie zmienia.", "You only pay the price difference. The expiry date stays the same.")}
             </p>
           )}
           {mode === "extend" && expiresAt && plan && (
             <p className="hint-inline">
-              Nowa data wygaśnięcia liczona od{" "}
-              {expired ? "dzisiaj" : dateFmt.format(new Date(expiresAt))}.
+              {t("Nowa data wygaśnięcia liczona od", "The new expiry date is counted from")}{" "}
+              {expired ? t("dzisiaj", "today") : dateFmt.format(new Date(expiresAt))}.
             </p>
           )}
 
@@ -253,7 +258,7 @@ export default function PlanBar({
             onPay={confirm}
           />
           <button type="button" className="as-link pay-cancel" onClick={() => dialogRef.current?.close()}>
-            Anuluj
+            {t("Anuluj", "Cancel")}
           </button>
         </div>
       </dialog>

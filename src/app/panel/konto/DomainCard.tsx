@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLang } from "@/components/LangProvider";
+import { tr, money, locale } from "@/lib/lang";
 
 type Rec = { host: string; paidUntil: string } | null;
-const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric" });
 
 async function call(body: unknown) {
   const res = await fetch("/api/domain", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const e = new Error(data.error ?? "Coś poszło nie tak.") as Error & { code?: string };
+    const e = new Error(data.error ?? "Error") as Error & { code?: string };
     e.code = data.code;
     throw e;
   }
@@ -32,6 +33,10 @@ export default function DomainCard({
   enabled: boolean;
 }) {
   const router = useRouter();
+  const lang = useLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
+  const z = (n: number) => money(n, lang);
+  const dateFmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", year: "numeric" });
   const [host, setHost] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -62,7 +67,7 @@ export default function DomainCard({
       setHost("");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Coś poszło nie tak.");
+      setError(err instanceof Error ? err.message : t("Coś poszło nie tak.", "Something went wrong."));
       setFunds((err as { code?: string }).code === "FUNDS");
     } finally {
       setBusy(false);
@@ -73,32 +78,33 @@ export default function DomainCard({
 
   return (
     <div className="settings-card" id="domena">
-      <h2>Własna domena</h2>
+      <h2>{t("Własna domena", "Custom domain")}</h2>
       <p>
-        Galerie pod Twoim adresem, np. <strong>galerie.twojastrona.pl/anna-i-marek</strong> zamiast lenslie.com. Koszt:{" "}
-        <strong>{price} zł za rok</strong>, płatne z salda.
+        {t("Galerie pod Twoim adresem, np.", "Galleries at your own address, e.g.")}{" "}
+        <strong>{t("galerie.twojastrona.pl/anna-i-marek", "photos.yourwebsite.com/anna-and-mark")}</strong> {t("zamiast lenslie.com. Koszt:", "instead of lenslie.com. Cost:")}{" "}
+        <strong>{z(price)} {t("za rok", "per year")}</strong>{t(", płatne z salda.", ", paid from your balance.")}
       </p>
 
       {rec && (
         <div className="domain-box">
           <p className="domain-host">{rec.host}</p>
           <p className="hint-inline">
-            {active ? `Opłacona do ${dateFmt.format(new Date(rec.paidUntil))}` : "Wygasła – przedłuż, aby galerie znów działały pod tym adresem."}
+            {active ? `${t("Opłacona do", "Paid until")} ${dateFmt.format(new Date(rec.paidUntil))}` : t("Wygasła – przedłuż, aby galerie znów działały pod tym adresem.", "Expired – renew it so galleries work at this address again.")}
           </p>
           {active && dns && (
             dns.configured ? (
-              <p className="success-box">Domena działa. Linki do galerii w „Udostępnij” mają już Twój adres.</p>
+              <p className="success-box">{t("Domena działa. Linki do galerii w „Udostępnij” mają już Twój adres.", "The domain works. Gallery links in “Share” already use your address.")}</p>
             ) : (
               <div className="dns-help">
                 <p>
-                  <strong>Ostatni krok:</strong> w panelu firmy, w której masz domenę (np. home.pl, OVH, nazwa.pl), dodaj rekord DNS:
+                  <strong>{t("Ostatni krok:", "Last step:")}</strong> {t("w panelu firmy, w której masz domenę (np. home.pl, OVH, nazwa.pl), dodaj rekord DNS:", "in your domain provider's panel (e.g. GoDaddy, Namecheap, OVH), add this DNS record:")}
                 </p>
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Typ</th>
-                      <th>Nazwa</th>
-                      <th>Wartość</th>
+                      <th>{t("Typ", "Type")}</th>
+                      <th>{t("Nazwa", "Name")}</th>
+                      <th>{t("Wartość", "Value")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -109,24 +115,24 @@ export default function DomainCard({
                     </tr>
                   </tbody>
                 </table>
-                <p className="hint-inline">Zmiana działa zwykle po kilku minutach, czasem do kilku godzin. Certyfikat HTTPS ustawiamy automatycznie.</p>
+                <p className="hint-inline">{t("Zmiana działa zwykle po kilku minutach, czasem do kilku godzin. Certyfikat HTTPS ustawiamy automatycznie.", "The change usually works within minutes, sometimes up to a few hours. We set up the HTTPS certificate automatically.")}</p>
                 <button type="button" className="btn btn-ghost btn-small" onClick={check} disabled={busy}>
-                  Sprawdź ponownie
+                  {t("Sprawdź ponownie", "Check again")}
                 </button>
               </div>
             )
           )}
           <div className="domain-actions">
             <button type="button" className="btn btn-ghost btn-small" disabled={busy} onClick={() => run({ action: "renew" })}>
-              Przedłuż o rok ({price} zł)
+              {t("Przedłuż o rok", "Renew for a year")} ({z(price)})
             </button>
             <button
               type="button"
               className="as-link danger"
               disabled={busy}
-              onClick={() => window.confirm(`Odłączyć ${rec.host}? Galerie będą znów dostępne tylko pod lenslie.com.`) && run({ action: "remove" })}
+              onClick={() => window.confirm(t(`Odłączyć ${rec.host}? Galerie będą znów dostępne tylko pod lenslie.com.`, `Disconnect ${rec.host}? Galleries will again be available only at lenslie.com.`)) && run({ action: "remove" })}
             >
-              Odłącz domenę
+              {t("Odłącz domenę", "Disconnect domain")}
             </button>
           </div>
         </div>
@@ -138,18 +144,18 @@ export default function DomainCard({
           run({ action: rec && active ? "change" : "buy", host });
         }}
       >
-        <label htmlFor="d-host">{rec && active ? "Zmień adres (bez dopłaty)" : "Twoja subdomena"}</label>
-        <input id="d-host" value={host} onChange={(e) => setHost(e.target.value)} placeholder="np. galerie.twojastrona.pl" />
+        <label htmlFor="d-host">{rec && active ? t("Zmień adres (bez dopłaty)", "Change address (no extra charge)") : t("Twoja subdomena", "Your subdomain")}</label>
+        <input id="d-host" value={host} onChange={(e) => setHost(e.target.value)} placeholder={t("np. galerie.twojastrona.pl", "e.g. photos.yourwebsite.com")} />
         {error && (
           <p className="error" role="alert">
-            {error} {funds && <a href="#saldo">Doładuj konto ›</a>}
+            {error} {funds && <a href="#saldo">{t("Doładuj konto ›", "Top up ›")}</a>}
           </p>
         )}
         <button type="submit" className="btn" disabled={busy || !host.trim()}>
-          {busy ? "Podłączam…" : rec && active ? "Zmień adres" : `Kup i podłącz za ${price} zł`}
+          {busy ? t("Podłączam…", "Connecting…") : rec && active ? t("Zmień adres", "Change address") : `${t("Kup i podłącz za", "Buy and connect for")} ${z(price)}`}
         </button>
         {!(rec && active) && (
-          <p className="test-note left">Stan salda: {(balance / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł</p>
+          <p className="test-note left">{t("Stan salda", "Balance")}: {money(balance / 100, lang, true)}</p>
         )}
       </form>
     </div>

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
+import { useTr } from "@/components/LangProvider";
 
 type Tab = "link" | "email" | "qr";
 
@@ -20,6 +21,7 @@ export default function ShareBar({
   password,
   photoCount,
   domain,
+  galleryLang = "pl",
 }: {
   id: string;
   title: string;
@@ -27,7 +29,10 @@ export default function ShareBar({
   password: string | null;
   photoCount: number;
   domain?: string | null;
+  galleryLang?: "pl" | "en";
 }) {
+  const t = useTr();
+  const ge = galleryLang === "en";
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [tab, setTab] = useState<Tab>("link");
@@ -47,8 +52,8 @@ export default function ShareBar({
   const currentPassword = password ?? "";
   const passwordChanged = pass.trim() !== currentPassword;
   const shareText = currentPassword
-    ? `Link do galerii: ${link}\nHasło: ${currentPassword}`
-    : `Link do galerii: ${link}`;
+    ? `${ge ? "Gallery link" : "Link do galerii"}: ${link}\n${ge ? "Password" : "Hasło"}: ${currentPassword}`
+    : `${ge ? "Gallery link" : "Link do galerii"}: ${link}`;
 
   useEffect(() => {
     if (!origin) return;
@@ -62,9 +67,13 @@ export default function ShareBar({
     setError("");
     setCopied("");
     setBody(
-      `Dzień dobry,\n\nzdjęcia z sesji „${title}” są już gotowe. Galerię znajdziesz pod adresem:\n${link}` +
-        (currentPassword ? `\n\nHasło do galerii: ${currentPassword}` : "") +
-        `\n\nMiłego oglądania!`,
+      ge
+        ? `Hello,\n\nyour photos from “${title}” are ready. You can find the gallery here:\n${link}` +
+            (currentPassword ? `\n\nGallery password: ${currentPassword}` : "") +
+            `\n\nEnjoy!`
+        : `Dzień dobry,\n\nzdjęcia z sesji „${title}” są już gotowe. Galerię znajdziesz pod adresem:\n${link}` +
+            (currentPassword ? `\n\nHasło do galerii: ${currentPassword}` : "") +
+            `\n\nMiłego oglądania!`,
     );
     dialogRef.current?.showModal();
   }
@@ -79,13 +88,13 @@ export default function ShareBar({
       setCopied(what);
       setTimeout(() => setCopied(""), 2000);
     } catch {
-      setError("Nie udało się skopiować. Zaznacz tekst i skopiuj ręcznie.");
+      setError(t("Nie udało się skopiować. Zaznacz tekst i skopiuj ręcznie.", "Could not copy. Select the text and copy it manually."));
     }
   }
 
   async function savePassword() {
     const value = pass.trim();
-    if (value && value.length < 4) return setError("Hasło musi mieć co najmniej 4 znaki.");
+    if (value && value.length < 4) return setError(t("Hasło musi mieć co najmniej 4 znaki.", "The password must have at least 4 characters."));
     setSaving(true);
     setError("");
     try {
@@ -94,25 +103,25 @@ export default function ShareBar({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ gallery: id, clientPassword: value, removePassword: !value }),
       });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Nie udało się zapisać hasła.");
+      if (!res.ok) throw new Error((await res.json()).error ?? t("Nie udało się zapisać hasła.", "Could not save the password."));
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nie udało się zapisać hasła.");
+      setError(err instanceof Error ? err.message : t("Nie udało się zapisać hasła.", "Could not save the password."));
     } finally {
       setSaving(false);
     }
   }
 
   const mailto = `mailto:${encodeURIComponent(email.trim())}?subject=${encodeURIComponent(
-    `Twoje zdjęcia: ${title}`,
+    `${ge ? "Your photos" : "Twoje zdjęcia"}: ${title}`,
   )}&body=${encodeURIComponent(body)}`;
 
   const status =
     photoCount === 0
-      ? { label: "Galeria jest pusta", note: "Prześlij zdjęcia, zanim udostępnisz ją klientowi." }
+      ? { label: t("Galeria jest pusta", "The gallery is empty"), note: t("Prześlij zdjęcia, zanim udostępnisz ją klientowi.", "Upload photos before sharing it with your client.") }
       : protectedByPassword
-        ? { label: "Galeria opublikowana", note: "Dostęp chroniony hasłem" }
-        : { label: "Galeria opublikowana", note: "Dostęp otwarty dla każdego z linkiem" };
+        ? { label: t("Galeria opublikowana", "Gallery published"), note: t("Dostęp chroniony hasłem", "Password protected") }
+        : { label: t("Galeria opublikowana", "Gallery published"), note: t("Dostęp otwarty dla każdego z linkiem", "Open to anyone with the link") };
 
   return (
     <section className="share-bar">
@@ -126,10 +135,10 @@ export default function ShareBar({
 
       <div className="share-actions">
         <a href={`/galeria/${id}`} target="_blank" rel="noreferrer" className="btn btn-ghost btn-small">
-          Podgląd galerii
+          {t("Podgląd galerii", "Preview gallery")}
         </a>
         <button type="button" className="btn btn-small" onClick={() => open()}>
-          Udostępnij galerię
+          {t("Udostępnij galerię", "Share gallery")}
         </button>
       </div>
 
@@ -142,14 +151,14 @@ export default function ShareBar({
         }}
       >
         <div className="modal-body">
-          <h2 id="share-title">Udostępnij klientowi</h2>
+          <h2 id="share-title">{t("Udostępnij klientowi", "Share with your client")}</h2>
 
           <div className="share-tabs" role="tablist">
             {(
               [
-                ["link", "Link i hasło", "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1m2 4.7a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"],
-                ["email", "E-mail", "M4 6h16v12H4zM4 7l8 6 8-6"],
-                ["qr", "Kod QR", "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2v2h-2zM18 14h2v2h-2z"],
+                ["link", t("Link i hasło", "Link & password"), "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1m2 4.7a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"],
+                ["email", t("E-mail", "Email"), "M4 6h16v12H4zM4 7l8 6 8-6"],
+                ["qr", t("Kod QR", "QR code"), "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2v2h-2zM18 14h2v2h-2z"],
               ] as [Tab, string, string][]
             ).map(([key, label, d]) => (
               <button
@@ -170,27 +179,27 @@ export default function ShareBar({
 
           {tab === "link" && (
             <div className="share-card">
-              <h3>Hasło dostępu do galerii</h3>
+              <h3>{t("Hasło dostępu do galerii", "Gallery password")}</h3>
               <div className="pass-row">
                 <input
-                  aria-label="Hasło dostępu"
+                  aria-label={t("Hasło dostępu", "Password")}
                   value={pass}
                   onChange={(e) => setPass(e.target.value)}
-                  placeholder={protectedByPassword ? "Hasło ustawione wcześniej – nadaj nowe" : "Brak hasła – galeria otwarta"}
+                  placeholder={protectedByPassword ? t("Hasło ustawione wcześniej – nadaj nowe", "Password already set – enter a new one") : t("Brak hasła – galeria otwarta", "No password – gallery is open")}
                   autoComplete="off"
                   spellCheck={false}
                 />
                 <button type="button" className="btn btn-ghost btn-small" onClick={() => setPass(generatePassword())}>
-                  Generuj
+                  {t("Generuj", "Generate")}
                 </button>
               </div>
               {passwordChanged && (
                 <button type="button" className="btn btn-small save-pass" onClick={savePassword} disabled={saving}>
-                  {saving ? "Zapisuję…" : pass.trim() ? "Zapisz nowe hasło" : "Usuń hasło"}
+                  {saving ? t("Zapisuję…", "Saving…") : pass.trim() ? t("Zapisz nowe hasło", "Save new password") : t("Usuń hasło", "Remove password")}
                 </button>
               )}
 
-              <p className="share-sub">Adres galerii</p>
+              <p className="share-sub">{t("Adres galerii", "Gallery address")}</p>
               <a href={link} target="_blank" rel="noreferrer" className="share-url">
                 {link}
               </a>
@@ -201,31 +210,31 @@ export default function ShareBar({
                 onClick={() => copy(shareText, "link")}
                 disabled={passwordChanged}
               >
-                {copied === "link" ? "Skopiowano" : currentPassword ? "Kopiuj link i hasło" : "Kopiuj link"}
+                {copied === "link" ? t("Skopiowano", "Copied") : currentPassword ? t("Kopiuj link i hasło", "Copy link & password") : t("Kopiuj link", "Copy link")}
               </button>
-              {passwordChanged && <p className="hint-inline">Najpierw zapisz zmienione hasło.</p>}
+              {passwordChanged && <p className="hint-inline">{t("Najpierw zapisz zmienione hasło.", "Save the changed password first.")}</p>}
             </div>
           )}
 
           {tab === "email" && (
             <div className="share-card">
-              <h3>Wiadomość dla klienta</h3>
-              <label htmlFor="share-email">Adres e-mail klienta</label>
+              <h3>{t("Wiadomość dla klienta", "Message for your client")}</h3>
+              <label htmlFor="share-email">{t("Adres e-mail klienta", "Client email")}</label>
               <input
                 id="share-email"
                 type="email"
-                placeholder="klient@example.com"
+                placeholder={t("klient@example.com", "client@example.com")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <label htmlFor="share-body">Treść</label>
+              <label htmlFor="share-body">{t("Treść", "Message")}</label>
               <textarea id="share-body" rows={8} value={body} onChange={(e) => setBody(e.target.value)} />
               <div className="email-actions">
                 <a className="btn" href={mailto}>
-                  Otwórz w programie pocztowym
+                  {t("Otwórz w programie pocztowym", "Open in email app")}
                 </a>
                 <button type="button" className="as-link" onClick={() => copy(body, "email")}>
-                  {copied === "email" ? "Skopiowano" : "Kopiuj treść"}
+                  {copied === "email" ? t("Skopiowano", "Copied") : t("Kopiuj treść", "Copy text")}
                 </button>
               </div>
             </div>
@@ -233,20 +242,20 @@ export default function ShareBar({
 
           {tab === "qr" && (
             <div className="share-card qr-card">
-              <h3>Kod QR do galerii</h3>
-              <p className="share-sub">Wydrukuj go na podziękowaniu albo pokaż klientowi na telefonie.</p>
+              <h3>{t("Kod QR do galerii", "Gallery QR code")}</h3>
+              <p className="share-sub">{t("Wydrukuj go na podziękowaniu albo pokaż klientowi na telefonie.", "Print it on a thank-you card or show it to your client on your phone.")}</p>
               {qr ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={qr} alt={`Kod QR prowadzący do ${link}`} className="qr-img" />
+                <img src={qr} alt={`${t("Kod QR prowadzący do", "QR code linking to")} ${link}`} className="qr-img" />
               ) : (
                 <div className="qr-img qr-empty" />
               )}
               {qr && (
                 <a className="btn" href={qr} download={`${id}-kod-qr.png`}>
-                  Pobierz kod QR
+                  {t("Pobierz kod QR", "Download QR code")}
                 </a>
               )}
-              {currentPassword && <p className="hint-inline">Pamiętaj, aby przekazać klientowi także hasło.</p>}
+              {currentPassword && <p className="hint-inline">{t("Pamiętaj, aby przekazać klientowi także hasło.", "Remember to give your client the password too.")}</p>}
             </div>
           )}
 
@@ -258,10 +267,10 @@ export default function ShareBar({
 
           <div className="modal-actions">
             <button type="button" className="as-link" onClick={close}>
-              Zamknij
+              {t("Zamknij", "Close")}
             </button>
             <button type="button" className="btn btn-ghost" onClick={close}>
-              Gotowe
+              {t("Gotowe", "Done")}
             </button>
           </div>
         </div>

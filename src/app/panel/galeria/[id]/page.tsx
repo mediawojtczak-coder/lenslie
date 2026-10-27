@@ -11,6 +11,8 @@ import PaymentNotice from "./PaymentNotice";
 import { getBilling } from "@/lib/billing";
 import { getWallet } from "@/lib/wallet";
 import { getDomainByUser, domainActive } from "@/lib/domains";
+import { getLang } from "@/lib/lang-server";
+import { tr, locale } from "@/lib/lang";
 import PlanBar from "./PlanBar";
 import PhotoManager from "./PhotoManager";
 import SettingsForm from "./SettingsForm";
@@ -21,7 +23,6 @@ import StatsTab from "./StatsTab";
 
 export const dynamic = "force-dynamic";
 
-const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric" });
 
 export default async function ZarzadzanieGalerii({
   params,
@@ -32,6 +33,9 @@ export default async function ZarzadzanieGalerii({
 }) {
   const { id } = await params;
   const { tab = "zdjecia", platnosc } = await searchParams;
+  const lang = await getLang();
+  const L = (pl: string, en: string) => tr(lang, pl, en);
+  const dateFmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", year: "numeric" });
   if (!isValidGalleryId(id)) notFound();
 
   const { supabase, user } = await getUser();
@@ -65,30 +69,30 @@ export default async function ZarzadzanieGalerii({
     .eq("gallery_id", id);
 
   const tabs = [
-    { key: "zdjecia", label: "Zdjęcia", count: photos.length },
-    { key: "wybory", label: "Wybory klientów", count: selectionCount ?? 0 },
-    { key: "statystyki", label: "Statystyki", count: null },
-    { key: "ustawienia", label: "Ustawienia", count: null },
+    { key: "zdjecia", label: L("Zdjęcia", "Photos"), count: photos.length },
+    { key: "wybory", label: L("Wybory klientów", "Client selections"), count: selectionCount ?? 0 },
+    { key: "statystyki", label: L("Statystyki", "Statistics"), count: null },
+    { key: "ustawienia", label: L("Ustawienia", "Settings"), count: null },
   ];
 
   return (
     <div className="app-body">
       <aside className="app-side g-side">
-        <Link href="/panel" className="link-quiet back-link">← Wszystkie galerie</Link>
+        <Link href="/panel" className="link-quiet back-link">← {L("Wszystkie galerie", "All galleries")}</Link>
         <div className="g-side-head">
-          <p className="g-side-kicker">Galeria</p>
+          <p className="g-side-kicker">{L("Galeria", "Gallery")}</p>
           <h1 className="g-side-title">{gallery.title}</h1>
-          <p className="g-side-meta">Utworzona {dateFmt.format(new Date(gallery.created_at))}</p>
+          <p className="g-side-meta">{L("Utworzona", "Created")} {dateFmt.format(new Date(gallery.created_at))}</p>
         </div>
         <div className="g-side-cover">
           {cover ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={cover.webUrl} alt="" />
           ) : (
-            <span>Okładką zostanie pierwsze zdjęcie. Zmienisz ją gwiazdką przy zdjęciu.</span>
+            <span>{L("Okładką zostanie pierwsze zdjęcie. Zmienisz ją gwiazdką przy zdjęciu.", "The first photo will be the cover. Change it with the star on any photo.")}</span>
           )}
         </div>
-        <nav aria-label="Sekcje galerii">
+        <nav aria-label={L("Sekcje galerii", "Gallery sections")}>
           {tabs.map((t) => (
             <Link
               key={t.key}
@@ -115,6 +119,7 @@ export default async function ZarzadzanieGalerii({
               password={meta?.password ?? null}
               photoCount={photos.length}
               domain={domain}
+              galleryLang={meta?.lang ?? "pl"}
             />
             <PlanBar
               id={id}

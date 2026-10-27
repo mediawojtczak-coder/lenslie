@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { E } from "@/lib/api-lang";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { r2, BUCKET, isValidGalleryId, galleryPrefix } from "@/lib/r2";
 import { listKeys } from "@/lib/photos";
@@ -10,11 +11,11 @@ export const runtime = "nodejs";
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase, user } = await getUser();
-  if (!user) return NextResponse.json({ error: "Zaloguj się ponownie." }, { status: 401 });
-  if (!isValidGalleryId(id)) return NextResponse.json({ error: "Nieprawidłowa galeria." }, { status: 400 });
+  if (!user) return NextResponse.json({ error: await E("Zaloguj się ponownie.") }, { status: 401 });
+  if (!isValidGalleryId(id)) return NextResponse.json({ error: await E("Nieprawidłowa galeria.") }, { status: 400 });
 
   const { data: own } = await supabase.from("galleries").select("id").eq("id", id).maybeSingle();
-  if (!own) return NextResponse.json({ error: "To nie jest Twoja galeria." }, { status: 403 });
+  if (!own) return NextResponse.json({ error: await E("To nie jest Twoja galeria.") }, { status: 403 });
 
   const keys = await listKeys(galleryPrefix(id));
   // Usuwamy po 10 plików naraz

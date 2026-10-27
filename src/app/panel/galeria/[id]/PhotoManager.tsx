@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { uploadPhotos, type UploadJob } from "@/lib/upload-client";
 import UploadPanel, { type QueueItem } from "./UploadPanel";
 import Lightbox from "@/components/Lightbox";
+import { useLang } from "@/components/LangProvider";
+import { tr } from "@/lib/lang";
 
 type Item = { name: string; fileName: string; url: string; size: number; uploadedAt: string; section: string | null };
 type Section = { id: string; name: string };
@@ -32,6 +34,8 @@ export default function PhotoManager({
   sections: Section[];
 }) {
   const router = useRouter();
+  const lang = useLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
   const fileRef = useRef<HTMLInputElement>(null);
   const [layout, setLayout] = useState(initialLayout);
   const [sort, setSort] = useState<Sort>("wlasna");
@@ -98,7 +102,7 @@ export default function PhotoManager({
       body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error ?? "Coś poszło nie tak. Spróbuj ponownie.");
+    if (!res.ok) throw new Error(data.error ?? t("Coś poszło nie tak. Spróbuj ponownie.", "Something went wrong. Please try again."));
     return data;
   }
 
@@ -109,7 +113,7 @@ export default function PhotoManager({
       await fn();
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Coś poszło nie tak. Spróbuj ponownie.");
+      setError(err instanceof Error ? err.message : t("Coś poszło nie tak. Spróbuj ponownie.", "Something went wrong. Please try again."));
       router.refresh();
     } finally {
       setBusy(false);
@@ -129,7 +133,7 @@ export default function PhotoManager({
     const files = Array.from(list ?? []).filter((f) => /^image\/(jpeg|png|webp)$/.test(f.type));
     if (fileRef.current) fileRef.current.value = "";
     if (files.length === 0) {
-      setError("Wybierz zdjęcia w formacie JPG, PNG lub WebP.");
+      setError(t("Wybierz zdjęcia w formacie JPG, PNG lub WebP.", "Choose photos in JPG, PNG or WebP format."));
       return;
     }
     if (jobRef.current) return;
@@ -151,7 +155,7 @@ export default function PhotoManager({
     try {
       await job.done;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nie udało się przesłać zdjęć.");
+      setError(err instanceof Error ? err.message : t("Nie udało się przesłać zdjęć.", "Could not upload the photos."));
       const code = (err as { code?: string }).code;
       if (code === "LIMIT" || code === "NO_PLAN" || code === "EXPIRED") {
         window.dispatchEvent(new Event("lenslie:plan"));
@@ -190,8 +194,8 @@ export default function PhotoManager({
   }
 
   function removeNames(names: string[]) {
-    const label = names.length === 1 ? "to zdjęcie" : `${names.length} zdjęć`;
-    if (!window.confirm(`Usunąć ${label}? Tej operacji nie można cofnąć.`)) return;
+    const label = names.length === 1 ? t("to zdjęcie", "this photo") : `${names.length} ${t("zdjęć", "photos")}`;
+    if (!window.confirm(`${t("Usunąć", "Delete")} ${label}? ${t("Tej operacji nie można cofnąć.", "This cannot be undone.")}`)) return;
     setItems((list) => list.filter((p) => !names.includes(p.name)));
     setSelected(new Set());
     run(() => api(`/api/galleries/${id}/photos`, { names }, "DELETE"));
@@ -253,7 +257,7 @@ export default function PhotoManager({
 
   // Sekcje
   function addSection() {
-    const name = window.prompt("Nazwa nowej sekcji, np. Przygotowania, Ceremonia, Wesele");
+    const name = window.prompt(t("Nazwa nowej sekcji, np. Przygotowania, Ceremonia, Wesele", "New section name, e.g. Getting ready, Ceremony, Reception"));
     if (!name?.trim()) return;
     run(async () => {
       const data = await api(`/api/galleries/${id}/organize`, { action: "add-section", name });
@@ -262,13 +266,13 @@ export default function PhotoManager({
   }
 
   function renameSection(s: Section) {
-    const name = window.prompt("Nowa nazwa sekcji", s.name);
+    const name = window.prompt(t("Nowa nazwa sekcji", "New section name"), s.name);
     if (!name?.trim() || name.trim() === s.name) return;
     run(() => api(`/api/galleries/${id}/organize`, { action: "rename-section", section: s.id, name }));
   }
 
   function deleteSection(s: Section) {
-    if (!window.confirm(`Usunąć sekcję „${s.name}”? Zdjęcia zostaną w galerii, tylko bez sekcji.`)) return;
+    if (!window.confirm(t(`Usunąć sekcję „${s.name}”? Zdjęcia zostaną w galerii, tylko bez sekcji.`, `Delete section “${s.name}”? The photos stay in the gallery, just without a section.`))) return;
     setFilter("");
     run(() => api(`/api/galleries/${id}/organize`, { action: "delete-section", section: s.id }));
   }
@@ -299,27 +303,27 @@ export default function PhotoManager({
         <input
           className="tool-search"
           type="search"
-          placeholder="Szukaj po nazwie pliku"
+          placeholder={t("Szukaj po nazwie pliku", "Search by file name")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          aria-label="Szukaj zdjęć"
+          aria-label={t("Szukaj zdjęć", "Search photos")}
         />
         <div className="tool-right">
           <label className="tool-select">
-            <span className="sr-only">Układ zdjęć</span>
+            <span className="sr-only">{t("Układ zdjęć", "Photo layout")}</span>
             <select value={layout} onChange={(e) => changeLayout(e.target.value as "mozaika" | "siatka")}>
-              <option value="mozaika">Układ: mozaika</option>
-              <option value="siatka">Układ: siatka</option>
+              <option value="mozaika">{t("Układ: mozaika", "Layout: mosaic")}</option>
+              <option value="siatka">{t("Układ: siatka", "Layout: grid")}</option>
             </select>
           </label>
           <label className="tool-select">
             <span className="sr-only">Sortowanie</span>
             <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
-              <option value="wlasna">Własna kolejność</option>
-              <option value="nazwa-asc">Nazwa (A–Z)</option>
-              <option value="nazwa-desc">Nazwa (Z–A)</option>
-              <option value="nowe">Najnowsze</option>
-              <option value="stare">Najstarsze</option>
+              <option value="wlasna">{t("Własna kolejność", "Custom order")}</option>
+              <option value="nazwa-asc">{t("Nazwa (A–Z)", "Name (A–Z)")}</option>
+              <option value="nazwa-desc">{t("Nazwa (Z–A)", "Name (Z–A)")}</option>
+              <option value="nowe">{t("Najnowsze", "Newest")}</option>
+              <option value="stare">{t("Najstarsze", "Oldest")}</option>
             </select>
           </label>
           <button
@@ -328,7 +332,7 @@ export default function PhotoManager({
             onClick={() => fileRef.current?.click()}
             disabled={Boolean(uploading)}
           >
-            {uploading ? `Przesyłam ${uploading.done} z ${uploading.total}` : "Prześlij zdjęcia"}
+            {uploading ? `${t("Przesyłam", "Uploading")} ${uploading.done} ${t("z", "of")} ${uploading.total}` : t("Prześlij zdjęcia", "Upload photos")}
           </button>
           <input
             ref={fileRef}
@@ -342,9 +346,9 @@ export default function PhotoManager({
       </div>
 
       <div className="sections-bar">
-        <div className="chips" role="tablist" aria-label="Sekcje">
+        <div className="chips" role="tablist" aria-label={t("Sekcje", "Sections")}>
           <button type="button" className={filter === "" ? "chip active" : "chip"} onClick={() => setFilter("")}>
-            Wszystkie <span>{counts[""]}</span>
+            {t("Wszystkie", "All")} <span>{counts[""]}</span>
           </button>
           {sections.map((s) => (
             <button
@@ -358,43 +362,43 @@ export default function PhotoManager({
           ))}
           {sections.length > 0 && (
             <button type="button" className={filter === "-" ? "chip active" : "chip"} onClick={() => setFilter("-")}>
-              Bez sekcji <span>{counts["-"]}</span>
+              {t("Bez sekcji", "No section")} <span>{counts["-"]}</span>
             </button>
           )}
           <button type="button" className="chip chip-add" onClick={addSection} disabled={busy}>
-            + Sekcja
+            {t("+ Sekcja", "+ Section")}
           </button>
         </div>
         {activeSection && (
           <div className="section-tools">
             <button type="button" className="as-link" onClick={() => moveSection(activeSection, -1)} disabled={busy}>
-              ← Wcześniej
+              ← {t("Wcześniej", "Earlier")}
             </button>
             <button type="button" className="as-link" onClick={() => moveSection(activeSection, 1)} disabled={busy}>
-              Później →
+              {t("Później", "Later")} →
             </button>
             <button type="button" className="as-link" onClick={() => renameSection(activeSection)} disabled={busy}>
-              Zmień nazwę
+              {t("Zmień nazwę", "Rename")}
             </button>
             <button type="button" className="as-link danger" onClick={() => deleteSection(activeSection)} disabled={busy}>
-              Usuń sekcję
+              {t("Usuń sekcję", "Delete section")}
             </button>
           </div>
         )}
       </div>
 
       {selected.size > 0 && (
-        <div className="select-bar" role="region" aria-label="Zaznaczone zdjęcia">
+        <div className="select-bar" role="region" aria-label={t("Zaznaczone zdjęcia", "Selected photos")}>
           <p>
-            Zaznaczono <strong>{selected.size}</strong>
+            {t("Zaznaczono", "Selected")} <strong>{selected.size}</strong>
           </p>
           <div className="select-actions">
             <button type="button" className="as-link" onClick={() => setSelected(new Set(visible.map((p) => p.name)))}>
-              Zaznacz wszystkie ({visible.length})
+              {t("Zaznacz wszystkie", "Select all")} ({visible.length})
             </button>
             {sections.length > 0 && (
               <label className="tool-select">
-                <span className="sr-only">Przenieś do sekcji</span>
+                <span className="sr-only">{t("Przenieś do sekcji", "Move to section")}</span>
                 <select
                   value=""
                   onChange={(e) => {
@@ -403,24 +407,24 @@ export default function PhotoManager({
                   }}
                   disabled={busy}
                 >
-                  <option value="">Przenieś do sekcji…</option>
+                  <option value="">{t("Przenieś do sekcji…", "Move to section…")}</option>
                   {sections.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
                   ))}
-                  <option value="-">Bez sekcji</option>
+                  <option value="-">{t("Bez sekcji", "No section")}</option>
                 </select>
               </label>
             )}
             <button type="button" className="btn btn-ghost btn-small" onClick={moveToStart} disabled={busy}>
-              Na początek
+              {t("Na początek", "Move to start")}
             </button>
             <button type="button" className="btn btn-small btn-danger" onClick={() => removeNames([...selected])} disabled={busy}>
-              Usuń
+              {t("Usuń", "Delete")}
             </button>
             <button type="button" className="as-link" onClick={() => setSelected(new Set())}>
-              Anuluj
+              {t("Anuluj", "Cancel")}
             </button>
           </div>
         </div>
@@ -431,7 +435,7 @@ export default function PhotoManager({
           items={queue}
           onCancel={(i) => jobRef.current?.cancel(i)}
           onCancelAll={() => {
-            if (window.confirm("Przerwać przesyłanie? Zdjęcia już przesłane zostaną w galerii.")) jobRef.current?.cancel();
+            if (window.confirm(t("Przerwać przesyłanie? Zdjęcia już przesłane zostaną w galerii.", "Stop uploading? Photos already uploaded stay in the gallery."))) jobRef.current?.cancel();
           }}
           onClose={() => setQueue(null)}
         />
@@ -442,13 +446,13 @@ export default function PhotoManager({
         </p>
       )}
       {canDrag && items.length > 1 && selected.size === 0 && (
-        <p className="hint-inline">Przeciągnij zdjęcie, aby zmienić kolejność. Gwiazdka ustawia okładkę galerii.</p>
+        <p className="hint-inline">{t("Przeciągnij zdjęcie, aby zmienić kolejność. Gwiazdka ustawia okładkę galerii.", "Drag a photo to change the order. The star sets the gallery cover.")}</p>
       )}
 
       {items.length === 0 ? (
         <button type="button" className="dropzone" onClick={() => fileRef.current?.click()} disabled={Boolean(uploading)}>
-          <span className="dropzone-title">Przeciągnij tutaj zdjęcia z sesji</span>
-          <span className="dropzone-note">albo kliknij, aby wybrać pliki (JPG, PNG, WebP)</span>
+          <span className="dropzone-title">{t("Przeciągnij tutaj zdjęcia z sesji", "Drag your session photos here")}</span>
+          <span className="dropzone-note">{t("albo kliknij, aby wybrać pliki (JPG, PNG, WebP)", "or click to choose files (JPG, PNG, WebP)")}</span>
         </button>
       ) : (
         <ul className={selected.size > 0 ? "photo-grid selecting" : "photo-grid"}>
@@ -487,22 +491,22 @@ export default function PhotoManager({
                   type="button"
                   className="p-img"
                   onClick={(e) => (selected.size > 0 ? toggle(p.name, e) : setViewer(i))}
-                  aria-label={selected.size > 0 ? `Zaznacz ${p.fileName}` : `Powiększ ${p.fileName}`}
+                  aria-label={`${selected.size > 0 ? t("Zaznacz", "Select") : t("Powiększ", "Enlarge")} ${p.fileName}`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={p.url} alt={p.fileName} loading="lazy" draggable={false} />
                 </button>
-                <label className="p-check" title="Zaznacz">
+                <label className="p-check" title={t("Zaznacz", "Select")}>
                   <input
                     type="checkbox"
                     checked={isSel}
                     onChange={() => undefined}
                     onClick={(e) => toggle(p.name, e)}
-                    aria-label={`Zaznacz ${p.fileName}`}
+                    aria-label={`${t("Zaznacz", "Select")} ${p.fileName}`}
                   />
                   <span aria-hidden="true" />
                 </label>
-                {cover === p.name && <span className="p-cover-badge">Okładka</span>}
+                {cover === p.name && <span className="p-cover-badge">{t("Okładka", "Cover")}</span>}
                 <div className="p-info">
                   <div>
                     <p className="p-name">{p.fileName}</p>
@@ -520,8 +524,8 @@ export default function PhotoManager({
                       onClick={() => cover !== p.name && chooseCover(p)}
                       disabled={busy}
                       aria-pressed={cover === p.name}
-                      aria-label={cover === p.name ? `${p.fileName} jest okładką` : `Ustaw ${p.fileName} jako okładkę`}
-                      title={cover === p.name ? "To zdjęcie jest okładką" : "Ustaw jako okładkę"}
+                      aria-label={cover === p.name ? `${p.fileName}: ${t("okładka", "cover")}` : `${t("Ustaw jako okładkę", "Set as cover")}: ${p.fileName}`}
+                      title={cover === p.name ? t("To zdjęcie jest okładką", "This photo is the cover") : t("Ustaw jako okładkę", "Set as cover")}
                     >
                       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                         <path
@@ -538,8 +542,8 @@ export default function PhotoManager({
                       className="p-del"
                       onClick={() => removeNames([p.name])}
                       disabled={busy}
-                      aria-label={`Usuń ${p.fileName}`}
-                      title="Usuń zdjęcie"
+                      aria-label={`${t("Usuń", "Delete")} ${p.fileName}`}
+                      title={t("Usuń zdjęcie", "Delete photo")}
                     >
                       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                         <path
@@ -558,7 +562,7 @@ export default function PhotoManager({
           })}
         </ul>
       )}
-      {items.length > 0 && visible.length === 0 && <p className="notice-left">Brak zdjęć w tym widoku.</p>}
+      {items.length > 0 && visible.length === 0 && <p className="notice-left">{t("Brak zdjęć w tym widoku.", "No photos in this view.")}</p>}
 
       {viewer !== null && visible[viewer] && (
         <Lightbox
@@ -566,6 +570,7 @@ export default function PhotoManager({
           index={viewer}
           onIndex={setViewer}
           onClose={() => setViewer(null)}
+          lang={lang}
         />
       )}
     </section>

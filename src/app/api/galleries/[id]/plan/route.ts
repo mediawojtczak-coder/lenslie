@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { E } from "@/lib/api-lang";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta } from "@/lib/galleries";
 import { getUser } from "@/lib/supabase/server";
@@ -14,29 +15,29 @@ export const runtime = "nodejs";
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase, user } = await getUser();
-  if (!user) return NextResponse.json({ error: "Zaloguj się ponownie." }, { status: 401 });
-  if (!isValidGalleryId(id)) return NextResponse.json({ error: "Nieprawidłowa galeria." }, { status: 400 });
+  if (!user) return NextResponse.json({ error: await E("Zaloguj się ponownie.") }, { status: 401 });
+  if (!isValidGalleryId(id)) return NextResponse.json({ error: await E("Nieprawidłowa galeria.") }, { status: 400 });
 
   const { data: own } = await supabase.from("galleries").select("id").eq("id", id).maybeSingle();
-  if (!own) return NextResponse.json({ error: "To nie jest Twoja galeria." }, { status: 403 });
+  if (!own) return NextResponse.json({ error: await E("To nie jest Twoja galeria.") }, { status: 403 });
 
   const body = ((await req.json().catch(() => null)) ?? {}) as { action?: string; plan?: string; period?: number; invoice?: unknown; pay?: string };
   const meta = await getMeta(id);
-  if (!meta) return NextResponse.json({ error: "Nie znaleziono galerii." }, { status: 404 });
+  if (!meta) return NextResponse.json({ error: await E("Nie znaleziono galerii.") }, { status: 404 });
 
   const checked = await checkAction(id, meta, body);
-  if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 });
+  if (!checked.ok) return NextResponse.json({ error: await E(checked.error) }, { status: 400 });
 
   // Dane do faktury: sprawdzamy i zapamiętujemy na kolejne zakupy
   const inv = cleanBilling(body.invoice);
-  if (!inv.ok) return NextResponse.json({ error: inv.error }, { status: 400 });
+  if (!inv.ok) return NextResponse.json({ error: await E(inv.error) }, { status: 400 });
   if (body.invoice) await saveBilling(user.id, inv.billing).catch(() => undefined);
 
   // Płatność z salda konta
   if (body.pay === "wallet" && checked.amount > 0) {
     const ref = newSessionId();
     const ok = await spend(user.id, Math.round(checked.amount * 100), `${checked.label} – ${meta.title}`, ref);
-    if (!ok) return NextResponse.json({ error: "Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem." }, { status: 402 });
+    if (!ok) return NextResponse.json({ error: await E("Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem.") }, { status: 402 });
     await applyAction(id, checked.action);
     const left = (await getWallet(user.id)).balance;
     const kwota = zlFromGr(Math.round(checked.amount * 100));
@@ -72,6 +73,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const redirect = await registerTransaction(order, new URL(req.url).origin);
     return NextResponse.json({ ok: true, redirect });
   } catch (err) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Błąd płatności." }, { status: 502 });
+    return NextResponse.json({ error: await E(err instanceof Error ? err.message : "Błąd płatności.") }, { status: 502 });
   }
 }

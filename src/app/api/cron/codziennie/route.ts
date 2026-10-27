@@ -4,7 +4,8 @@ import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
 import { listKeys } from "@/lib/photos";
 import { getMeta, saveMeta, DRAFT_REMIND_DAYS, DRAFT_DELETE_DAYS, draftDeleteDate, type GalleryMeta } from "@/lib/galleries";
 import { adminClient } from "@/lib/supabase/admin";
-import { getOwnerEmail } from "@/lib/profiles";
+import { getOwnerContact } from "@/lib/profiles";
+import { getUserLang } from "@/lib/lang-server";
 import { sendEmail, emailLayout, siteUrl, notifyAdmins } from "@/lib/email";
 import { getReminders, lastReminderMail, markReminderMail } from "@/lib/reminders";
 import { listObjects } from "@/lib/photos";
@@ -18,7 +19,9 @@ const REMIND_BEFORE = 3; // dni przed wygaśnięciem
 const DELETE_AFTER = 30; // dni po wygaśnięciu
 const WARN_BEFORE_DELETE = 7; // dni przed usunięciem
 
-const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Warsaw" });
+const fmtPl = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Warsaw" });
+const fmtEn = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Warsaw" });
+const dateIn = (lang: "pl" | "en") => (lang === "en" ? fmtEn : fmtPl);
 
 async function galleryIds() {
   const ids: string[] = [];
@@ -38,15 +41,25 @@ async function galleryIds() {
 
 // Usuwa zdjęcia i wpis galerii, potem informuje fotografa
 async function removeGallery(id: string, meta: GalleryMeta, db: ReturnType<typeof adminClient>, reason: "draft" | "expired") {
-  const to = await getOwnerEmail(id);
+  const owner = await getOwnerContact(id);
   const keys = await listKeys(galleryPrefix(id));
   for (let i = 0; i < keys.length; i += 10) {
     await Promise.all(keys.slice(i, i + 10).map((Key) => r2.send(new DeleteObjectCommand({ Bucket: BUCKET, Key }))));
   }
   if (db) await db.from("galleries").delete().eq("id", id);
-  if (to) {
+  if (owner?.lang === "en") {
     await sendEmail({
-      to,
+      to: owner.email,
+      subject: `The gallery “${meta.title}” has been deleted`,
+      html: emailLayout("Gallery deleted", [
+        reason === "draft"
+          ? `The gallery “${meta.title}” was not published within ${DRAFT_DELETE_DAYS} days, so we deleted it together with its photos.`
+          : `In line with our storage rules, we deleted the gallery “${meta.title}” and its photos ${DELETE_AFTER} days after access expired.`,
+      ], undefined, "en"),
+    });
+  } else if (owner) {
+    await sendEmail({
+      to: owner.email,
       subject: `Galeria „${meta.title}” została usunięta`,
       html: emailLayout("Galeria usunięta", [
         reason === "draft"
@@ -83,13 +96,22 @@ export async function GET(req: Request) {
       } else if (age >= DRAFT_REMIND_DAYS && !meta.notices?.draft) {
         log.push(`${id}: przypomnienie o publikacji`);
         if (!dry) {
-          const to = await getOwnerEmail(id);
+          const owner = await getOwnerContact(id);
+          const dateFmt = dateIn(owner?.lang ?? "pl");
           const sent =
-            to &&
+            owner &&
             (await sendEmail({
-              to,
-              subject: `Twoja galeria „${meta.title}” czeka na publikację`,
-              html: emailLayout(
+              to: owner.email,
+              subject: owner.lang === "en" ? `Your gallery “${meta.title}” is waiting to be published` : `Twoja galeria „${meta.title}” czeka na publikację`,
+              html: owner.lang === "en" ? emailLayout(
+                "Your gallery is waiting to be published",
+                [
+                  `The gallery “${meta.title}” is still a draft, so your client cannot see it.`,
+                  `Publish it to share the photos. We delete unpublished galleries ${DRAFT_DELETE_DAYS} days after creation – this one will be deleted on ${dateFmt.format(draftDeleteDate(meta))}.`,
+                ],
+                { label: "Publish gallery", url: `${siteUrl()}/panel/galeria/${id}` },
+                "en",
+              ) : emailLayout(
                 "Galeria czeka na publikację",
                 [
                   `Galeria „${meta.title}” jest wciąż wersją roboczą, więc klient jej nie widzi.`,
@@ -117,13 +139,22 @@ export async function GET(req: Request) {
     if (daysLeft > 0 && daysLeft <= REMIND_BEFORE && !notices.expiring) {
       log.push(`${id}: przypomnienie o wygaśnięciu`);
       if (!dry) {
-        const to = await getOwnerEmail(id);
+        const owner = await getOwnerContact(id);
+        const dateFmt = dateIn(owner?.lang ?? "pl");
         const sent =
-          to &&
+          owner &&
           (await sendEmail({
-            to,
-            subject: `Galeria „${meta.title}” wygasa ${dateFmt.format(new Date(expires))}`,
-            html: emailLayout(
+            to: owner.email,
+            subject: owner.lang === "en" ? `The gallery “${meta.title}” expires on ${dateFmt.format(new Date(expires))}` : `Galeria „${meta.title}” wygasa ${dateFmt.format(new Date(expires))}`,
+            html: owner.lang === "en" ? emailLayout(
+              "Your gallery expires soon",
+              [
+                `Your client's access to the gallery “${meta.title}” ends on ${dateFmt.format(new Date(expires))}.`,
+                `If your client needs more time, extend access in your dashboard. After expiry we keep the photos for another ${DELETE_AFTER} days and then delete them permanently.`,
+              ],
+              { label: "Extend access", url: panelUrl },
+              "en",
+            ) : emailLayout(
               "Galeria wkrótce wygaśnie",
               [
                 `Dostęp klienta do galerii „${meta.title}” kończy się ${dateFmt.format(new Date(expires))}.`,
@@ -144,13 +175,22 @@ export async function GET(req: Request) {
       if (daysSince >= DELETE_AFTER - WARN_BEFORE_DELETE && daysSince < DELETE_AFTER && !notices.deleting) {
         log.push(`${id}: ostrzeżenie przed usunięciem`);
         if (!dry) {
-          const to = await getOwnerEmail(id);
+          const owner = await getOwnerContact(id);
+          const dateFmt = dateIn(owner?.lang ?? "pl");
           const sent =
-            to &&
+            owner &&
             (await sendEmail({
-              to,
-              subject: `Zdjęcia z galerii „${meta.title}” zostaną usunięte ${dateFmt.format(deleteOn)}`,
-              html: emailLayout(
+              to: owner.email,
+              subject: owner.lang === "en" ? `Photos from “${meta.title}” will be deleted on ${dateFmt.format(deleteOn)}` : `Zdjęcia z galerii „${meta.title}” zostaną usunięte ${dateFmt.format(deleteOn)}`,
+              html: owner.lang === "en" ? emailLayout(
+                "Photos will be deleted soon",
+                [
+                  `The gallery “${meta.title}” expired on ${dateFmt.format(new Date(expires))}. On ${dateFmt.format(deleteOn)} we will delete it together with all photos.`,
+                  "If you want to keep it, extend access in your dashboard.",
+                ],
+                { label: "Extend access", url: panelUrl },
+                "en",
+              ) : emailLayout(
                 "Zdjęcia zostaną wkrótce usunięte",
                 [
                   `Galeria „${meta.title}” wygasła ${dateFmt.format(new Date(expires))}. ${dateFmt.format(deleteOn)} usuniemy ją razem ze wszystkimi zdjęciami.`,
@@ -194,7 +234,20 @@ export async function GET(req: Request) {
       log.push(`domena ${rec.host}: przypomnienie`);
       if (!dry && db) {
         const to = (await db.auth.admin.getUserById(rec.uid)).data?.user?.email;
-        if (to) {
+        const lang = await getUserLang(rec.uid);
+        const dateFmt = dateIn(lang);
+        if (to && lang === "en") {
+          await sendEmail({
+            to,
+            subject: `The domain ${rec.host} expires on ${dateFmt.format(new Date(rec.paidUntil))}`,
+            html: emailLayout(
+              "Your custom domain expires soon",
+              [`Your galleries at ${rec.host} work until ${dateFmt.format(new Date(rec.paidUntil))}. Renew the domain for a year for PLN ${DOMAIN_PRICE} from your balance so your clients' links keep working.`],
+              { label: "Renew domain", url: `${siteUrl()}/panel/konto#domena` },
+              "en",
+            ),
+          });
+        } else if (to) {
           await sendEmail({
             to,
             subject: `Domena ${rec.host} wygasa ${dateFmt.format(new Date(rec.paidUntil))}`,

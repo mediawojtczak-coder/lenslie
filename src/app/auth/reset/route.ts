@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendResetMail } from "@/lib/auth-mail";
+import { getLang } from "@/lib/lang-server";
 
 // Wysyła e-mail z linkiem do ustawienia nowego hasła. Zawsze odpowiada tak samo, żeby nie zdradzać, czy konto istnieje.
 export async function POST(req: Request) {
@@ -9,7 +10,7 @@ export async function POST(req: Request) {
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     try {
       // Najpierw polski mail Lenslie; gdy wysyłka nie jest skonfigurowana – mail Supabase
-      if (await sendResetMail(email, new URL(req.url).origin)) {
+      if (await sendResetMail(email, new URL(req.url).origin, await getLang())) {
         return NextResponse.redirect(new URL("/haslo?wyslano=1", req.url), 303);
       }
       const supabase = await createClient();

@@ -1,0 +1,54 @@
+import { getLang } from "@/lib/lang-server";
+
+// Komunikaty błędów API po angielsku – dla fotografów, którzy mają serwis w wersji angielskiej
+const EN: Record<string, string> = {
+  "Zaloguj się ponownie.": "Please sign in again.",
+  "Nieprawidłowe dane.": "Invalid data.",
+  "Nieprawidłowa galeria.": "Invalid gallery.",
+  "To nie jest Twoja galeria.": "This is not your gallery.",
+  "Adres galerii może zawierać tylko małe litery, cyfry i myślniki.": "The gallery address can contain only lowercase letters, digits and hyphens.",
+  "Nie wybrano żadnych zdjęć.": "No photos selected.",
+  "Nie wybrano zdjęć.": "No photos selected.",
+  "Dostęp do tej galerii wygasł. Przedłuż go, aby dodać zdjęcia.": "Access to this gallery has expired. Renew it to add photos.",
+  "Nie udało się zapisać profilu. Sprawdź, czy w Supabase uruchomiono SQL z tabelą profiles.": "Could not save the profile.",
+  "Logo musi być plikiem PNG, JPG lub WebP.": "The logo must be a PNG, JPG or WebP file.",
+  "Logo może mieć najwyżej 2 MB.": "The logo can be at most 2 MB.",
+  "Nieprawidłowy plik.": "Invalid file.",
+  "Hasło musi mieć co najmniej 8 znaków.": "The password must have at least 8 characters.",
+  "Nie udało się zmienić hasła. Zaloguj się ponownie i spróbuj jeszcze raz.": "Could not change the password. Sign in again and try once more.",
+  "Nieznana operacja.": "Unknown operation.",
+  "Hasło dla klienta musi mieć co najmniej 4 znaki.": "The client password must have at least 4 characters.",
+  "Ten adres galerii jest już zajęty. Zmień nazwę galerii.": "This gallery address is already taken. Change the gallery name.",
+  "Nie udało się zapisać galerii.": "Could not save the gallery.",
+  "Nie znaleziono galerii.": "Gallery not found.",
+  "Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem.": "Not enough balance. Top up your account or pay by card/BLIK.",
+  "Błąd płatności.": "Payment error.",
+  "Nie udało się usunąć wyboru.": "Could not delete the selection.",
+  "Nie znaleziono tego zdjęcia.": "Photo not found.",
+  "Plik muzyki może mieć najwyżej 25 MB.": "The music file can be at most 25 MB.",
+  "Wpisz nazwę sekcji.": "Enter a section name.",
+  "Galeria może mieć najwyżej 30 sekcji.": "A gallery can have at most 30 sections.",
+  "Nie ma takiej sekcji.": "No such section.",
+  "Płatności nie są jeszcze włączone.": "Payments are not enabled yet.",
+  "Wybierz kwotę doładowania.": "Choose a top-up amount.",
+  "Własne domeny nie są jeszcze włączone.": "Custom domains are not enabled yet.",
+  "Brak domeny.": "No domain.",
+  "Wpisz subdomenę, np. galerie.twojastrona.pl": "Enter a subdomain, e.g. photos.yourwebsite.com",
+  "Ta domena jest już przypisana do innego konta.": "This domain is already assigned to another account.",
+  "Za mało środków na saldzie.": "Not enough balance.",
+  "Uzupełnij dane do faktury.": "Complete the invoice details.",
+  "Sprawdź NIP – powinien mieć 10 cyfr.": "Check the tax ID (NIP) – it should have 10 digits.",
+  "Wybierz pakiet i okres.": "Choose a plan and period.",
+  "Ta galeria jest już opublikowana.": "This gallery is already published.",
+  "Zdjęcia w galerii nie mieszczą się w tym pakiecie.": "The photos in this gallery do not fit this plan.",
+  "Galeria nie ma jeszcze pakietu.": "The gallery does not have a plan yet.",
+  "Pakiet można zmienić tylko na większy.": "You can only change to a larger plan.",
+  "Wybierz okres.": "Choose a period.",
+  "Ta domena jest już używana w innym serwisie.": "This domain is already used by another service.",
+  "Nie udało się podłączyć domeny. Spróbuj ponownie za chwilę.": "Could not connect the domain. Please try again shortly.",
+};
+
+export async function E(pl: string): Promise<string> {
+  if ((await getLang()) !== "en") return pl;
+  return EN[pl] ?? pl;
+}

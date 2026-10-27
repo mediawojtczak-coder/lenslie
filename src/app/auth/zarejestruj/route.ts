@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendSignupMail } from "@/lib/auth-mail";
+import { getLang, setUserLang } from "@/lib/lang-server";
 import { recordReferral, cleanCode } from "@/lib/referrals";
 
 // Zakładanie konta fotografa. Supabase wysyła e-mail z linkiem potwierdzającym.
@@ -26,8 +27,12 @@ export async function POST(req: Request) {
   if (!terms) return back("regulamin");
 
   try {
-    const result = await sendSignupMail(email, password, studio || null, new URL(req.url).origin);
-    if (result.userId) await recordReferral(result.userId, email, refCode).catch(() => undefined);
+    const lang = await getLang();
+    const result = await sendSignupMail(email, password, studio || null, new URL(req.url).origin, lang);
+    if (result.userId) {
+      await recordReferral(result.userId, email, refCode).catch(() => undefined);
+      await setUserLang(result.userId, lang).catch(() => undefined);
+    }
     if (result.status === "sent") return back("wyslano");
     if (result.status === "exists") return back("istnieje");
     if (result.status === "error") return back("serwer");
@@ -46,7 +51,10 @@ export async function POST(req: Request) {
       console.error("Błąd rejestracji:", error.message);
       return back("serwer");
     }
-    if (signed?.user?.id) await recordReferral(signed.user.id, email, refCode).catch(() => undefined);
+    if (signed?.user?.id) {
+      await recordReferral(signed.user.id, email, refCode).catch(() => undefined);
+      await setUserLang(signed.user.id, lang).catch(() => undefined);
+    }
   } catch (err) {
     console.error("Błąd rejestracji:", err);
     return back("serwer");

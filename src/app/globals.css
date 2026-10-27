@@ -1530,3 +1530,4 @@ ol.stat-list { counter-reset: s; }
 .lang-switch { display: inline-flex; border: 1px solid var(--hair); border-radius: 999px; padding: 2px; }
 .lang-switch button { border: 0; background: none; font: inherit; font-size: .72rem; letter-spacing: .08em; color: var(--taupe); padding: 4px 9px; border-radius: 999px; cursor: pointer; }
 .lang-switch button.on { background: var(--blush); color: var(--ink); }
+.account-lang { padding: 6px 0 10px; }

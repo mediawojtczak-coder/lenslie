@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { E } from "@/lib/api-lang";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, saveMeta, hashPassword, type GalleryMeta } from "@/lib/galleries";
 import { getUser } from "@/lib/supabase/server";
@@ -10,7 +11,7 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   const { supabase, user } = await getUser();
   if (!user) {
-    return NextResponse.json({ error: "Zaloguj się ponownie." }, { status: 401 });
+    return NextResponse.json({ error: await E("Zaloguj się ponownie.") }, { status: 401 });
   }
 
   const body = (await req.json().catch(() => null)) as
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
   const id = String(body?.gallery ?? "");
   if (!isValidGalleryId(id)) {
     return NextResponse.json(
-      { error: "Adres galerii może zawierać tylko małe litery, cyfry i myślniki." },
+      { error: await E("Adres galerii może zawierać tylko małe litery, cyfry i myślniki.") },
       { status: 400 },
     );
   }
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
   const clientPassword = String(body?.clientPassword ?? "").trim();
   if (clientPassword && clientPassword.length < 4) {
     return NextResponse.json(
-      { error: "Hasło dla klienta musi mieć co najmniej 4 znaki." },
+      { error: await E("Hasło dla klienta musi mieć co najmniej 4 znaki.") },
       { status: 400 },
     );
   }
@@ -58,9 +59,9 @@ export async function POST(req: Request) {
       const taken = error.code === "23505";
       return NextResponse.json(
         {
-          error: taken
+          error: await E(taken
             ? "Ten adres galerii jest już zajęty. Zmień nazwę galerii."
-            : "Nie udało się zapisać galerii.",
+            : "Nie udało się zapisać galerii."),
         },
         { status: taken ? 409 : 500 },
       );
