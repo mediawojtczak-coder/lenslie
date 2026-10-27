@@ -48,7 +48,7 @@ export default function PricingPlans() {
               </li>
               <li>Wszystkie funkcje w cenie, bez abonamentu</li>
             </ul>
-            <Link href="/logowanie" className={plan.featured ? "btn btn-wide" : "btn btn-ghost btn-wide"}>
+            <Link href="/rejestracja" className={plan.featured ? "btn btn-wide" : "btn btn-ghost btn-wide"}>
               Wybieram pakiet {plan.name}
             </Link>
           </article>

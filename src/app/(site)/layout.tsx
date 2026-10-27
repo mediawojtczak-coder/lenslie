@@ -8,6 +8,11 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         <nav>
           <Link href="/cennik">Cennik</Link>
           <Link href="/logowanie">Zaloguj</Link>
+          {process.env.REGISTRATION_OPEN === "1" && (
+            <Link href="/rejestracja" className="nav-cta">
+              Załóż konto
+            </Link>
+          )}
         </nav>
       </header>
       <main>{children}</main>

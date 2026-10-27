@@ -1497,3 +1497,6 @@ ol.stat-list { counter-reset: s; }
   .wallet-chip { padding: 6px 10px; font-size: .78rem; }
   .topups { grid-template-columns: repeat(2, 1fr); }
 }
+.nav-cta { padding: 8px 18px; border-radius: 999px; background: var(--ink); color: #fff !important; }
+.nav-cta:hover { background: #24201e; }
+@media (max-width: 560px) { .nav-cta { padding: 6px 12px; } }
