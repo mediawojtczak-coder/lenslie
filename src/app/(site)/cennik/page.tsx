@@ -1,69 +1,88 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import PricingPlans from "@/components/PricingPlans";
+import { getLang } from "@/lib/lang-server";
 
-export const metadata: Metadata = {
-  title: "Cennik – Lenslie",
-  description: "Płacisz tylko za galerie, które oddajesz klientom. Bez abonamentu.",
+export async function generateMetadata(): Promise<Metadata> {
+  const en = (await getLang()) === "en";
+  return {
+    title: en ? "Pricing – Lenslie" : "Cennik – Lenslie",
+    description: en ? "Pay only for the galleries you deliver. No subscription." : "Płacisz tylko za galerie, które oddajesz klientom. Bez abonamentu.",
+  };
+}
+
+const TXT = {
+  pl: {
+    h1: "Płacisz za galerię, nie za abonament",
+    lead: "Wybierz pakiet dopasowany do sesji i to, jak długo klient ma mieć dostęp do zdjęć. Wszystkie funkcje są w cenie.",
+    included: "W każdym pakiecie",
+    faq: "Najczęstsze pytania",
+    items: [
+      "Prywatny link i hasło dla klienta",
+      "Pobieranie w pełnej rozdzielczości i w wersji do internetu",
+      "Cała sesja jednym kliknięciem jako ZIP",
+      "Ulubione zdjęcia klienta, sekcje i pokaz slajdów",
+      "Kod QR i gotowa wiadomość dla klienta",
+      "Bez reklam i bez kompresji oryginałów",
+      "Zdjęcia przechowywane na serwerach w Unii Europejskiej",
+    ],
+    qa: [
+      ["Co się dzieje, gdy minie okres dostępu?", "3 dni przed końcem dostaniesz przypomnienie. Galerię możesz przedłużyć albo pozwolić jej wygasnąć – wtedy klient traci do niej dostęp, a zdjęcia są usuwane po 30 dniach."],
+      ["Jak przedłużyć galerię?", "Jednym kliknięciem w panelu – wybierasz kolejny okres dostępu w cenie z cennika."],
+      ["Co, jeśli zdjęć będzie więcej, niż zakładałem?", "W każdej chwili zmienisz pakiet na większy i dopłacisz tylko różnicę w cenie."],
+      ["Czy muszę płacić abonament?", "Nie. Płacisz tylko za galerie, które publikujesz. Konto, panel i wersje robocze galerii są bezpłatne."],
+      ["Jak mogę zapłacić?", "BLIK-iem, przelewem lub kartą przez Przelewy24 – za każdą galerię osobno albo z doładowanego salda konta (przy doładowaniu 200 zł dostajesz 10 zł gratis)."],
+    ],
+  },
+  en: {
+    h1: "Pay per gallery, not a subscription",
+    lead: "Choose a plan that fits the session and how long your client should have access. All features are included.",
+    included: "Included in every plan",
+    faq: "Frequently asked questions",
+    items: [
+      "Private link and password for your client",
+      "Downloads in full resolution and web size",
+      "The whole session in one click as a ZIP",
+      "Client favourites, sections and slideshow",
+      "QR code and a ready-made message for your client",
+      "No ads and no compression of originals",
+      "Photos stored on servers in the European Union",
+    ],
+    qa: [
+      ["What happens when the access period ends?", "You get a reminder 3 days before. You can extend the gallery or let it expire – the client then loses access and the photos are deleted after 30 days."],
+      ["How do I extend a gallery?", "With one click in your dashboard – choose another access period at the listed price."],
+      ["What if I have more photos than expected?", "You can upgrade to a bigger plan at any time and only pay the difference."],
+      ["Do I need a subscription?", "No. You only pay for the galleries you publish. Your account, dashboard and gallery drafts are free."],
+      ["How can I pay?", "By BLIK, bank transfer or card via Przelewy24 (in PLN) – per gallery or from your prepaid account balance (top up PLN 200 and get PLN 10 extra)."],
+    ],
+  },
 };
 
-const INCLUDED = [
-  "Prywatny link i hasło dla klienta",
-  "Pobieranie w pełnej rozdzielczości i w wersji do internetu",
-  "Cała sesja jednym kliknięciem jako ZIP",
-  "Okładka na pełnym ekranie i podgląd zdjęć w powiększeniu",
-  "Kod QR i gotowa wiadomość dla klienta",
-  "Bez reklam i bez kompresji oryginałów",
-  "Zdjęcia przechowywane na serwerach w Unii Europejskiej",
-];
-
-const FAQ = [
-  {
-    q: "Co się dzieje, gdy minie okres dostępu?",
-    a: "Na 14 dni przed końcem dostaniesz przypomnienie. Galerię możesz przedłużyć albo pozwolić jej wygasnąć – wtedy klient traci do niej dostęp, a zdjęcia są usuwane po 30 dniach.",
-  },
-  {
-    q: "Jak przedłużyć galerię?",
-    a: "Jednym kliknięciem w panelu – wybierasz kolejny okres dostępu w cenie z cennika.",
-  },
-  {
-    q: "Co, jeśli zdjęć będzie więcej, niż zakładałem?",
-    a: "W każdej chwili zmienisz pakiet na większy i dopłacisz tylko różnicę w cenie.",
-  },
-  {
-    q: "Czy muszę płacić abonament?",
-    a: "Nie. Płacisz tylko za galerie, które publikujesz. Konto, panel i galerie robocze są bezpłatne.",
-  },
-];
-
-export default function Cennik() {
+export default async function Cennik() {
+  const t = TXT[await getLang()];
   return (
     <div className="pricing">
       <section className="pricing-head">
-        <h1>Płacisz za galerię, nie za abonament</h1>
-        <p>
-          Wybierz pakiet dopasowany do sesji i to, jak długo klient ma mieć dostęp do zdjęć.
-          Wszystkie funkcje są w cenie.
-        </p>
+        <h1>{t.h1}</h1>
+        <p>{t.lead}</p>
       </section>
 
       <PricingPlans />
 
       <section className="included">
-        <h2>W każdym pakiecie</h2>
+        <h2>{t.included}</h2>
         <ul>
-          {INCLUDED.map((item) => (
+          {t.items.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
       </section>
 
       <section className="faq">
-        <h2>Najczęstsze pytania</h2>
-        {FAQ.map((f) => (
-          <details key={f.q}>
-            <summary>{f.q}</summary>
-            <p>{f.a}</p>
+        <h2>{t.faq}</h2>
+        {t.qa.map(([q, a]) => (
+          <details key={q}>
+            <summary>{q}</summary>
+            <p>{a}</p>
           </details>
         ))}
       </section>

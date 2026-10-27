@@ -1,30 +1,36 @@
 import Link from "next/link";
+import { getLang } from "@/lib/lang-server";
+import { tr } from "@/lib/lang";
+import LangSwitch from "@/components/LangSwitch";
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
+export default async function SiteLayout({ children }: { children: React.ReactNode }) {
+  const lang = await getLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
   return (
     <>
       <header className="top">
         <Link href="/" className="wordmark">Lenslie</Link>
         <nav>
-          <Link href="/cennik">Cennik</Link>
-          <Link href="/logowanie">Zaloguj</Link>
+          <Link href="/cennik">{t("Cennik", "Pricing")}</Link>
+          <Link href="/logowanie">{t("Zaloguj", "Log in")}</Link>
           {process.env.REGISTRATION_OPEN === "1" && (
             <Link href="/rejestracja" className="nav-cta">
-              Załóż konto
+              {t("Załóż konto", "Sign up")}
             </Link>
           )}
+          <LangSwitch />
         </nav>
       </header>
       <main>{children}</main>
       <footer className="site-footer">
         <p className="wordmark">Lenslie</p>
-        <nav aria-label="Stopka">
-          <Link href="/cennik">Cennik</Link>
-          <Link href="/rejestracja">Załóż konto</Link>
-          <Link href="/regulamin">Regulamin</Link>
-          <Link href="/polityka-prywatnosci">Polityka prywatności</Link>
+        <nav aria-label={t("Stopka", "Footer")}>
+          <Link href="/cennik">{t("Cennik", "Pricing")}</Link>
+          <Link href="/rejestracja">{t("Załóż konto", "Sign up")}</Link>
+          <Link href="/regulamin">{t("Regulamin", "Terms of service")}</Link>
+          <Link href="/polityka-prywatnosci">{t("Polityka prywatności", "Privacy policy")}</Link>
         </nav>
-        <p className="site-copy">© {new Date().getFullYear()} Lenslie. Galerie zdjęć dla fotografów.</p>
+        <p className="site-copy">© {new Date().getFullYear()} Lenslie. {t("Galerie zdjęć dla fotografów.", "Photo galleries for photographers.")}</p>
       </footer>
     </>
   );

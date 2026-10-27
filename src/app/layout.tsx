@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { EB_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
+import { getLang } from "@/lib/lang-server";
+import { LangProvider } from "@/components/LangProvider";
 
 const display = EB_Garamond({
   subsets: ["latin", "latin-ext"],
@@ -14,16 +16,20 @@ const body = Manrope({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Lenslie",
-  description: "Eleganckie galerie zdjęć dla klientów fotografa",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  return {
+    title: "Lenslie",
+    description: lang === "en" ? "Elegant photo galleries for photographers' clients" : "Eleganckie galerie zdjęć dla klientów fotografa",
+  };
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const lang = await getLang();
   return (
-    <html lang="pl" className={`${display.variable} ${body.variable}`}>
+    <html lang={lang} className={`${display.variable} ${body.variable}`}>
       <body>
-        {children}
+        <LangProvider lang={lang}>{children}</LangProvider>
       </body>
     </html>
   );

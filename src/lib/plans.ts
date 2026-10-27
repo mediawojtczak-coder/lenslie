@@ -7,6 +7,9 @@ export type Plan = {
   limitGb: number;
   photos: string;
   forWhom: string;
+  nameEn: string;
+  photosEn: string;
+  forWhomEn: string;
   prices: Record<Period, number>; // zł za galerię
   featured?: boolean;
 };
@@ -21,6 +24,9 @@ export const PLANS: Plan[] = [
     limitGb: 1.5,
     photos: "ok. 200 zdjęć",
     forWhom: "Sesje portretowe, rodzinne i biznesowe",
+    nameEn: "Small",
+    photosEn: "approx. 200 photos",
+    forWhomEn: "Portrait, family and business sessions",
     prices: { 1: 5, 3: 8, 6: 10, 12: 12 },
   },
   {
@@ -29,6 +35,9 @@ export const PLANS: Plan[] = [
     limitGb: 5,
     photos: "ok. 650 zdjęć",
     forWhom: "Chrzciny, komunie, urodziny, mniejsze wydarzenia",
+    nameEn: "Medium",
+    photosEn: "approx. 650 photos",
+    forWhomEn: "Christenings, birthdays and smaller events",
     prices: { 1: 7, 3: 11, 6: 14, 12: 18 },
     featured: true,
   },
@@ -38,6 +47,9 @@ export const PLANS: Plan[] = [
     limitGb: 15,
     photos: "ok. 2000 zdjęć",
     forWhom: "Reportaże ślubne i duże wydarzenia",
+    nameEn: "Large",
+    photosEn: "approx. 2,000 photos",
+    forWhomEn: "Weddings and large events",
     prices: { 1: 10, 3: 15, 6: 19, 12: 25 },
   },
 ];
@@ -103,4 +115,23 @@ export function perMonth(price: number, period: Period) {
 
 export function zl(n: number) {
   return `${n.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`;
+}
+
+// Teksty pakietów w wybranym języku serwisu
+export const planName = (p: Plan, lang: "pl" | "en" = "pl") => (lang === "en" ? p.nameEn : p.name);
+export const planPhotos = (p: Plan, lang: "pl" | "en" = "pl") => (lang === "en" ? p.photosEn : p.photos);
+export const planFor = (p: Plan, lang: "pl" | "en" = "pl") => (lang === "en" ? p.forWhomEn : p.forWhom);
+export function periodText(p: Period, lang: "pl" | "en" = "pl") {
+  if (lang === "en") return p === 1 ? "1 month" : `${p} months`;
+  return periodLabel(p);
+}
+export const periodShort = (p: Period, lang: "pl" | "en" = "pl") => (lang === "en" ? `${p} mo.` : `${p} mies.`);
+export function perMonthL(price: number, period: Period, lang: "pl" | "en" = "pl") {
+  const v = price / period;
+  return lang === "en"
+    ? `PLN ${v.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo.`
+    : perMonth(price, period);
+}
+export function zlL(n: number, lang: "pl" | "en" = "pl") {
+  return lang === "en" ? `PLN ${n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : zl(n);
 }

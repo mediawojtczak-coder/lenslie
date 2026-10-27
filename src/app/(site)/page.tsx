@@ -3,6 +3,8 @@ import PricingPlans from "@/components/PricingPlans";
 import DeviceShowcase from "@/components/DeviceShowcase";
 import { getGalleryPhotos } from "@/lib/photos";
 import { getMeta } from "@/lib/galleries";
+import { getLang } from "@/lib/lang-server";
+import { tr } from "@/lib/lang";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,8 @@ export const dynamic = "force-dynamic";
 const SHOWCASE_ID = "pokaz";
 
 export default async function Home() {
+  const lang = await getLang();
+  const t = (pl: string, en: string) => tr(lang, pl, en);
   const [photos, meta] = await Promise.all([
     getGalleryPhotos(SHOWCASE_ID).catch(() => []),
     getMeta(SHOWCASE_ID).catch(() => null),
@@ -24,10 +28,12 @@ export default async function Home() {
   return (
     <>
       <section className="hero">
-        <h1>Twoje zdjęcia zasługują na piękną oprawę.</h1>
+        <h1>{t("Twoje zdjęcia zasługują na piękną oprawę.", "Your photos deserve a beautiful setting.")}</h1>
         <p>
-          Oddawaj sesje klientom w spokojnej, eleganckiej galerii. Bez reklam,
-          bez kompresji, z hasłem i pobieraniem w pełnej jakości.
+          {t(
+            "Oddawaj sesje klientom w spokojnej, eleganckiej galerii. Bez reklam, bez kompresji, z hasłem i pobieraniem w pełnej jakości.",
+            "Deliver sessions to your clients in a calm, elegant gallery. No ads, no compression, password protected, with full-quality downloads.",
+          )}
         </p>
       </section>
 
@@ -44,36 +50,38 @@ export default async function Home() {
 
       <section className="features">
         <div>
-          <h2>Prywatnie</h2>
-          <p>Każda galeria ma własny link i hasło. Widzi ją tylko Twój klient.</p>
+          <h2>{t("Prywatnie", "Private")}</h2>
+          <p>{t("Każda galeria ma własny link i hasło. Widzi ją tylko Twój klient.", "Every gallery has its own link and password. Only your client can see it.")}</p>
         </div>
         <div>
-          <h2>W pełnej jakości</h2>
-          <p>Klient pobiera pojedyncze zdjęcia albo całą sesję jednym kliknięciem.</p>
+          <h2>{t("W pełnej jakości", "Full quality")}</h2>
+          <p>{t("Klient pobiera pojedyncze zdjęcia albo całą sesję jednym kliknięciem.", "Clients download single photos or the whole session in one click.")}</p>
         </div>
         <div>
-          <h2>Pod Twoją marką</h2>
-          <p>Twoje logo, Twoja domena. Lenslie pozostaje w tle.</p>
+          <h2>{t("Pod Twoją marką", "Your brand")}</h2>
+          <p>{t("Twoje logo, Twoja domena. Lenslie pozostaje w tle.", "Your logo, your domain. Lenslie stays in the background.")}</p>
         </div>
       </section>
 
       <section className="showcase">
         <div className="showcase-text">
-          <h2>Tak zobaczy to Twój klient</h2>
+          <h2>{t("Tak zobaczy to Twój klient", "What your client will see")}</h2>
           <p>
-            Zdjęcie z sesji na cały ekran, a pod nim cała galeria. Na komputerze i telefonie,
-            bez instalowania czegokolwiek.
+            {t(
+              "Zdjęcie z sesji na cały ekran, a pod nim cała galeria. Na komputerze i telefonie, bez instalowania czegokolwiek.",
+              "A full-screen cover photo with the whole gallery below. On desktop and mobile, nothing to install.",
+            )}
           </p>
         </div>
-        <DeviceShowcase photos={devicePhotos} title={showcaseTitle} />
+        <DeviceShowcase photos={devicePhotos} title={showcaseTitle} lang={lang} />
       </section>
 
       <section className="home-pricing" id="cennik">
-        <h2>Prosty cennik</h2>
-        <p>Płacisz tylko za galerie, które oddajesz klientom. Bez abonamentu.</p>
+        <h2>{t("Prosty cennik", "Simple pricing")}</h2>
+        <p>{t("Płacisz tylko za galerie, które oddajesz klientom. Bez abonamentu.", "Pay only for the galleries you deliver. No subscription.")}</p>
         <PricingPlans />
         <p className="home-pricing-more">
-          <Link href="/cennik">Wszystko o pakietach i najczęstsze pytania</Link>
+          <Link href="/cennik">{t("Wszystko o pakietach i najczęstsze pytania", "All about plans and FAQ")}</Link>
         </p>
       </section>
     </>

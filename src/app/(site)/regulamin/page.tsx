@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { COMPANY } from "@/lib/company";
 
-export const metadata = { title: "Regulamin – Lenslie" };
+import { getLang } from "@/lib/lang-server";
 
-export default function Regulamin() {
+export async function generateMetadata() {
+  return { title: (await getLang()) === "en" ? "Terms of service – Lenslie" : "Regulamin – Lenslie" };
+}
+
+function RegulaminPl() {
   return (
     <article className="legal">
       {COMPANY.draft && (
@@ -172,4 +176,120 @@ export default function Regulamin() {
       </ol>
     </article>
   );
+}
+
+function TermsEn() {
+  return (
+    <article className="legal">
+      <p className="legal-draft">
+        English translation for information. In case of any discrepancy, the <strong>Polish version</strong> prevails.
+      </p>
+      <h1>Lenslie Terms of Service</h1>
+      <p className="legal-meta">Effective from: 27 October 2026</p>
+
+      <h2>§ 1. General provisions</h2>
+      <ol>
+        <li>These Terms set out the rules for using Lenslie, available at lenslie.com (the “Service”), used to store photo galleries and share them with clients.</li>
+        <li>The Service is operated by {COMPANY.name}, {COMPANY.address}, Poland, VAT ID (NIP) {COMPANY.nip}, REGON {COMPANY.regon}, email: {COMPANY.email} (the “Provider”).</li>
+        <li>These Terms are terms of providing electronic services within the meaning of the Polish Act of 18 July 2002 on providing services by electronic means.</li>
+      </ol>
+
+      <h2>§ 2. Definitions</h2>
+      <ul>
+        <li><strong>Photographer</strong> – a person who has created an Account and creates Galleries.</li>
+        <li><strong>Client</strong> – a person to whom the Photographer shares a Gallery, and guests using a guest link.</li>
+        <li><strong>Account</strong> – the Photographer’s individual dashboard in the Service.</li>
+        <li><strong>Gallery</strong> – a set of photos shared with a Client at a separate address, optionally password protected.</li>
+        <li><strong>Plan</strong> – the storage limit and access period chosen by the Photographer for a Gallery.</li>
+      </ul>
+
+      <h2>§ 3. Technical requirements</h2>
+      <p>Using the Service requires an internet-connected device with an up-to-date browser (Chrome, Safari, Firefox, Edge) with JavaScript and cookies enabled.</p>
+
+      <h2>§ 4. Photographer’s Account</h2>
+      <ol>
+        <li>Creating an Account requires an email address, a password and acceptance of these Terms and the Privacy Policy.</li>
+        <li>The Photographer is responsible for keeping the password confidential and for actions performed from the Account.</li>
+        <li>The Photographer may delete the Account at any time by writing to {COMPANY.email}.</li>
+      </ol>
+
+      <h2>§ 5. Galleries and Plans</h2>
+      <ol>
+        <li>The Photographer chooses a Plan for each Gallery. Current prices, storage limits and access periods are listed on the <Link href="/cennik">Pricing</Link> page. Prices are gross prices in Polish złoty (PLN).</li>
+        <li>A 2% tolerance is added to the Plan limit. Once exceeded, uploading is paused until a bigger Plan is chosen.</li>
+        <li>Upgrading to a bigger Plan requires paying the price difference. The Gallery expiry date does not change.</li>
+        <li>The Photographer may extend access to a Gallery before or after it expires.</li>
+        <li>After access expires, the Client can no longer view the Gallery. Photos are kept for another 30 days and then permanently deleted. The Provider sends reminders to the Photographer’s email before expiry and before deletion.</li>
+        <li>Unpublished gallery drafts are deleted 20 days after creation, with a reminder sent after 10 days.</li>
+        <li>The Photographer should keep their own copy of the photos. The Service is not an archive or a backup.</li>
+      </ol>
+
+      <h2>§ 6. Payments</h2>
+      <ol>
+        <li>Plan fees are charged in advance, when publishing a Gallery, changing a Plan or extending access.</li>
+        <li>Payments are processed by PayPro S.A. (Przelewy24), Poznań, Poland. Payments are made in PLN.</li>
+        <li>At the Photographer’s request made during payment, a VAT invoice is issued and sent to the Account email.</li>
+        <li>The Photographer may top up the Account balance with PLN 30, 50, 100 or 200. A top-up of PLN 200 includes a PLN 10 bonus. The balance can be used to pay for Plans, upgrades and extensions.</li>
+        <li>An invoice for a balance top-up is issued at the time of payment, using the details provided by the Photographer.</li>
+        <li>The Photographer may purchase the “Custom domain” add-on (PLN 99 per 12 months, paid from the balance) so that Galleries are available under their subdomain. The Photographer is responsible for owning the domain and setting the DNS record. After the paid period ends, Galleries remain available at the Service address.</li>
+        <li>The balance bears no interest and does not expire. The unused part of the balance (excluding bonuses) is refunded at the Photographer’s request sent to {COMPANY.email}, within 14 days, to the account the payment was made from. Bonuses are not refundable.</li>
+      </ol>
+
+      <h2>§ 6a. Referral programme</h2>
+      <ol>
+        <li>The Photographer may recommend the Service using a personal link from “My account”.</li>
+        <li>When a person who signed up using the referral link has paid a total of at least PLN 30, both the referring Photographer and the referred person receive a PLN 20 bonus to their balance, once per referred person.</li>
+        <li>Bonuses can only be used for the Service; they cannot be withdrawn or refunded.</li>
+        <li>Creating Accounts to obtain bonuses (e.g. referring yourself) is prohibited; the Provider may cancel such bonuses.</li>
+      </ol>
+
+      <h2>§ 7. Content and copyright</h2>
+      <ol>
+        <li>Rights to the photos remain with the Photographer or other right holders. The Provider acquires no rights to the photos and does not use them for marketing.</li>
+        <li>The Photographer confirms they have the right to publish the uploaded photos, including consent of the people shown, and to any music added to slideshows.</li>
+        <li>Uploading unlawful content is prohibited. The Provider may block a Gallery after receiving credible information that it is unlawful.</li>
+      </ol>
+
+      <h2>§ 8. Personal data</h2>
+      <ol>
+        <li>The processing of Photographers’ data is described in the <Link href="/polityka-prywatnosci">Privacy Policy</Link>.</li>
+        <li>For photos and Clients’ data (e.g. name and email given when choosing favourites), the Photographer is the controller and the Provider processes the data on the Photographer’s behalf as a processor. The data processing provisions (Art. 28 GDPR) are set out in Annex 1.</li>
+      </ol>
+
+      <h2>§ 9. Complaints</h2>
+      <ol>
+        <li>Complaints can be sent to {COMPANY.email}.</li>
+        <li>The Provider responds to complaints within 14 days.</li>
+      </ol>
+
+      <h2>§ 10. Right of withdrawal</h2>
+      <p>A Photographer who is a consumer (or a sole trader with consumer rights) may withdraw from the contract within 14 days. If, at their express request, the service has been fully performed before that period ends, the right of withdrawal expires in accordance with Art. 38 of the Polish Consumer Rights Act.</p>
+
+      <h2>§ 11. Liability</h2>
+      <ol>
+        <li>The Provider makes every effort to keep the Service running without interruption and announces planned maintenance.</li>
+        <li>The Provider’s liability towards business Photographers is limited to the fees paid for the Gallery concerned.</li>
+      </ol>
+
+      <h2>§ 12. Final provisions</h2>
+      <ol>
+        <li>The Provider may amend these Terms for important reasons, notifying Photographers by email at least 14 days in advance.</li>
+        <li>Matters not covered by these Terms are governed by Polish law. This does not deprive consumers of the protection granted by the mandatory laws of their country of residence.</li>
+      </ol>
+
+      <h2>Annex 1. Data processing agreement</h2>
+      <ol>
+        <li>The Photographer (controller) entrusts the Provider (processor) with processing personal data contained in photos and Clients’ data to the extent necessary to store and share Galleries.</li>
+        <li>The Provider processes data only on the Photographer’s documented instructions, i.e. by the use of the Service’s features, for the duration of the contract.</li>
+        <li>The Provider ensures confidentiality, uses encrypted connections, access restrictions and gallery passwords, and helps the Photographer fulfil data subjects’ rights.</li>
+        <li>The Photographer agrees to the use of sub-processors: Cloudflare (photo storage in the EU), Supabase (database in the EU), Vercel (hosting), Resend (email delivery), PayPro S.A. (payments).</li>
+        <li>After a Gallery expires or the Account is deleted, the data is deleted in accordance with § 5.</li>
+        <li>The Provider informs the Photographer without undue delay of any personal data breach affecting their Galleries.</li>
+      </ol>
+    </article>
+  );
+}
+
+export default async function Regulamin() {
+  return (await getLang()) === "en" ? <TermsEn /> : <RegulaminPl />;
 }

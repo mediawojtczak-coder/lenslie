@@ -1,6 +1,6 @@
 // Makieta laptopa i telefonu z galerią Lenslie – „zdjęcie reklamowe” zbudowane w kodzie.
 // Zdjęcia pochodzą z galerii pokazowej fotografa; bez niej pokazujemy pastelowe kadry.
-type Props = { photos: string[]; title: string };
+type Props = { photos: string[]; title: string; lang?: "pl" | "en" };
 
 const TONES = ["", "b", "c", "d", "e"];
 
@@ -13,7 +13,8 @@ function Shot({ src, i, className = "" }: { src?: string; i: number; className?:
   );
 }
 
-export default function DeviceShowcase({ photos, title }: Props) {
+export default function DeviceShowcase({ photos, title, lang = "pl" }: Props) {
+  const see = lang === "en" ? "View photos" : "Zobacz zdjęcia";
   const pick = (i: number) => (photos.length ? photos[i % photos.length] : undefined);
 
   return (
@@ -29,7 +30,7 @@ export default function DeviceShowcase({ photos, title }: Props) {
               <Shot src={pick(0)} i={0} />
               <div className="mock-cover-text">
                 <b>{title}</b>
-                <em>Zobacz zdjęcia</em>
+                <em>{see}</em>
               </div>
             </div>
             <div className="mock-grid">
@@ -49,7 +50,7 @@ export default function DeviceShowcase({ photos, title }: Props) {
             <Shot src={pick(2)} i={2} />
             <div className="mock-cover-text">
               <b>{title}</b>
-              <em>Zobacz zdjęcia</em>
+              <em>{see}</em>
             </div>
           </div>
           <div className="mock-grid phone-grid">
