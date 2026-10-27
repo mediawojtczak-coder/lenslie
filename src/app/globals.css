@@ -1446,3 +1446,4 @@ ol.stat-list { counter-reset: s; }
 .orphans ul { list-style: none; margin: 8px 0 0; padding: 0; }
 .orphans li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--hair); font-size: .88rem; }
 .orphans .btn { margin: 0; }
+.draft-del { margin: 6px 0 0 24px; font-size: .78rem; color: #8a4f4a; }

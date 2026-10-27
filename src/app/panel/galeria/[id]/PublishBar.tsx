@@ -18,11 +18,13 @@ export default function PublishBar({
   title,
   photoCount,
   usedBytes,
+  deleteOn,
 }: {
   id: string;
   title: string;
   photoCount: number;
   usedBytes: number;
+  deleteOn?: string | null;
 }) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -74,6 +76,12 @@ export default function PublishBar({
           </svg>
           Twoja galeria jest w wersji roboczej. Opublikuj ją, aby klienci mogli ją zobaczyć.
         </p>
+        {deleteOn && (
+          <p className="draft-del">
+            Nieopublikowana galeria zostanie usunięta{" "}
+            {new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long" }).format(new Date(deleteOn))}.
+          </p>
+        )}
       </div>
       <div className="draft-actions">
         <a href={`/galeria/${id}`} target="_blank" rel="noreferrer" className="draft-link">

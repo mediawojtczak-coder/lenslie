@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { isValidGalleryId, galleryPrefix } from "@/lib/r2";
 import { getGalleryPhotos, getGalleryUsage, pickCover, applyOrder, listKeys, type Photo } from "@/lib/photos";
-import { getMeta, watermarkOn } from "@/lib/galleries";
+import { getMeta, watermarkOn, draftDeleteDate } from "@/lib/galleries";
 import ShareBar from "./ShareBar";
 import PublishBar from "./PublishBar";
 import PlanBar from "./PlanBar";
@@ -115,7 +115,13 @@ export default async function ZarzadzanieGalerii({
             />
           </>
         ) : (
-          <PublishBar id={id} title={gallery.title} photoCount={photos.length} usedBytes={usedBytes} />
+          <PublishBar
+            id={id}
+            title={gallery.title}
+            photoCount={photos.length}
+            usedBytes={usedBytes}
+            deleteOn={meta ? draftDeleteDate(meta).toISOString() : null}
+          />
         )}
 
         {tab === "wybory" ? (

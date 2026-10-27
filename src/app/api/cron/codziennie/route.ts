@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { DeleteObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
 import { listKeys } from "@/lib/photos";
-import { getMeta, saveMeta } from "@/lib/galleries";
+import { getMeta, saveMeta, DRAFT_REMIND_DAYS, DRAFT_DELETE_DAYS, draftDeleteDate, type GalleryMeta } from "@/lib/galleries";
 import { adminClient } from "@/lib/supabase/admin";
 import { getOwnerEmail } from "@/lib/profiles";
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
@@ -33,6 +33,27 @@ async function galleryIds() {
   return ids;
 }
 
+// Usuwa zdjęcia i wpis galerii, potem informuje fotografa
+async function removeGallery(id: string, meta: GalleryMeta, db: ReturnType<typeof adminClient>, reason: "draft" | "expired") {
+  const to = await getOwnerEmail(id);
+  const keys = await listKeys(galleryPrefix(id));
+  for (let i = 0; i < keys.length; i += 10) {
+    await Promise.all(keys.slice(i, i + 10).map((Key) => r2.send(new DeleteObjectCommand({ Bucket: BUCKET, Key }))));
+  }
+  if (db) await db.from("galleries").delete().eq("id", id);
+  if (to) {
+    await sendEmail({
+      to,
+      subject: `Galeria „${meta.title}” została usunięta`,
+      html: emailLayout("Galeria usunięta", [
+        reason === "draft"
+          ? `Galeria „${meta.title}” nie została opublikowana w ciągu ${DRAFT_DELETE_DAYS} dni, więc usunęliśmy ją razem ze zdjęciami.`
+          : `Zgodnie z zasadami przechowywania usunęliśmy galerię „${meta.title}” i jej zdjęcia, ${DELETE_AFTER} dni po wygaśnięciu dostępu.`,
+      ]),
+    });
+  }
+}
+
 // Codzienne zadanie: przypomnienia przed wygaśnięciem, ostrzeżenie przed usunięciem
 // i usuwanie zdjęć 30 dni po wygaśnięciu. ?proba=1 tylko pokazuje, co by zrobiło.
 export async function GET(req: Request) {
@@ -47,7 +68,43 @@ export async function GET(req: Request) {
 
   for (const id of await galleryIds()) {
     const meta = await getMeta(id).catch(() => null);
-    if (!meta?.expiresAt) continue;
+    if (!meta) continue;
+
+    // Wersja robocza: przypomnienie po 10 dniach, usunięcie po 20 dniach od utworzenia
+    if (!meta.plan) {
+      const age = (now - new Date(meta.createdAt).getTime()) / DAY;
+      if (!Number.isFinite(age)) continue;
+      if (age >= DRAFT_DELETE_DAYS) {
+        log.push(`${id}: usunięcie wersji roboczej`);
+        if (!dry) await removeGallery(id, meta, db, "draft");
+      } else if (age >= DRAFT_REMIND_DAYS && !meta.notices?.draft) {
+        log.push(`${id}: przypomnienie o publikacji`);
+        if (!dry) {
+          const to = await getOwnerEmail(id);
+          const sent =
+            to &&
+            (await sendEmail({
+              to,
+              subject: `Twoja galeria „${meta.title}” czeka na publikację`,
+              html: emailLayout(
+                "Galeria czeka na publikację",
+                [
+                  `Galeria „${meta.title}” jest wciąż wersją roboczą, więc klient jej nie widzi.`,
+                  `Opublikuj ją, aby udostępnić zdjęcia. Nieopublikowane galerie usuwamy ${DRAFT_DELETE_DAYS} dni od utworzenia – ta zostanie usunięta ${dateFmt.format(draftDeleteDate(meta))}.`,
+                ],
+                { label: "Opublikuj galerię", url: `${siteUrl()}/panel/galeria/${id}` },
+              ),
+            }));
+          if (sent) {
+            meta.notices = { ...(meta.notices ?? {}), draft: new Date().toISOString() };
+            await saveMeta(id, meta);
+          }
+        }
+      }
+      continue;
+    }
+
+    if (!meta.expiresAt) continue;
     const expires = new Date(meta.expiresAt).getTime();
     const daysLeft = (expires - now) / DAY;
     const notices = { ...(meta.notices ?? {}) };
@@ -107,21 +164,7 @@ export async function GET(req: Request) {
       if (daysSince >= DELETE_AFTER) {
         log.push(`${id}: usunięcie galerii`);
         if (!dry) {
-          const to = await getOwnerEmail(id);
-          const keys = await listKeys(galleryPrefix(id));
-          for (let i = 0; i < keys.length; i += 10) {
-            await Promise.all(keys.slice(i, i + 10).map((Key) => r2.send(new DeleteObjectCommand({ Bucket: BUCKET, Key }))));
-          }
-          if (db) await db.from("galleries").delete().eq("id", id);
-          if (to) {
-            await sendEmail({
-              to,
-              subject: `Galeria „${meta.title}” została usunięta`,
-              html: emailLayout("Galeria usunięta", [
-                `Zgodnie z zasadami przechowywania usunęliśmy galerię „${meta.title}” i jej zdjęcia, ${DELETE_AFTER} dni po wygaśnięciu dostępu.`,
-              ]),
-            });
-          }
+          await removeGallery(id, meta, db, "expired");
           continue;
         }
       }

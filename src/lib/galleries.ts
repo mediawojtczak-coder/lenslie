@@ -34,7 +34,7 @@ export type GalleryMeta = {
   // Osobny link dla gości wesela
   guest?: GuestLink;
   // Wysłane automatyczne powiadomienia (daty), czyszczone po przedłużeniu
-  notices?: { expiring?: string; deleting?: string };
+  notices?: { expiring?: string; deleting?: string; draft?: string };
 };
 
 export type Downloads = "all" | "web" | "none";
@@ -111,4 +111,11 @@ export function hasAccess(id: string, meta: GalleryMeta | null, cookieValue?: st
   const expected = Buffer.from(accessToken(id, meta));
   const actual = Buffer.from(cookieValue);
   return expected.length === actual.length && timingSafeEqual(expected, actual);
+}
+
+// Wersje robocze (nieopublikowane): przypomnienie po 10 dniach, usunięcie po 20 dniach od utworzenia
+export const DRAFT_REMIND_DAYS = 10;
+export const DRAFT_DELETE_DAYS = 20;
+export function draftDeleteDate(meta: GalleryMeta) {
+  return new Date(new Date(meta.createdAt).getTime() + DRAFT_DELETE_DAYS * 24 * 3600 * 1000);
 }
