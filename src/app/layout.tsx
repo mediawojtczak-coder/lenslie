@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bodoni_Moda, Jost } from "next/font/google";
+import { EB_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
 
-const display = Bodoni_Moda({
+const display = EB_Garamond({
   subsets: ["latin", "latin-ext"],
   variable: "--font-display",
   display: "swap",
 });
 
-const body = Jost({
+const body = Manrope({
   subsets: ["latin", "latin-ext"],
   variable: "--font-body",
   display: "swap",

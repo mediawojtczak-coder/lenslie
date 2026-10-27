@@ -25,7 +25,7 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body), system-ui, sans-serif;
-  font-weight: 300;
+  font-weight: 400;
   font-size: 17px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
@@ -68,7 +68,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 24px 120px; }
 .hero { padding: 80px 0 72px; max-width: 900px; }
 .hero h1 {
   font-family: var(--font-display), Georgia, serif; font-weight: 400;
-  font-size: clamp(2.6rem, 6.4vw, 5.4rem); line-height: 1.04;
+  font-size: clamp(2.8rem, 6.8vw, 5.6rem); line-height: 1.06;
   letter-spacing: -.01em; margin: 0 0 32px;
 }
 .hero p { max-width: 34em; color: var(--taupe); margin: 0 0 40px; }
