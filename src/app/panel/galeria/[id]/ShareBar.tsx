@@ -19,12 +19,14 @@ export default function ShareBar({
   protectedByPassword,
   password,
   photoCount,
+  domain,
 }: {
   id: string;
   title: string;
   protectedByPassword: boolean;
   password: string | null;
   photoCount: number;
+  domain?: string | null;
 }) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -41,7 +43,7 @@ export default function ShareBar({
   useEffect(() => setOrigin(window.location.origin), []);
   useEffect(() => setPass(password ?? ""), [password]);
 
-  const link = `${origin}/galeria/${id}`;
+  const link = domain ? `https://${domain}/${id}` : `${origin}/galeria/${id}`;
   const currentPassword = password ?? "";
   const passwordChanged = pass.trim() !== currentPassword;
   const shareText = currentPassword

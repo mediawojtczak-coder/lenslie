@@ -10,6 +10,7 @@ import PublishBar from "./PublishBar";
 import PaymentNotice from "./PaymentNotice";
 import { getBilling } from "@/lib/billing";
 import { getWallet } from "@/lib/wallet";
+import { getDomainByUser, domainActive } from "@/lib/domains";
 import PlanBar from "./PlanBar";
 import PhotoManager from "./PhotoManager";
 import SettingsForm from "./SettingsForm";
@@ -36,6 +37,8 @@ export default async function ZarzadzanieGalerii({
   const { supabase, user } = await getUser();
   const billing = user ? await getBilling(user.id) : null;
   const balance = user ? (await getWallet(user.id)).balance : 0;
+  const domainRec = user ? await getDomainByUser(user.id).catch(() => null) : null;
+  const domain = domainActive(domainRec) ? domainRec!.host : null;
   const { data } = await supabase.from("galleries").select("id, title, created_at").eq("id", id).maybeSingle();
   if (!data) notFound();
   const gallery = data as { id: string; title: string; created_at: string };
@@ -111,6 +114,7 @@ export default async function ZarzadzanieGalerii({
               protectedByPassword={Boolean(meta?.passwordHash)}
               password={meta?.password ?? null}
               photoCount={photos.length}
+              domain={domain}
             />
             <PlanBar
               id={id}

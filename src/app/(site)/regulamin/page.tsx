@@ -80,6 +80,11 @@ export default function Regulamin() {
         </li>
         <li>Faktura za doładowanie Salda wystawiana jest przy wpłacie, na dane podane przez Fotografa.</li>
         <li>
+          Fotograf może wykupić dodatek „Własna domena” (99 zł za 12 miesięcy, płatne z Salda), aby Galerie były dostępne
+          pod jego subdomeną. Fotograf odpowiada za posiadanie domeny i ustawienie rekordu DNS. Po upływie opłaconego
+          okresu Galerie są nadal dostępne pod adresem Serwisu.
+        </li>
+        <li>
           Saldo nie podlega oprocentowaniu i nie wygasa. Niewykorzystaną część Salda (bez bonusu) Usługodawca zwraca na
           wniosek Fotografa przesłany na adres {COMPANY.email}, w ciągu 14 dni, na rachunek, z którego dokonano wpłaty.
           Bonus nie podlega wypłacie.

@@ -7,6 +7,8 @@ import { adminClient } from "@/lib/supabase/admin";
 import { getOwnerEmail } from "@/lib/profiles";
 import { sendEmail, emailLayout, siteUrl, notifyAdmins } from "@/lib/email";
 import { getReminders, lastReminderMail, markReminderMail } from "@/lib/reminders";
+import { listObjects } from "@/lib/photos";
+import { getDomainByHost, saveDomain, vercelRemoveDomain, DOMAIN_PRICE } from "@/lib/domains";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -174,6 +176,37 @@ export async function GET(req: Request) {
     if (!dry && JSON.stringify(notices) !== JSON.stringify(meta.notices ?? {})) {
       meta.notices = notices;
       await saveMeta(id, meta);
+    }
+  }
+
+  // Własne domeny: przypomnienie 7 dni przed końcem, odłączenie po wygaśnięciu
+  for (const o of await listObjects("domains/hosts/").catch(() => [])) {
+    const rec = await getDomainByHost(o.key.slice("domains/hosts/".length).replace(/\.json$/, ""));
+    if (!rec) continue;
+    const left = (new Date(rec.paidUntil).getTime() - now) / DAY;
+    if (left <= 0 && !rec.detached) {
+      log.push(`domena ${rec.host}: odłączenie`);
+      if (!dry) {
+        await vercelRemoveDomain(rec.host);
+        await saveDomain({ ...rec, detached: true });
+      }
+    } else if (left > 0 && left <= 7 && !rec.reminded) {
+      log.push(`domena ${rec.host}: przypomnienie`);
+      if (!dry && db) {
+        const to = (await db.auth.admin.getUserById(rec.uid)).data?.user?.email;
+        if (to) {
+          await sendEmail({
+            to,
+            subject: `Domena ${rec.host} wygasa ${dateFmt.format(new Date(rec.paidUntil))}`,
+            html: emailLayout(
+              "Własna domena wkrótce wygaśnie",
+              [`Twoje galerie pod adresem ${rec.host} działają do ${dateFmt.format(new Date(rec.paidUntil))}. Przedłuż domenę o rok za ${DOMAIN_PRICE} zł z salda, aby linki u klientów dalej działały.`],
+              { label: "Przedłuż domenę", url: `${siteUrl()}/panel/konto#domena` },
+            ),
+          });
+        }
+        await saveDomain({ ...rec, reminded: true });
+      }
     }
   }
 

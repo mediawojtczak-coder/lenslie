@@ -185,7 +185,7 @@ export default async function GalleryView({
       {!preview && <Track galleryId={id} mode={mode} />}
       <footer className="g-footer">
         {brand.studioName && <span>{brand.studioName} · </span>}
-        <Link href="/">{t.footer}</Link>
+        <a href="https://www.lenslie.com">{t.footer}</a>
       </footer>
     </>
   );
