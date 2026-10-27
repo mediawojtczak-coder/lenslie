@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json().catch(() => null)) as
-    | { gallery?: string; title?: string; clientPassword?: string; layout?: string }
+    | { gallery?: string; title?: string; clientPassword?: string; layout?: string; removePassword?: boolean }
     | null;
 
   const id = String(body?.gallery ?? "");
@@ -32,13 +32,14 @@ export async function POST(req: Request) {
     );
   }
 
-  const title = String(body?.title ?? "").trim().slice(0, 120) || id;
+  const requestedTitle = String(body?.title ?? "").trim().slice(0, 120);
 
   // Galeria należy do fotografa? (dzięki zasadom bezpieczeństwa widzi tylko swoje)
-  const { data: own } = await supabase.from("galleries").select("id").eq("id", id).maybeSingle();
+  const { data: own } = await supabase.from("galleries").select("id, title").eq("id", id).maybeSingle();
+  const title = requestedTitle || (own as { title?: string } | null)?.title || id;
 
   if (own) {
-    await supabase.from("galleries").update({ title }).eq("id", id);
+    if (requestedTitle) await supabase.from("galleries").update({ title }).eq("id", id);
   } else {
     const { error } = await supabase.from("galleries").insert({ id, title, owner_id: user.id });
     if (error) {
@@ -62,7 +63,12 @@ export async function POST(req: Request) {
   const meta: GalleryMeta = {
     title,
     createdAt: existing?.createdAt ?? new Date().toISOString(),
-    passwordHash: clientPassword ? hashPassword(clientPassword) : existing?.passwordHash,
+    passwordHash: body?.removePassword
+      ? undefined
+      : clientPassword
+        ? hashPassword(clientPassword)
+        : existing?.passwordHash,
+    password: body?.removePassword ? undefined : clientPassword || existing?.password,
     layout: requestedLayout ?? existing?.layout ?? "mozaika",
   };
   await saveMeta(id, meta);

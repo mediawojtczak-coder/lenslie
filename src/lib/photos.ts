@@ -7,19 +7,31 @@ export type Photo = {
   fileName: string;
   webUrl: string;
   downloadUrl: string;
+  size: number;
+  uploadedAt: string;
 };
 
-async function listKeys(prefix: string) {
-  const keys: string[] = [];
+type Obj = { key: string; size: number; modified: string };
+
+async function listObjects(prefix: string): Promise<Obj[]> {
+  const out: Obj[] = [];
   let token: string | undefined;
   do {
     const res = await r2.send(
       new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefix, ContinuationToken: token }),
     );
-    for (const obj of res.Contents ?? []) if (obj.Key) keys.push(obj.Key);
+    for (const obj of res.Contents ?? []) {
+      if (obj.Key) {
+        out.push({ key: obj.Key, size: obj.Size ?? 0, modified: obj.LastModified?.toISOString() ?? "" });
+      }
+    }
     token = res.IsTruncated ? res.NextContinuationToken : undefined;
   } while (token);
-  return keys;
+  return out;
+}
+
+export async function listKeys(prefix: string) {
+  return (await listObjects(prefix)).map((o) => o.key);
 }
 
 // Zwraca zdjęcia galerii z tymczasowymi linkami (ważnymi 2 godziny).
@@ -27,15 +39,16 @@ export async function getGalleryPhotos(id: string): Promise<Photo[]> {
   if (!process.env.R2_ENDPOINT) return [];
   const prefix = galleryPrefix(id);
 
-  const [webKeys, originalKeys] = await Promise.all([
-    listKeys(`${prefix}web/`),
-    listKeys(`${prefix}original/`),
+  const [webObjs, originalObjs] = await Promise.all([
+    listObjects(`${prefix}web/`),
+    listObjects(`${prefix}original/`),
   ]);
+  const webKeys = webObjs.map((o) => o.key);
 
-  const originals = new Map<string, string>();
-  for (const key of originalKeys) {
-    const file = key.slice(`${prefix}original/`.length);
-    originals.set(baseName(file), key);
+  const originals = new Map<string, Obj>();
+  for (const o of originalObjs) {
+    const file = o.key.slice(`${prefix}original/`.length);
+    originals.set(baseName(file), o);
   }
 
   webKeys.sort((a, b) => a.localeCompare(b, "pl", { numeric: true }));
@@ -44,7 +57,8 @@ export async function getGalleryPhotos(id: string): Promise<Photo[]> {
     webKeys.map(async (key) => {
       const file = key.slice(`${prefix}web/`.length);
       const name = baseName(file);
-      const originalKey = originals.get(name) ?? key;
+      const original = originals.get(name);
+      const originalKey = original?.key ?? key;
       const originalFile = originalKey.split("/").pop() ?? file;
 
       const [webUrl, downloadUrl] = await Promise.all([
@@ -60,7 +74,14 @@ export async function getGalleryPhotos(id: string): Promise<Photo[]> {
         ),
       ]);
 
-      return { name, fileName: originalFile, webUrl, downloadUrl };
+      return {
+        name,
+        fileName: originalFile,
+        webUrl,
+        downloadUrl,
+        size: original?.size ?? 0,
+        uploadedAt: original?.modified ?? "",
+      };
     }),
   );
 }

@@ -113,7 +113,7 @@ export default async function Panel({
           <ul className="card-grid">
             {visible.map((c) => (
               <li key={c.id} className="g-card">
-                <Link href={`/galeria/${c.id}`} className="g-cover" target="_blank">
+                <Link href={`/panel/galeria/${c.id}`} className="g-cover">
                   {c.coverUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={c.coverUrl} alt="" loading="lazy" />
@@ -123,15 +123,15 @@ export default async function Panel({
                   {c.protected && <span className="g-badge">Hasło</span>}
                 </Link>
                 <div className="g-info">
-                  <Link href={`/galeria/${c.id}`} className="g-title" target="_blank">
+                  <Link href={`/panel/galeria/${c.id}`} className="g-title">
                     {c.title}
                   </Link>
                   <p className="g-meta">
                     {photosLabel(c.count)} · {dateFmt.format(new Date(c.created_at))}
                   </p>
-                  <Link href={`/panel/nowa?galeria=${c.id}`} className="g-action">
-                    Dodaj zdjęcia
-                  </Link>
+                  <a href={`/galeria/${c.id}`} className="g-action" target="_blank" rel="noreferrer">
+                    Podgląd dla klienta
+                  </a>
                 </div>
               </li>
             ))}

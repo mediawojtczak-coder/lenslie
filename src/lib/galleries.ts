@@ -6,6 +6,8 @@ import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
 export type GalleryMeta = {
   title: string;
   passwordHash?: string;
+  // Hasło do udostępnienia klientowi (widoczne tylko dla fotografa w panelu)
+  password?: string;
   createdAt: string;
   layout?: "mozaika" | "siatka";
 };

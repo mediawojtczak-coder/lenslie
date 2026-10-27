@@ -64,7 +64,7 @@ export default function CreateGallery({ label, className }: { label: string; cla
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Nie udało się utworzyć galerii.");
       close();
-      router.push(`/panel/nowa?galeria=${slug}&nowa=1`);
+      router.push(`/panel/galeria/${slug}`);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nie udało się utworzyć galerii.");
@@ -161,7 +161,7 @@ export default function CreateGallery({ label, className }: { label: string; cla
               Anuluj
             </button>
             <button type="submit" className="btn" disabled={busy}>
-              {busy ? "Tworzę…" : "Utwórz i dodaj zdjęcia"}
+              {busy ? "Tworzę…" : "Utwórz galerię"}
             </button>
           </div>
         </form>
