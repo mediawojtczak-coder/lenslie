@@ -1,3 +1,4 @@
+import LoginShowcase from "@/components/LoginShowcase";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -73,12 +74,7 @@ export default async function Rejestracja({
         )}
       </div>
 
-      <div className="login-visual" aria-hidden="true">
-        <div className="print print-1"><span /></div>
-        <div className="print print-2"><span /></div>
-        <div className="print print-3"><span /></div>
-        <p className="visual-note">Każda sesja w swojej oprawie</p>
-      </div>
+      <LoginShowcase />
     </section>
   );
 }

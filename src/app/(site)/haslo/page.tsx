@@ -1,3 +1,4 @@
+import LoginShowcase from "@/components/LoginShowcase";
 import Link from "next/link";
 
 export default async function Haslo({ searchParams }: { searchParams: Promise<{ wyslano?: string }> }) {
@@ -27,11 +28,7 @@ export default async function Haslo({ searchParams }: { searchParams: Promise<{ 
           <Link href="/logowanie">Wróć do logowania</Link>
         </p>
       </div>
-      <div className="login-visual" aria-hidden="true">
-        <div className="print print-1"><span /></div>
-        <div className="print print-2"><span /></div>
-        <div className="print print-3"><span /></div>
-      </div>
+      <LoginShowcase />
     </section>
   );
 }
