@@ -17,10 +17,12 @@ function formatSize(bytes: number) {
 export default function PhotoManager({
   id,
   layout: initialLayout,
+  cover: initialCover,
   photos,
 }: {
   id: string;
   layout: "mozaika" | "siatka";
+  cover: string | null;
   photos: Item[];
 }) {
   const router = useRouter();
@@ -33,6 +35,8 @@ export default function PhotoManager({
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [viewer, setViewer] = useState<number | null>(null);
+  const [cover, setCover] = useState(initialCover);
+  const [savingCover, setSavingCover] = useState<string | null>(null);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -80,6 +84,27 @@ export default function PhotoManager({
     } finally {
       setUploading(null);
       if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  async function chooseCover(item: Item) {
+    const previous = cover;
+    setCover(item.name);
+    setSavingCover(item.name);
+    setError("");
+    try {
+      const res = await fetch(`/api/galleries/${id}/cover`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: item.name }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Nie udało się ustawić okładki.");
+      router.refresh();
+    } catch (err) {
+      setCover(previous);
+      setError(err instanceof Error ? err.message : "Nie udało się ustawić okładki.");
+    } finally {
+      setSavingCover(null);
     }
   }
 
@@ -185,11 +210,32 @@ export default function PhotoManager({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.url} alt={p.fileName} loading="lazy" />
               </button>
+              {cover === p.name && <span className="p-cover-badge">Okładka</span>}
               <div className="p-info">
                 <div>
                   <p className="p-name">{p.fileName}</p>
                   <p className="p-size">{formatSize(p.size)}</p>
                 </div>
+                <div className="p-btns">
+                <button
+                  type="button"
+                  className={cover === p.name ? "p-star active" : "p-star"}
+                  onClick={() => cover !== p.name && chooseCover(p)}
+                  disabled={Boolean(savingCover)}
+                  aria-pressed={cover === p.name}
+                  aria-label={cover === p.name ? `${p.fileName} jest okładką` : `Ustaw ${p.fileName} jako okładkę`}
+                  title={cover === p.name ? "To zdjęcie jest okładką" : "Ustaw jako okładkę"}
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                    <path
+                      d="m12 3.8 2.5 5.1 5.6.8-4 4 .9 5.6-5-2.7-5 2.7.9-5.6-4-4 5.6-.8z"
+                      fill={cover === p.name ? "currentColor" : "none"}
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
                 <button
                   type="button"
                   className="p-del"
@@ -208,6 +254,7 @@ export default function PhotoManager({
                     />
                   </svg>
                 </button>
+                </div>
               </div>
             </li>
           ))}

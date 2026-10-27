@@ -3,7 +3,7 @@ import SideLogout from "@/components/SideLogout";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { isValidGalleryId } from "@/lib/r2";
-import { getGalleryPhotos, getGalleryUsage, type Photo } from "@/lib/photos";
+import { getGalleryPhotos, getGalleryUsage, pickCover, type Photo } from "@/lib/photos";
 import { getMeta } from "@/lib/galleries";
 import ShareBar from "./ShareBar";
 import PlanBar from "./PlanBar";
@@ -36,6 +36,8 @@ export default async function ZarzadzanieGalerii({
     getGalleryUsage(id).catch(() => 0),
   ]);
 
+  const cover = pickCover(photos, meta?.cover);
+
   const tabs = [
     { key: "zdjecia", label: "Zdjęcia" },
     { key: "ustawienia", label: "Ustawienia" },
@@ -51,11 +53,11 @@ export default async function ZarzadzanieGalerii({
           <p className="g-side-meta">Utworzona {dateFmt.format(new Date(gallery.created_at))}</p>
         </div>
         <div className="g-side-cover">
-          {photos[0] ? (
+          {cover ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={photos[0].webUrl} alt="" />
+            <img src={cover.webUrl} alt="" />
           ) : (
-            <span>Okładką zostanie pierwsze zdjęcie</span>
+            <span>Okładką zostanie pierwsze zdjęcie. Zmienisz ją gwiazdką przy zdjęciu.</span>
           )}
         </div>
         <nav aria-label="Sekcje galerii">
@@ -102,6 +104,7 @@ export default async function ZarzadzanieGalerii({
           <PhotoManager
             id={id}
             layout={meta?.layout ?? "mozaika"}
+            cover={cover?.name ?? null}
             photos={photos.map((p) => ({
               name: p.name,
               fileName: p.fileName,

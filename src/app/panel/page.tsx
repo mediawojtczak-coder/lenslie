@@ -52,10 +52,8 @@ export default async function Panel({
 
   const cards: Card[] = await Promise.all(
     rows.map(async (g) => {
-      const [summary, meta] = await Promise.all([
-        getGallerySummary(g.id).catch(() => ({ count: 0, coverUrl: null })),
-        getMeta(g.id).catch(() => null),
-      ]);
+      const meta = await getMeta(g.id).catch(() => null);
+      const summary = await getGallerySummary(g.id, meta?.cover).catch(() => ({ count: 0, coverUrl: null }));
       return {
         ...g,
         ...summary,

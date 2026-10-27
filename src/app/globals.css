@@ -464,6 +464,16 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 .p-size { margin: 0; font-size: .72rem; color: var(--taupe); }
 .p-del { background: none; border: 0; color: var(--taupe); cursor: pointer; padding: 6px; border-radius: 6px; display: grid; place-items: center; }
 .p-del:hover { color: #a4483c; background: #fbefec; }
+.p-tile { position: relative; }
+.p-btns { display: flex; gap: 2px; flex: 0 0 auto; }
+.p-star { background: none; border: 0; color: var(--taupe); cursor: pointer; padding: 6px; border-radius: 6px; display: grid; place-items: center; }
+.p-star:hover { color: var(--brass); background: var(--tile-1); }
+.p-star.active { color: var(--brass); cursor: default; }
+.p-star.active:hover { background: none; }
+.p-cover-badge {
+  position: absolute; top: 10px; left: 10px; padding: 3px 10px; border-radius: 999px;
+  background: rgba(253, 252, 250, .94); font-size: .72rem; color: var(--ink); pointer-events: none;
+}
 
 .settings { display: grid; gap: 24px; max-width: 640px; }
 .settings-card { background: #fff; border-radius: 8px; padding: 28px 30px; box-shadow: 0 1px 2px rgba(59, 54, 51, .05); }
@@ -966,7 +976,18 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .g-side-title { font-size: 1.4rem; }
 
   .app-main { min-width: 0; padding: 18px 14px 56px; }
-  .card-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .g-cover { aspect-ratio: 1 / 1; }
+  .g-badge { top: 8px; left: 8px; padding: 2px 9px; font-size: .68rem; }
+  .g-info { padding: 10px 11px 12px; }
+  .g-title { font-size: 1.02rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .g-meta { margin: 4px 0 8px; font-size: .72rem; line-height: 1.45; }
+  .g-action { font-size: .76rem; }
+  .photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .p-info { padding: 8px 6px 8px 10px; gap: 4px; }
+  .p-name { max-width: 100%; font-size: .74rem; }
+  .p-info > div:first-child { min-width: 0; }
+  .p-star, .p-del { padding: 5px; }
   .share-bar, .plan-bar { padding: 14px; gap: 14px; }
   .share-actions, .plan-actions { width: 100%; }
   .share-actions .btn-small, .plan-actions .btn-small { flex: 1; text-align: center; }
@@ -976,7 +997,6 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .tool-right .btn-small { flex: 1 0 100%; text-align: center; }
   .tool-select { flex: 1; }
   .tool-select select { width: 100%; }
-  .p-name { max-width: 110px; }
   .settings-card { padding: 22px 18px; }
   .copy-row { flex-wrap: wrap; gap: 0 12px; }
 }

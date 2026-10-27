@@ -82,6 +82,7 @@ export async function POST(req: Request) {
     plan: existing?.plan,
     period: existing?.period,
     expiresAt: existing?.expiresAt,
+    cover: existing?.cover,
   };
 
   // Pakiet wybiera się raz, przy tworzeniu galerii. Późniejsze zmiany tylko przez /api/galleries/[id]/plan

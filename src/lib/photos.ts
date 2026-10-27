@@ -102,12 +102,17 @@ export async function getGalleryPhotos(id: string): Promise<Photo[]> {
 }
 
 // Okładka i liczba zdjęć galerii (do kafelków w panelu)
-export async function getGallerySummary(id: string): Promise<{ count: number; coverUrl: string | null }> {
+export async function getGallerySummary(
+  id: string,
+  cover?: string,
+): Promise<{ count: number; coverUrl: string | null }> {
   if (!process.env.R2_ENDPOINT) return { count: 0, coverUrl: null };
   const keys = await listKeys(`${galleryPrefix(id)}web/`);
   if (keys.length === 0) return { count: 0, coverUrl: null };
   keys.sort((a, b) => a.localeCompare(b, "pl", { numeric: true }));
-  const coverUrl = await getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: keys[0] }), {
+  // Wybrana okładka, a jeśli jej nie ma (np. usunięta) – pierwsze zdjęcie
+  const chosen = cover ? keys.find((k) => k === `${galleryPrefix(id)}web/${cover}.jpg`) : undefined;
+  const coverUrl = await getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: chosen ?? keys[0] }), {
     expiresIn: 7200,
   });
   return { count: keys.length, coverUrl };
@@ -118,4 +123,9 @@ export async function getGalleryUsage(id: string): Promise<number> {
   if (!process.env.R2_ENDPOINT) return 0;
   const objs = await listObjects(galleryPrefix(id));
   return objs.reduce((sum, o) => sum + o.size, 0);
+}
+
+// Zdjęcie główne galerii: wybrane przez fotografa albo pierwsze
+export function pickCover<T extends { name: string }>(photos: T[], cover?: string): T | undefined {
+  return (cover && photos.find((p) => p.name === cover)) || photos[0];
 }

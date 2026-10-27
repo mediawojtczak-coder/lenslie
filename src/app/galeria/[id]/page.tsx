@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { getGalleryPhotos, getGallerySummary, type Photo } from "@/lib/photos";
+import { getGalleryPhotos, getGallerySummary, pickCover, type Photo } from "@/lib/photos";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, hasAccess, accessCookieName, isExpired, type GalleryMeta } from "@/lib/galleries";
 import DownloadAll from "./DownloadAll";
@@ -63,7 +63,7 @@ export default async function Galeria({
   // Galeria chroniona hasłem: bez ważnego ciasteczka pokazujemy tylko okładkę z polem na hasło
   const cookieStore = await cookies();
   if (!error && !hasAccess(id, meta, cookieStore.get(accessCookieName(id))?.value)) {
-    const summary = await getGallerySummary(id).catch(() => ({ count: 0, coverUrl: null }));
+    const summary = await getGallerySummary(id, meta?.cover).catch(() => ({ count: 0, coverUrl: null }));
     return <Hero id={id} title={title} coverUrl={summary.coverUrl} locked error={Boolean(blad)} />;
   }
 
@@ -85,7 +85,7 @@ export default async function Galeria({
         id={id}
         title={title}
         subtitle={subtitle}
-        coverUrl={photos[0]?.webUrl ?? null}
+        coverUrl={pickCover(photos, meta?.cover)?.webUrl ?? null}
         locked={false}
         error={false}
       />

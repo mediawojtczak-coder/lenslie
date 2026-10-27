@@ -15,6 +15,8 @@ export type GalleryMeta = {
   plan?: PlanId;
   period?: Period;
   expiresAt?: string;
+  // Zdjęcie główne (okładka) – nazwa zdjęcia bez rozszerzenia; brak = pierwsze zdjęcie
+  cover?: string;
 };
 
 export function isExpired(meta: GalleryMeta | null) {
