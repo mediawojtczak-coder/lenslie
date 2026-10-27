@@ -15,10 +15,25 @@ export default function LoginForm() {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (error) {
-      setError("Nieprawidłowy e-mail lub hasło.");
+    try {
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+        throw new Error("Brak kluczy Supabase w tej wersji strony. Zrób Redeploy w Vercelu.");
+      }
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error) {
+        const msg =
+          error.message === "Invalid login credentials"
+            ? "Nieprawidłowy e-mail lub hasło."
+            : error.message === "Email not confirmed"
+              ? "Konto nie jest potwierdzone. W Supabase zaznacz potwierdzenie użytkownika."
+              : `Błąd logowania: ${error.message}`;
+        setError(msg);
+        setBusy(false);
+        return;
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nie udało się połączyć z serwerem logowania.");
       setBusy(false);
       return;
     }
