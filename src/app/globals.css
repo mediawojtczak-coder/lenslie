@@ -1567,3 +1567,10 @@ ol.stat-list { counter-reset: s; }
 .order-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
 .sale-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
 @media (max-width: 760px) { .sale-fields { grid-template-columns: 1fr; } }
+.fav-count.full { color: #fff; }
+.fav-toast {
+  position: fixed; left: 50%; bottom: 84px; z-index: 31; transform: translateX(-50%); margin: 0;
+  max-width: min(440px, calc(100vw - 32px)); padding: 12px 18px; border-radius: 10px; text-align: center;
+  background: #fff; color: var(--ink); font-size: .88rem; line-height: 1.45; box-shadow: 0 12px 34px rgba(20, 18, 17, .18);
+  animation: dl-in .2s ease-out;
+}

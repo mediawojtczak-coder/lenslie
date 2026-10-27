@@ -71,6 +71,7 @@ export default function PhotoGrid({
   galleryId,
   favorites,
   sale = null,
+  limit = null,
   lang = "pl",
 }: {
   groups: Group[];
@@ -83,8 +84,12 @@ export default function PhotoGrid({
   // Ulubione: null = funkcja wyłączona (np. link dla gości)
   favorites?: Favorites | null;
   sale?: SaleInfo | null;
+  // Limit wyboru ulubionych, np. 60 zdjęć do albumu
+  limit?: { max: number; label: string } | null;
   lang?: Lang;
 }) {
+  const [toast, setToast] = useState("");
+  const limitMax = !sale && limit && limit.max > 0 ? limit.max : 0;
   const t = T[lang];
   const [order, setOrder] = useState(sale?.order ?? null);
   const locked = Boolean(order);
@@ -152,6 +157,11 @@ export default function PhotoGrid({
       startRef.current?.showModal();
       return;
     }
+    if (limitMax && !favs.has(name) && favs.size >= limitMax) {
+      setToast(t.limitReached(limitMax));
+      setTimeout(() => setToast(""), 3500);
+      return;
+    }
     // Od razu zmieniamy serduszko, a serwer potwierdza w tle
     setFavs((prev) => {
       const next = new Set(prev);
@@ -163,6 +173,15 @@ export default function PhotoGrid({
       const data = await favApi({ action: "toggle", photo: name });
       setFavs(new Set(data.photos));
     } catch (err) {
+      if ((err as { code?: string }).code === "LIMIT") {
+        setFavs((prev) => {
+          const next = new Set(prev);
+          next.delete(name);
+          return next;
+        });
+        setToast(t.limitReached(limitMax));
+        setTimeout(() => setToast(""), 3500);
+      }
       if ((err as { code?: string }).code === "NO_SELECTION") {
         setWho(null);
         setFavs(new Set());
@@ -458,10 +477,16 @@ export default function PhotoGrid({
         </div>
       )}
 
+      {toast && (
+        <p className="fav-toast" role="status">
+          {toast}
+        </p>
+      )}
+
       {!sale && favorites && pastCover && (favs.size > 0 || onlyFavs) && (
         <div className="fav-bar" role="region" aria-label={t.favorites}>
-          <span className="fav-count">
-            <Heart on size={16} /> {favs.size}
+          <span className={limitMax && favs.size >= limitMax ? "fav-count full" : "fav-count"}>
+            <Heart on size={16} /> {limitMax ? `${favs.size} / ${limitMax}` : favs.size}
           </span>
           <button type="button" onClick={() => setOnlyFavs((v) => !v)}>
             {onlyFavs ? t.showAll : t.showFavs}
@@ -499,7 +524,11 @@ export default function PhotoGrid({
             >
               <h2 id="fav-start">{sale ? t.saleTitle : t.favTitle}</h2>
               <p className="modal-lead">
-                {sale ? t.saleLead(sale.included, cash(sale.extraPrice), sale.extraPrice === 0) : t.favLead}
+                {sale
+                  ? t.saleLead(sale.included, cash(sale.extraPrice), sale.extraPrice === 0)
+                  : limitMax
+                    ? t.limitLead(limitMax, limit?.label ?? "")
+                    : t.favLead}
               </p>
               <label htmlFor="fav-name">{t.name}</label>
               <input id="fav-name" name="name" required maxLength={80} autoComplete="given-name" autoFocus />

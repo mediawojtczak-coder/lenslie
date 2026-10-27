@@ -9,6 +9,7 @@ export const runtime = "nodejs";
 
 type Body =
   | { action: "save"; sale?: unknown }
+  | { action: "limit"; max?: unknown; label?: unknown }
   | { action: "paid" | "deliver" | "reopen"; selection?: string };
 
 // Sprzedaż zdjęć: ustawienia pakietu i obsługa zamówień przez fotografa
@@ -27,6 +28,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     meta.sale = sale;
     await saveMeta(id, meta);
     return NextResponse.json({ ok: true, sale });
+  }
+
+  if (body.action === "limit") {
+    const max = Math.floor(Number(body.max) || 0);
+    if (max < 0 || max > 5000) return NextResponse.json({ error: await E("Sprawdź limit zdjęć.") }, { status: 400 });
+    meta.pickLimit = max > 0 ? { max, label: String(body.label ?? "").trim().slice(0, 60) } : undefined;
+    await saveMeta(id, meta);
+    return NextResponse.json({ ok: true });
   }
 
   const selection = String(body.selection ?? "");

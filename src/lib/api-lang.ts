@@ -46,6 +46,7 @@ const EN: Record<string, string> = {
   "Wybierz okres.": "Choose a period.",
   "Sprawdź liczbę zdjęć w pakiecie i cenę.": "Check the number of included photos and the price.",
   "Nie znaleziono zamówienia.": "Order not found.",
+  "Sprawdź limit zdjęć.": "Check the photo limit.",
   "Numer konta powinien mieć 26 cyfr.": "The bank account number should have 26 digits.",
   "Numer telefonu do BLIK powinien mieć 9 cyfr.": "The BLIK phone number should have 9 digits.",
   "Podaj numer konta albo telefon do BLIK.": "Enter a bank account number or a BLIK phone number.",

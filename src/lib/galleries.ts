@@ -36,6 +36,8 @@ export type GalleryMeta = {
   guest?: GuestLink;
   // Sprzedaż zdjęć: pakiet w cenie sesji i dopłata za dodatkowe zdjęcia
   sale?: Sale;
+  // Limit wyboru ulubionych (np. 60 zdjęć do albumu)
+  pickLimit?: { max: number; label: string };
   // Wysłane automatyczne powiadomienia (daty), czyszczone po przedłużeniu
   // Język galerii widzianej przez klienta
   lang?: "pl" | "en";

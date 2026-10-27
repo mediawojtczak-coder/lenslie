@@ -117,6 +117,9 @@ export const T = {
     downloadMine: "Pobierz moje zdjęcia",
     showMine: "Pokaż moje",
     emailNotify: "E-mail – damy znać, gdy zdjęcia będą gotowe",
+    limitLead: (max: number, label: string) =>
+      `Zaznacz serduszkiem do ${max} zdjęć${label ? ` ${label}` : ""}. Licznik na dole pokaże, ile jeszcze możesz wybrać. Fotograf zobaczy Twój wybór.`,
+    limitReached: (max: number) => `Wybrano już ${photosPl(max)} – to limit. Odznacz któreś, aby dodać inne.`,
   },
   en: {
     locale: "en-GB",
@@ -223,6 +226,9 @@ export const T = {
     downloadMine: "Download my photos",
     showMine: "Show mine",
     emailNotify: "Email – we'll let you know when your photos are ready",
+    limitLead: (max: number, label: string) =>
+      `Tap the heart on up to ${max} photos${label ? ` ${label}` : ""}. The counter at the bottom shows how many you can still choose. Your photographer will see your selection.`,
+    limitReached: (max: number) => `You've chosen ${max} photos – that's the limit. Unselect one to add another.`,
   },
 };
 

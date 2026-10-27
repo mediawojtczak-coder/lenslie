@@ -102,6 +102,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const photo = String(body.photo ?? "").slice(0, 200);
     if (!photo) return NextResponse.json({ error: "Nieprawidłowe zdjęcie." }, { status: 400 });
     const set = new Set(sel.photos ?? []);
+    const limit = !saleOn(meta) ? meta.pickLimit?.max ?? 0 : 0;
+    if (!set.has(photo) && limit > 0 && set.size >= limit) {
+      return NextResponse.json(
+        { error: en ? `You can choose up to ${limit} photos.` : `Możesz wybrać najwyżej ${limit} zdjęć.`, code: "LIMIT", photos: [...set] },
+        { status: 409 },
+      );
+    }
     if (set.has(photo)) set.delete(photo);
     else if (set.size < 5000) set.add(photo);
     const photos = [...set];

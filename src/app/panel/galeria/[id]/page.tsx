@@ -21,6 +21,7 @@ import GuestCard from "./GuestCard";
 import SelectionsTab from "./SelectionsTab";
 import StatsTab from "./StatsTab";
 import SaleCard from "./SaleCard";
+import PickLimitCard from "./PickLimitCard";
 import { getPayout } from "@/lib/sales";
 
 export const dynamic = "force-dynamic";
@@ -169,6 +170,7 @@ export default async function ZarzadzanieGalerii({
               photoCount={photos.length}
             />
             <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} />
+            <PickLimitCard id={id} limit={meta?.pickLimit ?? null} selling={Boolean(meta?.sale?.enabled)} />
             <GuestCard id={id} guest={meta?.guest ?? null} sections={meta?.sections ?? []} />
           </SettingsForm>
         ) : (

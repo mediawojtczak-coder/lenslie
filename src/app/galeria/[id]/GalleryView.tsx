@@ -221,6 +221,7 @@ export default async function GalleryView({
             galleryId={id}
             favorites={favorites}
             sale={sale}
+            limit={meta?.pickLimit ?? null}
             lang={lang}
           />
         )}
