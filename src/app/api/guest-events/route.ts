@@ -14,7 +14,11 @@ import {
   deleteGuestEvent,
   deleteGuestPhoto,
   GUEST_PRICE,
+  guestCoverKey,
 } from "@/lib/guest-events";
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { r2, BUCKET } from "@/lib/r2";
 
 export const runtime = "nodejs";
 
@@ -94,6 +98,21 @@ export async function POST(req: Request) {
       } catch (err) {
         return NextResponse.json({ error: await E(err instanceof Error ? err.message : "Błąd płatności.") }, { status: 502 });
       }
+    }
+    case "cover-url": {
+      const url = await getSignedUrl(r2, new PutObjectCommand({ Bucket: BUCKET, Key: guestCoverKey(e.id), ContentType: "image/jpeg" }), { expiresIn: 600 });
+      return NextResponse.json({ ok: true, url });
+    }
+    case "cover-done": {
+      e.cover = new Date().toISOString();
+      await saveGuestEvent(e);
+      return NextResponse.json({ ok: true });
+    }
+    case "cover-remove": {
+      await r2.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: guestCoverKey(e.id) })).catch(() => undefined);
+      e.cover = undefined;
+      await saveGuestEvent(e);
+      return NextResponse.json({ ok: true });
     }
     case "delete-photo": {
       const name = String(body.name ?? "");

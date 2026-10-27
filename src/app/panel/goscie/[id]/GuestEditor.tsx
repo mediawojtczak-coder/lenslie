@@ -9,6 +9,7 @@ import PayButtons from "@/components/PayButtons";
 import InvoiceFields from "@/components/InvoiceFields";
 import DownloadAll from "@/app/galeria/[id]/DownloadAll";
 import type { Billing } from "@/lib/billing";
+import { canvasToJpeg } from "@/lib/watermark-client";
 
 type Ev = { id: string; title: string; date: string; welcome: string; lang: "pl" | "en"; showWall: boolean; allowDownload: boolean };
 type P = { name: string; url: string; downloadUrl: string; webDownloadUrl: string; fileName: string; webFileName: string };
@@ -28,6 +29,7 @@ export default function GuestEditor({
   expiresAt,
   deleteOn,
   publicUrl,
+  cover,
   price,
   limitGb,
   used,
@@ -40,6 +42,7 @@ export default function GuestEditor({
   expiresAt: string | null;
   deleteOn: string | null;
   publicUrl: string;
+  cover: string | null;
   price: number;
   limitGb: number;
   used: number;
@@ -61,6 +64,31 @@ export default function GuestEditor({
   useEffect(() => {
     QRCode.toDataURL(publicUrl, { width: 640, margin: 1, color: { dark: "#3b3633", light: "#ffffff" } }).then(setQr).catch(() => setQr(""));
   }, [publicUrl]);
+
+  // Okładka: zmniejszamy w przeglądarce do 2400 px i wysyłamy prosto do magazynu
+  async function uploadCover(file?: File) {
+    if (!file) return;
+    setBusy("cover");
+    setMsg(null);
+    try {
+      const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+      const scale = Math.min(1, 2400 / Math.max(bmp.width, bmp.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bmp.width * scale);
+      canvas.height = Math.round(bmp.height * scale);
+      canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+      const blob = await canvasToJpeg(canvas);
+      const { url } = await api({ id: ev.id, action: "cover-url" });
+      const put = await fetch(url, { method: "PUT", body: blob, headers: { "Content-Type": "image/jpeg" } });
+      if (!put.ok) throw new Error(t("Nie udało się przesłać zdjęcia.", "Could not upload the photo."));
+      await api({ id: ev.id, action: "cover-done" });
+      router.refresh();
+    } catch (err) {
+      setMsg({ where: "cover", ok: false, text: err instanceof Error ? err.message : "Error" });
+    } finally {
+      setBusy("");
+    }
+  }
 
   async function run(where: string, body: Record<string, unknown>, ok?: string) {
     setBusy(where);
@@ -133,6 +161,35 @@ export default function GuestEditor({
         </section>
       )}
 
+      <section className="settings-card">
+        <h2>{t("Zdjęcie na okładkę", "Cover photo")}</h2>
+        <div className="qr-panel-row">
+          <div className="gu-cover-prev">
+            {cover ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={cover} alt="" />
+            ) : (
+              <span>{t("Brak okładki", "No cover")}</span>
+            )}
+          </div>
+          <div>
+            <p>{t("Np. portret pary z sesji narzeczeńskiej. Goście zobaczą je na całą szerokość ekranu, z imionami pary na zdjęciu.", "E.g. a portrait of the couple from the engagement shoot. Guests see it full-width with the couple's names on top.")}</p>
+            <div className="order-actions">
+              <label className="btn btn-small gu-file">
+                {busy === "cover" ? t("Przesyłam…", "Uploading…") : cover ? t("Zmień zdjęcie", "Change photo") : t("Dodaj zdjęcie", "Add photo")}
+                <input type="file" accept="image/*" hidden disabled={Boolean(busy)} onChange={(e) => uploadCover(e.target.files?.[0])} />
+              </label>
+              {cover && (
+                <button type="button" className="as-link" disabled={Boolean(busy)} onClick={() => run("cover", { action: "cover-remove" })}>
+                  {t("Usuń", "Remove")}
+                </button>
+              )}
+            </div>
+            {note("cover")}
+          </div>
+        </div>
+      </section>
+
       <section className="settings-card qr-panel">
         <h2>{t("Kod QR na stoły", "QR code for the tables")}</h2>
         <div className="qr-panel-row">
@@ -174,7 +231,7 @@ export default function GuestEditor({
       </section>
 
       <section className="settings-card">
-        <div className="gu-wall-head">
+        <div className="gu-admin-head">
           <h2 style={{ margin: 0 }}>
             {t("Zdjęcia gości", "Guest photos")} <span className="side-count">{photos.length}</span>
           </h2>

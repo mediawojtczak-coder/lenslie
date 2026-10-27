@@ -1663,27 +1663,78 @@ ol.stat-list { counter-reset: s; }
   .top nav > .lang-switch { grid-area: lang; justify-self: end; }
 }
 
-/* ===== Zdjęcia od gości – strona dla gości ===== */
-.gu-head { max-width: 620px; margin: 0 auto 28px; text-align: center; }
-.gu-studio { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--taupe); margin: 0 0 22px; }
-.gu-head h1 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: clamp(2.2rem, 7vw, 3.4rem); line-height: 1.08; margin: 0 0 10px; }
-.gu-date { color: var(--taupe); margin: 0; }
-.gu-upload { gap: 14px; }
-.gu-welcome { color: var(--ink) !important; white-space: pre-line; font-size: 1rem; }
-.gu-btn { display: inline-flex; align-items: center; gap: 10px; padding: 16px 32px; font-size: 1rem; }
-.gu-note { font-size: .85rem; }
-.gu-progress { width: 100%; max-width: 360px; }
-.gu-progress p { color: var(--ink) !important; margin-bottom: 10px !important; }
-.gu-progress small { color: var(--taupe); font-size: .8rem; display: block; margin-top: 10px; }
-.gu-wall { max-width: 1100px; margin: 44px auto 0; }
-.gu-wall-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 4px 16px; flex-wrap: wrap; }
-.gu-wall-head h2 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.5rem; margin: 0; }
-.gu-wall-head h2 span { color: var(--taupe); font-size: 1rem; margin-left: 6px; }
-.gu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; }
-.gu-tile { padding: 0; border: 0; background: var(--blush); aspect-ratio: 1; overflow: hidden; cursor: zoom-in; border-radius: 4px; }
-.gu-tile img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s; }
+/* ===== Zdjęcia od gości – strona dla gości (ślubna) ===== */
+.gu-page {
+  min-height: 100vh; padding-bottom: 40px; color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #f6e9e3 0%, transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, #f3ece4 0%, transparent 55%),
+    #fcf9f6;
+}
+.gu-hero { position: relative; text-align: center; padding: 72px 20px 120px; overflow: hidden; }
+.gu-hero.has-cover { min-height: 78svh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 140px; color: #fff; }
+.gu-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.gu-hero.has-cover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(30, 24, 21, .05) 30%, rgba(30, 24, 21, .55) 100%); }
+.gu-hero-in { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; }
+.gu-studio { font-size: .7rem; letter-spacing: .32em; text-transform: uppercase; margin: 0 0 26px; opacity: .75; }
+.gu-sprig { width: 190px; height: 34px; display: block; margin: 0 auto 6px; fill: none; stroke: #c9a89b; stroke-width: 1; stroke-linecap: round; }
+.gu-hero.has-cover .gu-sprig { stroke: rgba(255, 255, 255, .8); }
+.gu-sprig.small { width: 130px; height: 24px; margin-bottom: 4px; }
+.gu-names {
+  font-family: var(--font-script), var(--font-display), Georgia, serif; font-weight: 400;
+  font-size: clamp(3.4rem, 12vw, 6.6rem); line-height: 1.05; margin: 0 0 14px; letter-spacing: 0;
+}
+.gu-hero.has-cover .gu-names { text-shadow: 0 2px 24px rgba(0, 0, 0, .25); }
+.gu-date { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 0; font-family: var(--font-display), Georgia, serif; font-size: 1.05rem; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+.gu-date span { width: 42px; height: 1px; background: currentColor; opacity: .5; }
+.gu-card {
+  position: relative; z-index: 2; max-width: 600px; margin: -80px auto 0; padding: 44px 40px 36px; text-align: center;
+  background: rgba(255, 255, 255, .96); border-radius: 18px; box-shadow: 0 30px 70px -30px rgba(80, 55, 45, .28), 0 0 0 1px rgba(201, 168, 155, .18);
+}
+.gu-card::before { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(201, 168, 155, .3); border-radius: 12px; pointer-events: none; }
+.gu-card h2 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.8rem; margin: 0 0 10px; }
+.gu-card > p { color: var(--taupe); line-height: 1.6; margin: 0; }
+.gu-script { font-family: var(--font-script), Georgia, serif; font-size: 2.3rem; line-height: 1.1; color: #b9877a !important; margin: 0 0 12px !important; }
+.gu-welcome { font-family: var(--font-display), Georgia, serif; font-style: italic; font-size: 1.15rem; color: var(--ink) !important; white-space: pre-line; margin: 0 auto 30px !important; max-width: 440px; }
+.gu-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 18px 40px; border: 0; border-radius: 999px;
+  background: #3b3633; color: #fff; font: inherit; font-size: 1rem; letter-spacing: .04em; cursor: pointer;
+  box-shadow: 0 14px 30px -12px rgba(59, 54, 51, .55); transition: transform .15s, box-shadow .15s;
+}
+.gu-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 18px 34px -12px rgba(59, 54, 51, .6); }
+.gu-btn:disabled { opacity: .5; cursor: default; }
+.gu-thanks { margin: 18px 0 0 !important; font-family: var(--font-display), Georgia, serif; font-size: 1.15rem; color: #7d5a4f !important; }
+.gu-progress { max-width: 340px; margin: 0 auto; }
+.gu-progress p { color: var(--ink) !important; margin: 0 0 12px !important; font-size: .95rem; }
+.gu-progress small { display: block; color: var(--taupe); font-size: .8rem; margin-top: 12px; }
+.gu-bar { height: 4px; border-radius: 99px; background: #f1e6e1; overflow: hidden; }
+.gu-bar span { display: block; height: 100%; background: linear-gradient(90deg, #d9b3a6, #b9877a); transition: width .3s; }
+.gu-steps { list-style: none; display: flex; justify-content: center; gap: 10px 26px; flex-wrap: wrap; margin: 30px 0 0; padding: 22px 0 0; border-top: 1px solid #f1e6e1; color: var(--taupe); font-size: .8rem; }
+.gu-steps li { display: flex; align-items: center; gap: 8px; }
+.gu-steps span { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1px solid #d9b3a6; color: #b9877a; font-size: .72rem; }
+.gu-wall { max-width: 1180px; margin: 72px auto 0; padding: 0 16px; }
+.gu-wall-head { text-align: center; margin-bottom: 28px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.gu-wall-head h2 { font-family: var(--font-script), Georgia, serif; font-weight: 400; font-size: 3rem; line-height: 1.1; margin: 0; }
+.gu-wall-head p { color: var(--taupe); font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 14px; }
+.gu-masonry { columns: 4 240px; column-gap: 10px; }
+.gu-tile { display: block; width: 100%; padding: 0; border: 0; margin: 0 0 10px; background: #f3e9e4; border-radius: 10px; overflow: hidden; cursor: zoom-in; break-inside: avoid; }
+.gu-tile img { width: 100%; height: auto; display: block; transition: transform .4s; }
 .gu-tile:hover img { transform: scale(1.03); }
-@media (max-width: 600px) { .gu-grid { grid-template-columns: repeat(3, 1fr); gap: 3px; } .gu-btn { width: 100%; justify-content: center; } }
+.gu-foot { text-align: center; margin-top: 64px; font-size: .78rem; letter-spacing: .06em; }
+.gu-foot a { color: var(--taupe); text-decoration: none; }
+@media (max-width: 600px) {
+  .gu-hero { padding: 56px 18px 100px; }
+  .gu-hero.has-cover { min-height: 72svh; padding-bottom: 110px; }
+  .gu-card { margin: -70px 14px 0; padding: 36px 22px 28px; }
+  .gu-btn { width: 100%; }
+  .gu-masonry { columns: 2; column-gap: 6px; }
+  .gu-tile { margin-bottom: 6px; border-radius: 6px; }
+  .gu-date { font-size: .9rem; gap: 12px; }
+}
+/* Panel: siatka zdjęć gości */
+.gu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+.gu-grid .gu-tile { aspect-ratio: 1; margin: 0; border-radius: 6px; }
+.gu-grid .gu-tile img { height: 100%; object-fit: cover; }
 
 /* ===== Kartka z kodem QR do druku ===== */
 .qr-sheet { display: grid; grid-template-columns: 1fr 1fr; gap: 0; background: #fff; max-width: 210mm; margin: 0 auto; }
@@ -1710,3 +1761,11 @@ ol.stat-list { counter-reset: s; }
 .gu-admin .photo-del { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(253, 252, 250, .92); color: var(--ink); cursor: pointer; font-size: 1.1rem; line-height: 1; }
 @media print { .qr-print { padding: 0; } .qr-card { height: 148.5mm; } }
 .qr-panel-row .qr-img { margin: 0; }
+.gu-admin-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.gu-cover-prev { width: 220px; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: var(--blush); display: grid; place-items: center; flex: 0 0 auto; }
+.gu-cover-prev img { width: 100%; height: 100%; object-fit: cover; }
+.gu-cover-prev span { color: var(--taupe); font-size: .85rem; }
+.gu-file { cursor: pointer; margin: 0; display: inline-block; }
+main.gu-page, main.bk-page { max-width: none; margin: 0; padding-left: 0; padding-right: 0; }
+main.bk-page { padding: 56px 20px 40px; }
+main.gu-page { padding: 0 0 40px; }

@@ -8,7 +8,7 @@ import { siteUrl } from "@/lib/email";
 import { getBilling } from "@/lib/billing";
 import { getWallet } from "@/lib/wallet";
 import { getOrder } from "@/lib/p24";
-import { getGuestEvent, getGuestPhotos, guestActive, guestUsage, GUEST_PRICE, GUEST_LIMIT_GB, GUEST_DELETE_AFTER } from "@/lib/guest-events";
+import { getGuestEvent, getGuestPhotos, guestActive, guestUsage, guestCoverUrl, GUEST_PRICE, GUEST_LIMIT_GB, GUEST_DELETE_AFTER } from "@/lib/guest-events";
 import RefreshSoon from "../../galeria/[id]/RefreshSoon";
 import GuestEditor from "./GuestEditor";
 
@@ -30,6 +30,7 @@ export default async function Wydarzenie({ params, searchParams }: { params: Pro
     platnosc ? getOrder(platnosc) : Promise.resolve(null),
   ]);
   const active = guestActive(e);
+  const cover = await guestCoverUrl(e);
   const deleteOn = e.expiresAt ? new Date(new Date(e.expiresAt).getTime() + GUEST_DELETE_AFTER * 24 * 3600 * 1000).toISOString() : null;
 
   return (
@@ -55,6 +56,7 @@ export default async function Wydarzenie({ params, searchParams }: { params: Pro
           expiresAt={e.expiresAt ?? null}
           deleteOn={deleteOn}
           publicUrl={`${siteUrl()}/goscie/${e.id}`}
+          cover={cover}
           price={GUEST_PRICE}
           limitGb={GUEST_LIMIT_GB}
           used={used}

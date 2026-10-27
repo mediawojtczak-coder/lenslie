@@ -26,6 +26,8 @@ export type GuestEvent = {
   paidAt?: string;
   expiresAt?: string;
   warned?: string;
+  // Zdjęcie na okładkę strony gości (guests/<id>/cover.jpg) – znacznik czasu do odświeżania
+  cover?: string;
 };
 
 export type GuestPhoto = { name: string; webUrl: string; downloadUrl: string; webDownloadUrl: string; fileName: string; webFileName: string; at: string; size: number };
@@ -143,6 +145,12 @@ export async function getGuestPhotos(id: string): Promise<GuestPhoto[]> {
       return { name, webUrl, downloadUrl, webDownloadUrl, fileName, webFileName, at: w.modified, size: (orig?.size ?? 0) + w.size };
     }),
   );
+}
+
+export const guestCoverKey = (id: string) => `${guestPrefix(id)}cover.jpg`;
+export async function guestCoverUrl(e: GuestEvent) {
+  if (!e.cover) return null;
+  return getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: guestCoverKey(e.id) }), { expiresIn: 7200 }).catch(() => null);
 }
 
 export async function deleteGuestPhoto(id: string, name: string) {
