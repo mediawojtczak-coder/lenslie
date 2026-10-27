@@ -2,6 +2,7 @@ import { adminClient } from "@/lib/supabase/admin";
 import { listObjects } from "@/lib/photos";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
 import { getPlan, formatBytes } from "@/lib/plans";
+import ConfirmButton from "./ConfirmButton";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +18,8 @@ const MAIL: Record<string, string> = {
   blad: "Resend odrzucił wysyłkę. Sprawdź, czy klucz ma dostęp do domeny lenslie.com i czy domena jest zweryfikowana.",
 };
 
-export default async function Admin({ searchParams }: { searchParams: Promise<{ mail?: string; reset?: string }> }) {
-  const { mail, reset } = await searchParams;
+export default async function Admin({ searchParams }: { searchParams: Promise<{ mail?: string; reset?: string; usuniete?: string }> }) {
+  const { mail, reset, usuniete } = await searchParams;
   const db = adminClient();
   if (!db) {
     return (
@@ -83,6 +84,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         </div>
       </div>
       {mail && MAIL[mail] && <p className={mail === "wyslany" ? "success-box" : "warn-inline"}>{MAIL[mail]}</p>}
+      {usuniete && <p className="success-box">{usuniete}</p>}
       {reset && <p className={reset.startsWith("OK") ? "success-box" : "warn-inline"}>Reset hasła: {reset}</p>}
       <div className="stat-tiles admin-tiles">
         {tiles.map((t) => (
@@ -165,9 +167,22 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </table>
         </div>
         {orphans.length > 0 && (
-          <p className="hint-inline">
-            Pliki w magazynie bez galerii w bazie: {orphans.map((o) => `${o} (${formatBytes(usage.get(o) ?? 0)})`).join(", ")}.
-          </p>
+          <div className="orphans">
+            <p className="hint-inline">Pliki w magazynie bez galerii w bazie (pozostałości po testach):</p>
+            <ul>
+              {orphans.map((o) => (
+                <li key={o}>
+                  <span>
+                    {o} · {formatBytes(usage.get(o) ?? 0)}
+                  </span>
+                  <form method="post" action="/api/admin/orphan" data-confirm={o}>
+                    <input type="hidden" name="id" value={o} />
+                    <ConfirmButton message={`Usunąć na stałe wszystkie pliki „${o}” z magazynu?`}>Usuń pliki</ConfirmButton>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
     </main>
