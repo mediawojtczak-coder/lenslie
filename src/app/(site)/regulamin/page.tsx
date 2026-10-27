@@ -86,6 +86,20 @@ export default function Regulamin() {
         </li>
       </ol>
 
+      <h2>§ 6a. Program poleceń</h2>
+      <ol>
+        <li>Fotograf może polecić Serwis innym osobom za pomocą indywidualnego linku z zakładki „Moje konto”.</li>
+        <li>
+          Gdy osoba, która założyła Konto z linku polecającego, wpłaci łącznie co najmniej 30 zł, Fotograf polecający i
+          osoba polecona otrzymują po 20 zł bonusu na Saldo konta. Bonus przyznawany jest jednorazowo za każdą poleconą osobę.
+        </li>
+        <li>Bonus można wykorzystać wyłącznie na usługi Serwisu; nie podlega wypłacie ani zwrotowi.</li>
+        <li>
+          Zakładanie Kont w celu uzyskania bonusu (np. polecanie samego siebie) jest zabronione. Usługodawca może w takim
+          przypadku anulować bonus.
+        </li>
+      </ol>
+
       <h2>§ 7. Treści i prawa autorskie</h2>
       <ol>
         <li>

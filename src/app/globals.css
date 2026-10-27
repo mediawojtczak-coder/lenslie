@@ -1516,3 +1516,4 @@ ol.stat-list { counter-reset: s; }
 .rev-label { margin-top: 6px; font-size: .68rem; color: var(--taupe); white-space: nowrap; }
 #sprzedaz .stat-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 @media (max-width: 860px) { #sprzedaz .stat-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rev-label { font-size: .58rem; } }
+.ref-banner { margin: 0 0 24px; padding: 12px 16px; border-radius: 10px; background: #e9f1e7; color: #3f5a3b; font-size: .9rem; }

@@ -80,7 +80,7 @@ async function sendEmailDetailed(to: string, url: string): Promise<string | null
   return null;
 }
 
-export type SignupResult = "sent" | "exists" | "error" | "fallback";
+export type SignupResult = { status: "sent" | "exists" | "error" | "fallback"; userId?: string };
 
 // Zakłada konto i wysyła polski mail z potwierdzeniem
 export async function sendSignupMail(
@@ -90,16 +90,16 @@ export async function sendSignupMail(
   origin: string,
 ): Promise<SignupResult> {
   const db = adminClient();
-  if (!db || !process.env.RESEND_API_KEY) return "fallback";
+  if (!db || !process.env.RESEND_API_KEY) return { status: "fallback" };
   const { data, error } = await db.auth.admin.generateLink({
     type: "signup",
     email,
     password,
     options: { data: { studio_name: studio } },
   });
-  if (error) return /registered|exists/i.test(error.message) ? "exists" : "error";
+  if (error) return { status: /registered|exists/i.test(error.message) ? "exists" : "error" };
   const hashed = data?.properties?.hashed_token;
-  if (!hashed) return "error";
+  if (!hashed) return { status: "error" };
   const url = confirmUrl(origin, hashed, data.properties.verification_type ?? "signup", "/panel");
   const ok = await sendEmail({
     to: email,
@@ -113,5 +113,5 @@ export async function sendSignupMail(
       { label: "Potwierdzam konto", url },
     ),
   });
-  return ok ? "sent" : "error";
+  return { status: ok ? "sent" : "error", userId: data.user?.id };
 }

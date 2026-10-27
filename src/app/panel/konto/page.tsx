@@ -7,6 +7,9 @@ import { getBilling } from "@/lib/billing";
 import { getWallet, TOPUPS } from "@/lib/wallet";
 import { getOrder } from "@/lib/p24";
 import WalletCard from "./WalletCard";
+import ReferralCard from "./ReferralCard";
+import { getRefUser, REWARD, THRESHOLD } from "@/lib/referrals";
+import { siteUrl } from "@/lib/email";
 import RefreshSoon from "../galeria/[id]/RefreshSoon";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +19,11 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
   const sp = await searchParams;
   const { supabase, user } = await getUser();
   const { data, error } = await supabase.from("profiles").select("studio_name, logo_key").eq("id", user!.id).maybeSingle();
-  const [wallet, billing] = await Promise.all([getWallet(user!.id), getBilling(user!.id)]);
+  const [wallet, billing, refUser] = await Promise.all([
+    getWallet(user!.id),
+    getBilling(user!.id),
+    getRefUser(user!.id).catch(() => null),
+  ]);
   const order = sp.platnosc ? await getOrder(sp.platnosc) : null;
   const payment = order && order.ownerId === user!.id ? order : null;
   const profile = (data ?? null) as { studio_name: string | null; logo_key: string | null } | null;
@@ -42,6 +49,14 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
             </p>
           )}
           <WalletCard balance={wallet.balance} history={wallet.history} billing={billing} topups={TOPUPS} />
+          {refUser && (
+            <ReferralCard
+              link={`${siteUrl()}/rejestracja?polecenie=${refUser.code}`}
+              invited={refUser.invited}
+              reward={REWARD}
+              threshold={THRESHOLD}
+            />
+          )}
           {sp["nowe-haslo"] && <p className="warn-inline">Ustaw nowe hasło w sekcji „Logowanie” poniżej.</p>}
           {error && (
             <p className="warn-inline">

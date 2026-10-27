@@ -1,5 +1,6 @@
 import LoginShowcase from "@/components/LoginShowcase";
 import Link from "next/link";
+import { cleanCode, REWARD, THRESHOLD } from "@/lib/referrals";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +16,10 @@ const MESSAGES: Record<string, string> = {
 export default async function Rejestracja({
   searchParams,
 }: {
-  searchParams: Promise<{ blad?: string; email?: string; wyslano?: string }>;
+  searchParams: Promise<{ blad?: string; email?: string; wyslano?: string; polecenie?: string; ref?: string }>;
 }) {
-  const { blad, email, wyslano } = await searchParams;
+  const { blad, email, wyslano, polecenie, ref } = await searchParams;
+  const refCode = cleanCode(polecenie ?? ref);
   const open = process.env.REGISTRATION_OPEN === "1";
 
   return (
@@ -44,7 +46,13 @@ export default async function Rejestracja({
           <>
             <h1>Załóż konto</h1>
             <p className="lead">Pierwsza galeria w kilka minut. Płacisz tylko za galerie, które tworzysz.</p>
+            {refCode && (
+              <p className="ref-banner">
+                Masz polecenie od znajomego fotografa: po pierwszych wpłatach ({THRESHOLD} zł) dostaniesz <strong>{REWARD} zł</strong> na saldo.
+              </p>
+            )}
             <form method="post" action="/auth/zarejestruj">
+              {refCode && <input type="hidden" name="ref" value={refCode} />}
               <label htmlFor="studio">Nazwa studia lub fotografa</label>
               <input id="studio" name="studio" autoComplete="organization" maxLength={80} />
               <label htmlFor="email">E-mail</label>

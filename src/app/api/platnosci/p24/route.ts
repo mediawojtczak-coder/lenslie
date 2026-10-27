@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getOrder, saveOrder, notificationValid, verifyTransaction, type Notification } from "@/lib/p24";
 import { applyAction } from "@/lib/plan-actions";
 import { addEntries } from "@/lib/wallet";
+import { referralPayment } from "@/lib/referrals";
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
     await applyAction(order.galleryId, order.action);
   }
   await saveOrder({ ...order, status: "paid", paidAt: new Date().toISOString(), orderId: n.orderId });
+  await referralPayment(order.ownerId, order.amount).catch((e) => console.error("Polecenia:", e));
 
   // Mail do administratora: nowa płatność (z danymi do faktury, jeśli klient jej chce)
   const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim()).filter(Boolean);
