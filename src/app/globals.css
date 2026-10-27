@@ -1448,3 +1448,4 @@ ol.stat-list { counter-reset: s; }
 .orphans .btn { margin: 0; }
 .draft-del { margin: 6px 0 0 24px; font-size: .78rem; color: #8a4f4a; }
 .site-copy a { color: var(--taupe); }
+.pay-note { margin-bottom: 18px; }

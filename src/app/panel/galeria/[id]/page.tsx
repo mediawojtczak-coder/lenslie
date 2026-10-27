@@ -7,6 +7,7 @@ import { getGalleryPhotos, getGalleryUsage, pickCover, applyOrder, listKeys, typ
 import { getMeta, watermarkOn, draftDeleteDate } from "@/lib/galleries";
 import ShareBar from "./ShareBar";
 import PublishBar from "./PublishBar";
+import PaymentNotice from "./PaymentNotice";
 import PlanBar from "./PlanBar";
 import PhotoManager from "./PhotoManager";
 import SettingsForm from "./SettingsForm";
@@ -24,10 +25,10 @@ export default async function ZarzadzanieGalerii({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; platnosc?: string }>;
 }) {
   const { id } = await params;
-  const { tab = "zdjecia" } = await searchParams;
+  const { tab = "zdjecia", platnosc } = await searchParams;
   if (!isValidGalleryId(id)) notFound();
 
   const { supabase } = await getUser();
@@ -97,6 +98,7 @@ export default async function ZarzadzanieGalerii({
       </aside>
 
       <main className="app-main">
+        {platnosc && <PaymentNotice sessionId={platnosc} galleryId={id} />}
         {meta?.plan ? (
           <>
             <ShareBar

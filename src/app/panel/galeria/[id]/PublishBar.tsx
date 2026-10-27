@@ -56,6 +56,10 @@ export default function PublishBar({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Nie udało się opublikować galerii.");
+      if (data.redirect) {
+        window.location.href = data.redirect;
+        return;
+      }
       dialogRef.current?.close();
       router.refresh();
     } catch (err) {
@@ -190,9 +194,9 @@ export default function PublishBar({
           )}
 
           <button type="button" className="btn btn-wide btn-dark" onClick={publish} disabled={busy || !plan}>
-            {busy ? "Publikuję…" : "Opublikuj"}
+            {busy ? "Przechodzę do płatności…" : `Zapłać ${zl(price)} i opublikuj`}
           </button>
-          <p className="test-note">Tryb testowy: płatności zostaną podłączone później, publikacja jest teraz bez opłaty.</p>
+          <p className="test-note">Płatność BLIK, przelewem lub kartą przez Przelewy24.</p>
         </div>
       </dialog>
     </section>

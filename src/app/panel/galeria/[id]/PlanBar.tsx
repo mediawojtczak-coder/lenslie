@@ -82,8 +82,12 @@ export default function PlanBar({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Nie udało się zapisać zmiany.");
+      if (data.redirect) {
+        window.location.href = data.redirect;
+        return;
+      }
       dialogRef.current?.close();
-      setDone(`Zapisano. Kwota do zapłaty: ${zl(data.charged)} (tryb testowy, bez płatności).`);
+      setDone(data.test ? `Zapisano (tryb testowy, bez płatności).` : "Zapisano.");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nie udało się zapisać zmiany.");
@@ -238,7 +242,7 @@ export default function PlanBar({
               {busy ? "Zapisuję…" : `Zapłać ${zl(price)}`}
             </button>
           </div>
-          <p className="test-note">Tryb testowy: płatności zostaną podłączone później, teraz zmiana zapisuje się bez opłaty.</p>
+          <p className="test-note">Płatność BLIK, przelewem lub kartą przez Przelewy24.</p>
         </div>
       </dialog>
     </section>
