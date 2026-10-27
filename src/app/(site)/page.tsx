@@ -29,10 +29,6 @@ export default async function Home() {
           Oddawaj sesje klientom w spokojnej, eleganckiej galerii. Bez reklam,
           bez kompresji, z hasłem i pobieraniem w pełnej jakości.
         </p>
-        <div className="actions">
-          <Link href="/logowanie" className="btn">Załóż konto</Link>
-          <Link href="/cennik" className="link-quiet">Zobacz cennik</Link>
-        </div>
       </section>
 
       <section className="hero-visual" aria-hidden="true">
