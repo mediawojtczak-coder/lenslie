@@ -182,3 +182,21 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 .gate form { text-align: left; }
 .download-all { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .hint-center { color: var(--taupe); font-size: .85rem; margin: 0; text-align: center; }
+
+/* Panel fotografa: lista galerii */
+.panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+.as-link { background: none; border: 0; font: inherit; cursor: pointer; text-decoration: underline; }
+.notice-left { color: var(--taupe); margin: 0 0 56px; }
+.gallery-list { list-style: none; padding: 0; margin: 0 0 72px; border-top: 1px solid var(--hair); }
+.gallery-list li {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+  padding: 18px 0; border-bottom: 1px solid var(--hair);
+}
+.gallery-list a {
+  font-family: var(--font-display), Georgia, serif; font-size: 1.35rem; text-decoration: none;
+}
+.gallery-list span { color: var(--taupe); font-size: .85rem; white-space: nowrap; }
+.new-gallery h2 {
+  font-family: var(--font-display), Georgia, serif; font-weight: 400;
+  font-size: 1.9rem; margin: 0 0 8px;
+}

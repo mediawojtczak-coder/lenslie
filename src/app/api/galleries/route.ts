@@ -1,21 +1,22 @@
 import { NextResponse } from "next/server";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, saveMeta, hashPassword, type GalleryMeta } from "@/lib/galleries";
-import { isAdmin } from "@/lib/admin";
+import { getUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-// Tworzy lub aktualizuje galerię: tytuł i (opcjonalnie) hasło dla klienta
+// Tworzy lub aktualizuje galerię zalogowanego fotografa
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => null)) as
-    | { password?: string; gallery?: string; title?: string; clientPassword?: string }
-    | null;
-
-  if (!body || !isAdmin(body.password)) {
-    return NextResponse.json({ error: "Nieprawidłowe hasło administratora." }, { status: 401 });
+  const { supabase, user } = await getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Zaloguj się ponownie." }, { status: 401 });
   }
 
-  const id = String(body.gallery ?? "");
+  const body = (await req.json().catch(() => null)) as
+    | { gallery?: string; title?: string; clientPassword?: string }
+    | null;
+
+  const id = String(body?.gallery ?? "");
   if (!isValidGalleryId(id)) {
     return NextResponse.json(
       { error: "Adres galerii może zawierać tylko małe litery, cyfry i myślniki." },
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const clientPassword = String(body.clientPassword ?? "").trim();
+  const clientPassword = String(body?.clientPassword ?? "").trim();
   if (clientPassword && clientPassword.length < 4) {
     return NextResponse.json(
       { error: "Hasło dla klienta musi mieć co najmniej 4 znaki." },
@@ -31,9 +32,31 @@ export async function POST(req: Request) {
     );
   }
 
+  const title = String(body?.title ?? "").trim().slice(0, 120) || id;
+
+  // Galeria należy do fotografa? (dzięki zasadom bezpieczeństwa widzi tylko swoje)
+  const { data: own } = await supabase.from("galleries").select("id").eq("id", id).maybeSingle();
+
+  if (own) {
+    await supabase.from("galleries").update({ title }).eq("id", id);
+  } else {
+    const { error } = await supabase.from("galleries").insert({ id, title, owner_id: user.id });
+    if (error) {
+      const taken = error.code === "23505";
+      return NextResponse.json(
+        {
+          error: taken
+            ? "Ten adres galerii jest już zajęty. Zmień nazwę galerii."
+            : "Nie udało się zapisać galerii.",
+        },
+        { status: taken ? 409 : 500 },
+      );
+    }
+  }
+
   const existing = await getMeta(id);
   const meta: GalleryMeta = {
-    title: String(body.title ?? "").trim().slice(0, 120) || existing?.title || id,
+    title,
     createdAt: existing?.createdAt ?? new Date().toISOString(),
     passwordHash: clientPassword ? hashPassword(clientPassword) : existing?.passwordHash,
   };

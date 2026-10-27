@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Upload = { name: string; type: string; originalUrl: string; webUrl: string };
 
@@ -42,7 +43,7 @@ async function put(url: string, body: Blob, type: string) {
 }
 
 export default function Uploader() {
-  const [password, setPassword] = useState("");
+  const router = useRouter();
   const [name, setName] = useState("");
   const [clientPassword, setClientPassword] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -67,7 +68,7 @@ export default function Uploader() {
       const metaRes = await fetch("/api/galleries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password, gallery: slug, title: name.trim(), clientPassword }),
+        body: JSON.stringify({ gallery: slug, title: name.trim(), clientPassword }),
       });
       const metaData = await metaRes.json();
       if (!metaRes.ok) throw new Error(metaData.error ?? "Błąd serwera");
@@ -79,7 +80,6 @@ export default function Uploader() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            password,
             gallery: slug,
             files: batch.map((f) => ({ name: f.name, type: f.type })),
           }),
@@ -105,6 +105,7 @@ export default function Uploader() {
       }
       setResult(slug);
       setFiles([]);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Coś poszło nie tak.");
     } finally {
@@ -114,15 +115,6 @@ export default function Uploader() {
 
   return (
     <form className="uploader" onSubmit={handleUpload}>
-      <label htmlFor="haslo-admin">Hasło administratora</label>
-      <input
-        id="haslo-admin"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        autoComplete="current-password"
-      />
-
       <label htmlFor="nazwa">Nazwa galerii</label>
       <input
         id="nazwa"

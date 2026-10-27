@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET, isValidGalleryId, safeFileName, baseName, galleryPrefix } from "@/lib/r2";
-import { isAdmin } from "@/lib/admin";
+import { getUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -12,12 +12,16 @@ const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
 
 // Zwraca podpisane linki, pod które przeglądarka wgrywa zdjęcia bezpośrednio do R2.
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => null)) as
-    | { password?: string; gallery?: string; files?: FileInfo[] }
-    | null;
+  const { supabase, user } = await getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Zaloguj się ponownie." }, { status: 401 });
+  }
 
-  if (!body || !isAdmin(body.password)) {
-    return NextResponse.json({ error: "Nieprawidłowe hasło administratora." }, { status: 401 });
+  const body = (await req.json().catch(() => null)) as
+    | { gallery?: string; files?: FileInfo[] }
+    | null;
+  if (!body) {
+    return NextResponse.json({ error: "Nieprawidłowe dane." }, { status: 400 });
   }
 
   const gallery = String(body.gallery ?? "");
@@ -26,6 +30,12 @@ export async function POST(req: Request) {
       { error: "Adres galerii może zawierać tylko małe litery, cyfry i myślniki." },
       { status: 400 },
     );
+  }
+
+  // Wgrywać można tylko do własnej galerii
+  const { data: own } = await supabase.from("galleries").select("id").eq("id", gallery).maybeSingle();
+  if (!own) {
+    return NextResponse.json({ error: "To nie jest Twoja galeria." }, { status: 403 });
   }
 
   const files = Array.isArray(body.files) ? body.files.slice(0, 50) : [];
