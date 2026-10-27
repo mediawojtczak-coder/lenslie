@@ -11,7 +11,14 @@ const GB = 1024 ** 3;
 
 type G = { id: string; title: string; owner_id: string | null; created_at: string };
 
-export default async function Admin() {
+const MAIL: Record<string, string> = {
+  wyslany: "Testowy e-mail został wysłany. Sprawdź skrzynkę (także folder Spam).",
+  "brak-klucza": "Brak zmiennej RESEND_API_KEY w Vercelu (albo nie zrobiono Redeploy).",
+  blad: "Resend odrzucił wysyłkę. Sprawdź, czy klucz ma dostęp do domeny lenslie.com i czy domena jest zweryfikowana.",
+};
+
+export default async function Admin({ searchParams }: { searchParams: Promise<{ mail?: string }> }) {
+  const { mail } = await searchParams;
   const db = adminClient();
   if (!db) {
     return (
@@ -64,7 +71,13 @@ export default async function Admin() {
 
   return (
     <main className="app-main admin">
-      <h1>Przegląd</h1>
+      <div className="admin-head">
+        <h1>Przegląd</h1>
+        <form method="post" action="/api/admin/test-email">
+          <button type="submit" className="btn btn-ghost btn-small">Wyślij testowy mail</button>
+        </form>
+      </div>
+      {mail && MAIL[mail] && <p className={mail === "wyslany" ? "success-box" : "warn-inline"}>{MAIL[mail]}</p>}
       <div className="stat-tiles admin-tiles">
         {tiles.map((t) => (
           <div key={t.label} className="stat-tile">
