@@ -32,6 +32,10 @@ export default async function StatsTab({ id }: { id: string }) {
       <p className="warn-inline">
         Statystyki nie są jeszcze włączone: w Supabase trzeba uruchomić SQL z tabelą „gallery_events” i dodać klucz
         SUPABASE_SECRET_KEY w Vercelu.
+        <br />
+        <small>
+          Szczegóły: {error.code ?? ""} {error.message}
+        </small>
       </p>
     );
   }

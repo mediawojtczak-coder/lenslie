@@ -32,6 +32,10 @@ export default async function SelectionsTab({
       <p className="warn-inline">
         Wybory klientów nie są jeszcze włączone: w Supabase trzeba uruchomić SQL z tabelą „selections” i dodać klucz
         SUPABASE_SECRET_KEY w Vercelu.
+        <br />
+        <small>
+          Szczegóły: {error.code ?? ""} {error.message}
+        </small>
       </p>
     );
   }
