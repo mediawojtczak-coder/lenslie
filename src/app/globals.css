@@ -39,14 +39,14 @@ a:hover { color: var(--brass); }
 
 /* Nagłówek */
 .top {
-  display: flex; align-items: baseline; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   max-width: 1200px; margin: 0 auto; padding: 32px 24px;
 }
 .wordmark {
   font-family: var(--font-display), Georgia, serif;
   font-size: 1.6rem; letter-spacing: .04em; text-decoration: none;
 }
-.top nav { display: flex; gap: 32px; font-size: .9rem; letter-spacing: .02em; }
+.top nav { display: flex; align-items: center; gap: 32px; font-size: .9rem; letter-spacing: .02em; }
 .top nav a { text-decoration: none; color: var(--taupe); }
 .top nav a:hover { color: var(--ink); }
 
@@ -1647,3 +1647,18 @@ ol.stat-list { counter-reset: s; }
 }
 .side-tools { border-top: 1px solid var(--hair); padding-top: 12px; }
 @media (max-width: 760px) { .side-tools { border-top: 0; padding-top: 0; } }
+
+/* Nagłówek strony na telefonie: logo i język w pierwszym wierszu, linki w drugim */
+@media (max-width: 600px) {
+  .top {
+    display: grid; grid-template-columns: auto auto 1fr auto; grid-template-areas: "logo logo logo lang" "a b . cta";
+    align-items: center; column-gap: 22px; row-gap: 16px; padding: 18px 16px 6px;
+  }
+  .top > .wordmark { grid-area: logo; font-size: 1.5rem; line-height: 1; }
+  .top nav { display: contents; }
+  .top nav > a { white-space: nowrap; font-size: .92rem; }
+  .top nav > a:nth-of-type(1) { grid-area: a; }
+  .top nav > a:nth-of-type(2) { grid-area: b; }
+  .top nav > .nav-cta { grid-area: cta; padding: 8px 16px; }
+  .top nav > .lang-switch { grid-area: lang; justify-self: end; }
+}
