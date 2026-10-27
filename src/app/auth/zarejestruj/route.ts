@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { sendSignupMail } from "@/lib/auth-mail";
 
 // Zakładanie konta fotografa. Supabase wysyła e-mail z linkiem potwierdzającym.
 export async function POST(req: Request) {
@@ -22,6 +23,10 @@ export async function POST(req: Request) {
   if (!terms) return back("regulamin");
 
   try {
+    const result = await sendSignupMail(email, password, studio || null, new URL(req.url).origin);
+    if (result === "sent") return back("wyslano");
+    if (result === "exists") return back("istnieje");
+    if (result === "error") return back("serwer");
     const supabase = await createClient();
     const { error } = await supabase.auth.signUp({
       email,
