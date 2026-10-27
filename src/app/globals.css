@@ -1,31 +1,19 @@
-/* Lenslie – luksusowy minimalizm
-   Paleta: biel galerii, grafit, taupe, cienka linia, mosiądz (tylko akcent interakcji) */
+/* Lenslie – jasny, przyjemny minimalizm
+   Paleta: porcelana, ciepły grafit, pudrowy róż, szałwia, mgła, piasek */
 :root {
-  --paper: #ffffff;
-  --ink: #1f1d1b;
-  --taupe: #857d73;
-  --hair: #e8e5e0;
-  --brass: #9c8259;
-  --tile-1: #d9d4cc;
-  --tile-2: #b9b2a7;
-  --tile-3: #8f8a82;
-  --tile-4: #cfcac1;
-  --tile-5: #a69c90;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #171615;
-    --ink: #ece9e4;
-    --taupe: #9b9389;
-    --hair: #2d2b28;
-    --brass: #c2a77c;
-    --tile-1: #3a3733;
-    --tile-2: #4b4741;
-    --tile-3: #2c2a27;
-    --tile-4: #57524b;
-    --tile-5: #403c37;
-  }
+  color-scheme: light;
+  --paper: #fdfcfa;
+  --ink: #3b3633;
+  --taupe: #958c85;
+  --hair: #efe9e4;
+  --brass: #b4847a;
+  --blush: #f4e8e3;
+  --blush-deep: #ead6ce;
+  --tile-1: #f1e3dd;
+  --tile-2: #e3e8df;
+  --tile-3: #e2e8ee;
+  --tile-4: #efe8dc;
+  --tile-5: #e8e3ec;
 }
 
 * { box-sizing: border-box; }
@@ -68,13 +56,13 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 24px 120px; }
 .btn {
   display: inline-block; padding: 14px 30px; font: inherit; font-size: .92rem;
   letter-spacing: .03em; text-decoration: none; cursor: pointer;
-  background: var(--ink); color: var(--paper); border: 1px solid var(--ink);
-  transition: background .25s, color .25s;
+  background: var(--blush); color: var(--ink); border: 1px solid var(--blush);
+  border-radius: 999px; transition: background .25s, border-color .25s;
 }
-.btn:hover { background: transparent; color: var(--ink); }
-.btn-ghost { background: transparent; color: var(--ink); }
-.btn-ghost:hover { background: var(--ink); color: var(--paper); }
-.btn[disabled] { opacity: .4; cursor: default; }
+.btn:hover { background: var(--blush-deep); border-color: var(--blush-deep); color: var(--ink); }
+.btn-ghost { background: transparent; border-color: var(--blush-deep); }
+.btn-ghost:hover { background: var(--blush); border-color: var(--blush); }
+.btn[disabled] { opacity: .55; cursor: default; }
 
 /* Strona główna */
 .hero { padding: 80px 0 72px; max-width: 900px; }
@@ -143,7 +131,7 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 
 .panel { padding-top: 56px; }
 .empty {
-  border: 1px solid var(--hair); padding: 72px 24px; text-align: center; margin-top: 8px;
+  background: var(--blush); border-radius: 4px; padding: 72px 24px; text-align: center; margin-top: 8px;
 }
 .empty p { color: var(--taupe); margin: 0 0 28px; }
 
