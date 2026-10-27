@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uploadPhotos } from "@/lib/upload-client";
+import Lightbox from "@/components/Lightbox";
 
 type Item = { name: string; fileName: string; url: string; size: number; uploadedAt: string };
 type Sort = "nazwa-asc" | "nazwa-desc" | "nowe" | "stare";
@@ -31,6 +32,7 @@ export default function PhotoManager({
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
+  const [viewer, setViewer] = useState<number | null>(null);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -172,12 +174,12 @@ export default function PhotoManager({
         </button>
       ) : (
         <ul className="photo-grid">
-          {visible.map((p) => (
+          {visible.map((p, i) => (
             <li key={p.name} className={deleting === p.name ? "p-tile busy" : "p-tile"}>
-              <div className="p-img">
+              <button type="button" className="p-img" onClick={() => setViewer(i)} aria-label={`Powiększ ${p.fileName}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.url} alt={p.fileName} loading="lazy" />
-              </div>
+              </button>
               <div className="p-info">
                 <div>
                   <p className="p-name">{p.fileName}</p>
@@ -207,6 +209,15 @@ export default function PhotoManager({
         </ul>
       )}
       {photos.length > 0 && visible.length === 0 && <p className="notice-left">Brak zdjęć o takiej nazwie.</p>}
+
+      {viewer !== null && visible[viewer] && (
+        <Lightbox
+          items={visible.map((p) => ({ url: p.url, name: p.fileName }))}
+          index={viewer}
+          onIndex={setViewer}
+          onClose={() => setViewer(null)}
+        />
+      )}
     </section>
   );
 }

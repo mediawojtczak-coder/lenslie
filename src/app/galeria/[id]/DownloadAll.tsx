@@ -66,7 +66,7 @@ export default function DownloadAll({ items, zipName }: { items: Item[]; zipName
       <button className="btn btn-ghost" type="button" onClick={run} disabled={state === "busy"}>
         {state === "busy"
           ? `Przygotowuję… ${count} z ${items.length}`
-          : `Pobierz wszystkie zdjęcia (${items.length})`}
+          : "Pobierz wszystkie"}
       </button>
       {state === "done" && <p className="hint-center">Pobieranie zakończone.</p>}
       {state === "error" && (
