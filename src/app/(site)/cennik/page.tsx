@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PLANS, RENEWAL_SHARE } from "@/lib/plans";
+import PricingPlans from "@/components/PricingPlans";
 
 export const metadata: Metadata = {
   title: "Cennik – Lenslie",
   description: "Płacisz tylko za galerie, które oddajesz klientom. Bez abonamentu.",
 };
-
-const fmtPrice = (n: number) => n.toLocaleString("pl-PL", { maximumFractionDigits: 2 });
-const fmtGb = (n: number) => `${n.toLocaleString("pl-PL")} GB`;
 
 const INCLUDED = [
   "Prywatny link i hasło dla klienta",
@@ -22,14 +19,12 @@ const INCLUDED = [
 
 const FAQ = [
   {
-    q: "Co się dzieje, gdy minie 12 miesięcy?",
-    a: "Na 14 dni przed końcem dostaniesz przypomnienie. Galerię możesz przedłużyć o kolejny rok albo pozwolić jej wygasnąć – wtedy klient traci do niej dostęp, a zdjęcia są usuwane po 30 dniach.",
+    q: "Co się dzieje, gdy minie okres dostępu?",
+    a: "Na 14 dni przed końcem dostaniesz przypomnienie. Galerię możesz przedłużyć albo pozwolić jej wygasnąć – wtedy klient traci do niej dostęp, a zdjęcia są usuwane po 30 dniach.",
   },
   {
-    q: "Ile kosztuje przedłużenie?",
-    a: `Kolejne 12 miesięcy kosztuje ${Math.round(RENEWAL_SHARE * 100)}% ceny pakietu, np. ${fmtPrice(
-      PLANS[1].price * RENEWAL_SHARE,
-    )} zł za galerię Średnią.`,
+    q: "Jak przedłużyć galerię?",
+    a: "Jednym kliknięciem w panelu – wybierasz kolejny okres dostępu w cenie z cennika.",
   },
   {
     q: "Co, jeśli zdjęć będzie więcej, niż zakładałem?",
@@ -47,38 +42,12 @@ export default function Cennik() {
       <section className="pricing-head">
         <h1>Płacisz za galerię, nie za abonament</h1>
         <p>
-          Wybierz pakiet dopasowany do sesji. Każda galeria jest dostępna dla klienta przez 12 miesięcy,
-          z wszystkimi funkcjami w cenie.
+          Wybierz pakiet dopasowany do sesji i to, jak długo klient ma mieć dostęp do zdjęć.
+          Wszystkie funkcje są w cenie.
         </p>
       </section>
 
-      <section className="plans" aria-label="Pakiety">
-        {PLANS.map((p) => (
-          <article key={p.id} className={p.featured ? "plan featured" : "plan"}>
-            {p.featured && <p className="plan-flag">Najczęściej wybierana</p>}
-            <h2>{p.name}</h2>
-            <p className="plan-for">{p.forWhom}</p>
-            <p className="plan-price">
-              <span className="amount">{fmtPrice(p.price)} zł</span>
-              <span className="per">za galerię</span>
-            </p>
-            <ul className="plan-facts">
-              <li>
-                <strong>do {fmtGb(p.limitGb)}</strong> {p.photos} w pełnej rozdzielczości
-              </li>
-              <li>
-                <strong>{p.months} miesięcy</strong> dostępu dla klienta
-              </li>
-              <li>
-                Przedłużenie o rok za <strong>{fmtPrice(p.price * RENEWAL_SHARE)} zł</strong>
-              </li>
-            </ul>
-            <Link href="/logowanie" className={p.featured ? "btn btn-wide" : "btn btn-ghost btn-wide"}>
-              Wybieram {p.name.toLowerCase()}
-            </Link>
-          </article>
-        ))}
-      </section>
+      <PricingPlans />
 
       <section className="included">
         <h2>W każdym pakiecie</h2>

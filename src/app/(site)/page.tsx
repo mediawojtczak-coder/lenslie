@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PricingPlans from "@/components/PricingPlans";
 
 export default function Home() {
   return (
@@ -35,6 +36,15 @@ export default function Home() {
           <h2>Pod Twoją marką</h2>
           <p>Twoje logo, Twoja domena. Lenslie pozostaje w tle.</p>
         </div>
+      </section>
+
+      <section className="home-pricing" id="cennik">
+        <h2>Prosty cennik</h2>
+        <p>Płacisz tylko za galerie, które oddajesz klientom. Bez abonamentu.</p>
+        <PricingPlans />
+        <p className="home-pricing-more">
+          <Link href="/cennik">Wszystko o pakietach i najczęstsze pytania</Link>
+        </p>
       </section>
     </>
   );

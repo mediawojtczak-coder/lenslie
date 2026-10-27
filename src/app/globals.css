@@ -755,3 +755,29 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .plan-for { min-height: 0; }
   .included ul { grid-template-columns: 1fr; }
 }
+
+/* Przełącznik okresu i cennik na stronie głównej */
+.pricing-block { display: flex; flex-direction: column; align-items: center; }
+.period-switch {
+  display: inline-flex; gap: 4px; padding: 5px; margin: 0 0 40px;
+  background: #fff; border: 1px solid var(--hair); border-radius: 999px;
+}
+.period {
+  padding: 9px 20px; border: 0; border-radius: 999px; background: none;
+  font: inherit; font-size: .88rem; color: var(--taupe); cursor: pointer; transition: background .2s, color .2s;
+}
+.period:hover { color: var(--ink); }
+.period.active { background: var(--blush); color: var(--ink); }
+.pricing-block .plans { width: 100%; }
+.plan h3 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 2rem; margin: 0 0 6px; }
+
+.home-pricing { margin-top: 120px; padding-top: 72px; border-top: 1px solid var(--hair); text-align: center; }
+.home-pricing > h2 {
+  font-family: var(--font-display), Georgia, serif; font-weight: 400;
+  font-size: clamp(2.2rem, 4vw, 3rem); margin: 0 0 12px;
+}
+.home-pricing > p { color: var(--taupe); margin: 0 0 32px; }
+.home-pricing .plan { text-align: left; }
+.home-pricing .home-pricing-more { margin: 36px 0 0; }
+.home-pricing-more a { color: var(--brass); }
+@media (max-width: 560px) { .period { padding: 8px 12px; font-size: .82rem; } }
