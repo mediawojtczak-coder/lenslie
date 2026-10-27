@@ -942,3 +942,41 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   .plan-pick { grid-template-columns: 1fr; }
   .usage-bar { width: 110px; }
 }
+
+/* ===== Dopasowanie do telefonu ===== */
+.app, .showcase, .home-pricing { overflow-x: clip; }
+@media (max-width: 860px) {
+  .app-bar { gap: 12px; padding: 10px 14px; }
+  .app-bar .wordmark { font-size: 1.3rem; }
+  .app-search { min-width: 0; }
+  .app-search input { padding: 9px 14px; font-size: .88rem; }
+  .avatar { width: 36px; height: 36px; font-size: 1.05rem; }
+  .account-menu { right: -4px; max-width: calc(100vw - 24px); }
+
+  .app-body { grid-template-columns: minmax(0, 1fr); align-content: start; }
+  .app-side { min-width: 0; height: auto; position: static; padding: 14px 14px 10px; gap: 12px; }
+  .app-side .btn-wide { padding: 12px 20px; }
+  .app-side nav { scrollbar-width: none; margin: 0 -14px; padding: 0 14px; }
+  .app-side nav::-webkit-scrollbar { display: none; }
+  .side-link { padding: 8px 14px; font-size: .9rem; flex: 0 0 auto; }
+  .side-logout { border-top: 0; padding-top: 0; align-self: flex-end; }
+  .side-logout button { width: auto; padding: 6px 4px; font-size: .85rem; }
+
+  .g-side .back-link { font-size: .82rem; }
+  .g-side-title { font-size: 1.4rem; }
+
+  .app-main { min-width: 0; padding: 18px 14px 56px; }
+  .card-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .share-bar, .plan-bar { padding: 14px; gap: 14px; }
+  .share-actions, .plan-actions { width: 100%; }
+  .share-actions .btn-small, .plan-actions .btn-small { flex: 1; text-align: center; }
+  .plan-info { gap: 10px 20px; }
+  .toolbar { gap: 10px; }
+  .tool-right { width: 100%; }
+  .tool-right .btn-small { flex: 1 0 100%; text-align: center; }
+  .tool-select { flex: 1; }
+  .tool-select select { width: 100%; }
+  .p-name { max-width: 110px; }
+  .settings-card { padding: 22px 18px; }
+  .copy-row { flex-wrap: wrap; gap: 0 12px; }
+}
