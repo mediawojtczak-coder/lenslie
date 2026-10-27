@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { COMPANY } from "@/lib/company";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -20,10 +19,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
           <Link href="/regulamin">Regulamin</Link>
           <Link href="/polityka-prywatnosci">Polityka prywatności</Link>
         </nav>
-        <p className="site-copy">
-          © {new Date().getFullYear()} Lenslie · {COMPANY.name}, {COMPANY.address} · NIP {COMPANY.nip} ·{" "}
-          <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>
-        </p>
+        <p className="site-copy">© {new Date().getFullYear()} Lenslie. Galerie zdjęć dla fotografów.</p>
       </footer>
     </>
   );
