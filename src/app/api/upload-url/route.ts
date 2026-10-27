@@ -5,7 +5,7 @@ import { r2, BUCKET, isValidGalleryId, safeFileName, baseName, galleryPrefix } f
 import { getUser } from "@/lib/supabase/server";
 import { getMeta, isExpired, watermarkOn } from "@/lib/galleries";
 import { getGalleryUsage } from "@/lib/photos";
-import { getPlan, hardLimitBytes, formatBytes, planBytes } from "@/lib/plans";
+import { getPlan, hardLimitBytes, formatBytes, planBytes, MAX_PLAN } from "@/lib/plans";
 
 export const runtime = "nodejs";
 
@@ -51,13 +51,9 @@ export async function POST(req: Request) {
 
   // Pakiet: musi być wybrany, aktywny i mieć wolne miejsce (z 2% zapasem)
   const meta = await getMeta(gallery);
-  const plan = getPlan(meta?.plan);
-  if (!plan) {
-    return NextResponse.json(
-      { error: "Wybierz pakiet dla tej galerii, zanim prześlesz zdjęcia.", code: "NO_PLAN" },
-      { status: 402 },
-    );
-  }
+  // Wersja robocza (bez pakietu) może zająć najwyżej tyle, ile największy pakiet
+  const chosen = getPlan(meta?.plan);
+  const plan = chosen ?? MAX_PLAN;
   if (isExpired(meta)) {
     return NextResponse.json(
       { error: "Dostęp do tej galerii wygasł. Przedłuż go, aby dodać zdjęcia.", code: "EXPIRED" },
@@ -71,8 +67,10 @@ export async function POST(req: Request) {
     const free = Math.max(0, planBytes(plan) - used);
     return NextResponse.json(
       {
-        error: `Te zdjęcia nie zmieszczą się w pakiecie ${plan.name} (${plan.limitGb.toLocaleString("pl-PL")} GB). Wolne miejsce: ${formatBytes(free)}. Zmień pakiet na większy albo wybierz mniej zdjęć.`,
-        code: "LIMIT",
+        error: chosen
+          ? `Te zdjęcia nie zmieszczą się w pakiecie ${plan.name} (${plan.limitGb.toLocaleString("pl-PL")} GB). Wolne miejsce: ${formatBytes(free)}. Zmień pakiet na większy albo wybierz mniej zdjęć.`
+          : `Galeria może mieć najwyżej ${plan.limitGb.toLocaleString("pl-PL")} GB. Wolne miejsce: ${formatBytes(free)}. Podziel sesję na dwie galerie albo wybierz mniej zdjęć.`,
+        code: chosen ? "LIMIT" : "DRAFT_LIMIT",
       },
       { status: 402 },
     );

@@ -6,6 +6,7 @@ import { isValidGalleryId, galleryPrefix } from "@/lib/r2";
 import { getGalleryPhotos, getGalleryUsage, pickCover, applyOrder, listKeys, type Photo } from "@/lib/photos";
 import { getMeta, watermarkOn } from "@/lib/galleries";
 import ShareBar from "./ShareBar";
+import PublishBar from "./PublishBar";
 import PlanBar from "./PlanBar";
 import PhotoManager from "./PhotoManager";
 import SettingsForm from "./SettingsForm";
@@ -96,21 +97,26 @@ export default async function ZarzadzanieGalerii({
       </aside>
 
       <main className="app-main">
-        <ShareBar
-          id={id}
-          title={gallery.title}
-          protectedByPassword={Boolean(meta?.passwordHash)}
-          password={meta?.password ?? null}
-          photoCount={photos.length}
-        />
-
-        <PlanBar
-          id={id}
-          planId={meta?.plan ?? null}
-          period={meta?.period ?? null}
-          expiresAt={meta?.expiresAt ?? null}
-          usedBytes={usedBytes}
-        />
+        {meta?.plan ? (
+          <>
+            <ShareBar
+              id={id}
+              title={gallery.title}
+              protectedByPassword={Boolean(meta?.passwordHash)}
+              password={meta?.password ?? null}
+              photoCount={photos.length}
+            />
+            <PlanBar
+              id={id}
+              planId={meta?.plan ?? null}
+              period={meta?.period ?? null}
+              expiresAt={meta?.expiresAt ?? null}
+              usedBytes={usedBytes}
+            />
+          </>
+        ) : (
+          <PublishBar id={id} title={gallery.title} photoCount={photos.length} usedBytes={usedBytes} />
+        )}
 
         {tab === "wybory" ? (
           <SelectionsTab id={id} photos={photos.map((p) => ({ name: p.name, fileName: p.fileName, url: p.webUrl }))} />

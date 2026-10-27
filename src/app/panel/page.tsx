@@ -135,7 +135,9 @@ export default async function Panel({
                   ) : (
                     <span className="g-cover-empty">Brak zdjęć</span>
                   )}
-                  {c.expired ? (
+                  {!c.planName ? (
+                    <span className="g-badge g-badge-draft">Wersja robocza</span>
+                  ) : c.expired ? (
                     <span className="g-badge g-badge-exp">Wygasła</span>
                   ) : (
                     c.protected && <span className="g-badge">Hasło</span>
@@ -147,9 +149,9 @@ export default async function Panel({
                   </Link>
                   <p className="g-meta">
                     {photosLabel(c.count)}
-                    {c.planName ? ` · ${c.planName}` : " · bez pakietu"}
+                    {c.planName ? ` · ${c.planName}` : " · nieopublikowana"}
                     <br />
-                    {c.expiresAt
+                    {c.planName && c.expiresAt
                       ? `${c.expired ? "Wygasła" : "Dostęp do"} ${dateFmt.format(new Date(c.expiresAt))}`
                       : `Utworzona ${dateFmt.format(new Date(c.created_at))}`}
                   </p>

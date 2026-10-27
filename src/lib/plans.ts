@@ -87,3 +87,20 @@ export function formatBytes(bytes: number) {
   if (bytes >= GB) return `${(bytes / GB).toLocaleString("pl-PL", { maximumFractionDigits: 2 })} GB`;
   return `${Math.max(0, Math.round(bytes / 1024 ** 2)).toLocaleString("pl-PL")} MB`;
 }
+
+// Najmniejszy pakiet, w którym zmieszczą się zdjęcia galerii (z zapasem); null, gdy galeria jest za duża
+export function fitPlan(bytes: number): Plan | null {
+  return PLANS.find((p) => bytes <= hardLimitBytes(p)) ?? null;
+}
+
+// Największy pakiet – limit dla galerii w wersji roboczej
+export const MAX_PLAN = PLANS[PLANS.length - 1];
+
+// Cena w przeliczeniu na miesiąc, np. „2,67 zł/mies.”
+export function perMonth(price: number, period: Period) {
+  return `${(price / period).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł/mies.`;
+}
+
+export function zl(n: number) {
+  return `${n.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`;
+}

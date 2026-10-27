@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { getGallerySummary } from "@/lib/photos";
 import { getGalleryBrand } from "@/lib/profiles";
+import { getUser } from "@/lib/supabase/server";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, hasAccess, accessCookieName, isExpired, type GalleryMeta } from "@/lib/galleries";
 import Hero from "./Hero";
@@ -69,9 +70,26 @@ export default async function Galeria({
     );
   }
 
+  // Wersja robocza: klient jej nie widzi, fotograf może ją podejrzeć
+  let preview = false;
+  if (meta && !meta.plan) {
+    const { supabase, user } = await getUser().catch(() => ({ supabase: null, user: null }));
+    const own = user && supabase ? (await supabase.from("galleries").select("id").eq("id", id).maybeSingle()).data : null;
+    if (!own) {
+      return (
+        <section className="expired-page">
+          <p className="wordmark">Lenslie</p>
+          <h1>{title}</h1>
+          <p>Ta galeria nie jest jeszcze opublikowana. Fotograf udostępni ją wkrótce.</p>
+        </section>
+      );
+    }
+    preview = true;
+  }
+
   // Galeria chroniona hasłem: bez ważnego ciasteczka pokazujemy tylko okładkę z polem na hasło
   const cookieStore = await cookies();
-  if (!error && !hasAccess(id, meta, cookieStore.get(accessCookieName(id))?.value)) {
+  if (!error && !preview && !hasAccess(id, meta, cookieStore.get(accessCookieName(id))?.value)) {
     const [summary, brand] = await Promise.all([
       getGallerySummary(id, meta?.cover).catch(() => ({ count: 0, coverUrl: null })),
       getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null })),
@@ -91,5 +109,5 @@ export default async function Galeria({
 
   if (error) return <p className="notice">Nie udało się wczytać galerii. Odśwież stronę za chwilę.</p>;
 
-  return <GalleryView id={id} meta={meta} title={title} mode="client" />;
+  return <GalleryView id={id} meta={meta} title={title} mode="client" preview={preview} />;
 }

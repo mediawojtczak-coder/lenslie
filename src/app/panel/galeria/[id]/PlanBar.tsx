@@ -11,6 +11,7 @@ import {
   formatBytes,
   planBytes,
   getPlan,
+  perMonth,
   type Period,
   type PlanId,
 } from "@/lib/plans";
@@ -200,6 +201,11 @@ export default function PlanBar({
                     onClick={() => setNewPeriod(p)}
                   >
                     {p === 1 ? "1 mies." : `${p} mies.`}
+                    {plan && mode === "extend" && (
+                      <small className="period-sub">
+                        {plan.prices[p]} zł · {perMonth(plan.prices[p], p)}
+                      </small>
+                    )}
                   </button>
                 ))}
               </div>

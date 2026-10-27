@@ -20,7 +20,7 @@ export default async function GalleriaGosci({ params }: { params: Promise<{ id: 
   const meta = isValidGalleryId(id) ? await getMeta(id).catch(() => null) : null;
   const guest = meta?.guest;
 
-  if (!meta || !guest?.enabled || !sameToken(guest.token, String(token))) {
+  if (!meta || !meta.plan || !guest?.enabled || !sameToken(guest.token, String(token))) {
     return (
       <section className="expired-page">
         <p className="wordmark">Lenslie</p>

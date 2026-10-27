@@ -1375,3 +1375,66 @@ ol.stat-list { counter-reset: s; }
   .up-list { max-height: 40vh; }
 }
 .up-foot .btn { margin: 0; }
+
+/* ===== Wersja robocza i publikacja ===== */
+.draft-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px 24px; flex-wrap: wrap;
+  margin-bottom: 24px; padding: 18px 22px; border-radius: 10px;
+  background: linear-gradient(90deg, #f9dfe0 0%, #fbe9e8 60%, #fff 100%); box-shadow: 0 1px 2px rgba(59, 54, 51, .05);
+}
+.draft-title { margin: 0 0 4px; font-weight: 500; }
+.draft-note { display: flex; align-items: center; gap: 8px; margin: 0; font-size: .86rem; color: #6c5550; }
+.draft-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.draft-actions .btn { margin: 0; }
+.draft-link { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; font-size: .9rem; }
+.draft-link:hover { color: var(--brass); }
+.btn-dark { background: var(--ink); border-color: var(--ink); color: #fff; }
+.btn-dark:hover { background: #24201e; border-color: #24201e; color: #fff; }
+.g-badge-draft { background: #f9dfe0; color: #8a4f4a; }
+
+.publish-modal { width: min(560px, calc(100vw - 24px)); }
+.pub-summary { margin: 0 0 22px; padding: 16px 18px; border-radius: 10px; background: #f8f5f2; }
+.pub-name { margin: 0 0 8px; font-family: var(--font-display), Georgia, serif; font-size: 1.45rem; }
+.pub-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; font-size: .88rem; color: var(--taupe); }
+.pub-tag { margin-left: auto; padding: 4px 10px; border-radius: 4px; background: var(--brass); color: #fff; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+.pub-label { margin: 0 0 10px; font-weight: 500; font-size: .9rem; }
+.pub-plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+.pub-plan {
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 10px;
+  background: #fff; font: inherit; color: var(--ink); cursor: pointer; text-align: left;
+}
+.pub-plan small { font-size: .75rem; color: var(--taupe); }
+.pub-plan.active { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.pub-plan:disabled { opacity: .4; cursor: not-allowed; }
+.pub-periods { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 22px; }
+.pub-period {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 16px 6px 12px;
+  border: 1px solid var(--hair); border-radius: 10px; background: #fff; font: inherit; color: var(--ink); cursor: pointer;
+}
+.pub-period b { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.8rem; line-height: 1; }
+.pub-period span { font-size: .78rem; color: var(--taupe); }
+.pub-period em { margin-top: 6px; font-style: normal; font-weight: 500; font-size: .95rem; }
+.pub-period small { font-size: .7rem; color: var(--taupe); }
+.pub-period.active { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.pub-badge {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%); padding: 2px 9px; border-radius: 999px;
+  background: #f3e3b8; color: #6b5a2c !important; font-size: .66rem !important; white-space: nowrap;
+}
+.pub-line { display: flex; justify-content: space-between; padding: 14px 16px; border-radius: 10px; background: #f8f5f2; font-size: .9rem; margin-bottom: 18px; }
+.pub-total { display: flex; justify-content: space-between; align-items: baseline; }
+.pub-total span { font-weight: 500; }
+.pub-total strong { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 2.1rem; }
+.pub-permonth { margin: 0 0 14px; text-align: right; font-size: .78rem; color: var(--taupe); min-height: 1em; }
+.publish-modal .btn-wide { margin-top: 4px; }
+.preview-banner {
+  position: sticky; top: 0; z-index: 10; margin: 0; padding: 10px 16px; text-align: center; font-size: .86rem;
+  background: #f9dfe0; color: #6c5550;
+}
+.preview-banner a { color: var(--ink); }
+.plan-month { margin: -6px 0 14px; font-size: .78rem; color: var(--taupe); }
+.period-sub { display: block; font-size: .68rem; color: var(--taupe); margin-top: 2px; }
+@media (max-width: 560px) {
+  .pub-periods { grid-template-columns: repeat(2, 1fr); row-gap: 14px; }
+  .pub-plans { grid-template-columns: 1fr; }
+  .draft-actions { width: 100%; }
+}

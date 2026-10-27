@@ -33,11 +33,14 @@ export default async function GalleryView({
   meta,
   title,
   mode,
+  preview = false,
 }: {
   id: string;
   meta: GalleryMeta | null;
   title: string;
   mode: "client" | "guest";
+  // Fotograf ogląda wersję roboczą przed publikacją
+  preview?: boolean;
 }) {
   const watermark = watermarkOn(meta) ? meta!.watermark!.text : null;
 
@@ -101,7 +104,7 @@ export default async function GalleryView({
 
   // Ulubione są dostępne dla klienta (nie dla gości), gdy działa baza wyborów
   let favorites: { name: string | null; photos: string[] } | null = null;
-  if (mode === "client" && adminClient()) {
+  if (mode === "client" && !preview && adminClient()) {
     const store = await cookies();
     const sel = await getSelection(id, store.get(selectionCookie(id))?.value).catch(() => null);
     favorites = { name: sel?.client_name ?? null, photos: sel?.photos ?? [] };
@@ -109,6 +112,12 @@ export default async function GalleryView({
 
   return (
     <>
+      {preview && (
+        <p className="preview-banner">
+          Podgląd wersji roboczej. Klienci zobaczą galerię dopiero po opublikowaniu.{" "}
+          <Link href={`/panel/galeria/${id}`}>Wróć do panelu</Link>
+        </p>
+      )}
       <Hero
         id={id}
         title={title}
@@ -172,7 +181,7 @@ export default async function GalleryView({
           />
         )}
       </main>
-      <Track galleryId={id} mode={mode} />
+      {!preview && <Track galleryId={id} mode={mode} />}
       <footer className="g-footer">
         {brand.studioName && <span>{brand.studioName} · </span>}
         <Link href="/">Galeria w Lenslie</Link>

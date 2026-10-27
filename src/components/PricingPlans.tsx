@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { PLANS, PERIODS, DEFAULT_PERIOD, periodLabel, type Period } from "@/lib/plans";
+import { PLANS, PERIODS, DEFAULT_PERIOD, periodLabel, perMonth, type Period } from "@/lib/plans";
 
 const fmtPrice = (n: number) => n.toLocaleString("pl-PL", { maximumFractionDigits: 2 });
 const fmtGb = (n: number) => `${n.toLocaleString("pl-PL")} GB`;
@@ -38,6 +38,7 @@ export default function PricingPlans() {
               <span className="amount">{fmtPrice(plan.prices[period])} zł</span>
               <span className="per">za galerię</span>
             </p>
+            {period > 1 && <p className="plan-month">czyli {perMonth(plan.prices[period], period)}</p>}
             <ul className="plan-facts">
               <li>
                 <strong>do {fmtGb(plan.limitGb)}</strong> {plan.photos} w pełnej rozdzielczości
