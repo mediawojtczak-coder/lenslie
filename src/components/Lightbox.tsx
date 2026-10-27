@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import DownloadMenu from "./DownloadMenu";
 import { track } from "@/lib/track";
+import { T, type Lang } from "@/lib/i18n";
 
 export type LightboxItem = { url: string; name: string; downloadUrl?: string; webDownloadUrl?: string };
 
@@ -18,6 +19,7 @@ export default function Lightbox({
   musicUrl,
   tools,
   allowDownload = true,
+  lang = "pl",
 }: {
   items: LightboxItem[];
   index: number;
@@ -29,7 +31,9 @@ export default function Lightbox({
   // Dodatkowe przyciski na górnym pasku (np. ulubione)
   tools?: (index: number) => ReactNode;
   allowDownload?: boolean;
+  lang?: Lang;
 }) {
+  const t = T[lang];
   const [playing, setPlaying] = useState(autoplay);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [zoom, setZoom] = useState(false);
@@ -111,7 +115,7 @@ export default function Lightbox({
       className="lightbox"
       role="dialog"
       aria-modal="true"
-      aria-label={`Zdjęcie ${index + 1} z ${items.length}`}
+      aria-label={t.photoOf(index + 1, items.length)}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -136,8 +140,8 @@ export default function Lightbox({
               type="button"
               className={playing ? "lb-btn lb-play on" : "lb-btn lb-play"}
               onClick={() => setPlaying((p) => !p)}
-              aria-label={playing ? "Zatrzymaj pokaz slajdów" : "Pokaz slajdów"}
-              title={playing ? "Zatrzymaj pokaz" : "Pokaz slajdów"}
+              aria-label={playing ? t.stopSlideshow : t.slideshow}
+              title={playing ? t.stopSlideshow : t.slideshow}
             >
               <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                 {playing ? (
@@ -154,15 +158,16 @@ export default function Lightbox({
               fullUrl={item.downloadUrl}
               webUrl={item.webDownloadUrl ?? item.url}
               fileName={item.name}
+              lang={lang}
             />
           )}
-          <button type="button" className="lb-btn" onClick={() => setZoom((z) => !z)} aria-label={zoom ? "Pomniejsz" : "Powiększ"} title={zoom ? "Pomniejsz" : "Powiększ"}>
+          <button type="button" className="lb-btn" onClick={() => setZoom((z) => !z)} aria-label={zoom ? t.shrink : t.enlarge} title={zoom ? t.shrink : t.enlarge}>
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
               <path d={zoom ? "M8.5 11h5M20 20l-4.5-4.5" : "M8.5 11h5M11 8.5v5M20 20l-4.5-4.5"} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </button>
-          <button type="button" className="lb-btn" onClick={onClose} aria-label="Zamknij" title="Zamknij">
+          <button type="button" className="lb-btn" onClick={onClose} aria-label={t.close} title={t.close}>
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
@@ -187,12 +192,12 @@ export default function Lightbox({
 
       {items.length > 1 && (
         <>
-          <button type="button" className="lb-nav lb-prev" onClick={() => go(-1)} aria-label="Poprzednie zdjęcie">
+          <button type="button" className="lb-nav lb-prev" onClick={() => go(-1)} aria-label={t.prev}>
             <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
               <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          <button type="button" className="lb-nav lb-next" onClick={() => go(1)} aria-label="Następne zdjęcie">
+          <button type="button" className="lb-nav lb-next" onClick={() => go(1)} aria-label={t.next}>
             <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
               <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>

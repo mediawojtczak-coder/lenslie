@@ -19,6 +19,7 @@ export default function SettingsForm({
   welcome: initialWelcome,
   hasMusic,
   children,
+  lang: initialLang,
 }: {
   id: string;
   title: string;
@@ -28,7 +29,9 @@ export default function SettingsForm({
   welcome: string;
   hasMusic: boolean;
   children?: ReactNode;
+  lang: "pl" | "en";
 }) {
+  const [lang, setLang] = useState(initialLang);
   const [eventDate, setEventDate] = useState(initialDate);
   const [welcome, setWelcome] = useState(initialWelcome);
   const musicRef = useRef<HTMLInputElement>(null);
@@ -60,6 +63,7 @@ export default function SettingsForm({
           layout,
           eventDate,
           welcome,
+          lang,
         }),
       });
       const data = await res.json();
@@ -140,6 +144,13 @@ export default function SettingsForm({
         <label htmlFor="s-title">Nazwa galerii</label>
         <input id="s-title" value={title} onChange={(e) => setTitle(e.target.value)} required />
         <p className="hint">Adres galerii pozostaje bez zmian: /galeria/{id}</p>
+
+        <label htmlFor="s-lang">Język galerii dla klienta</label>
+        <select id="s-lang" className="plain-select" value={lang} onChange={(e) => setLang(e.target.value as "pl" | "en")}>
+          <option value="pl">Polski</option>
+          <option value="en">English – dla par i gości z zagranicy</option>
+        </select>
+        <p className="hint">Przyciski, menu i komunikaty w galerii klienta będą w tym języku. Tytuł, sekcje i powitanie wpisujesz sam.</p>
 
         <label htmlFor="s-date">Data wydarzenia</label>
         <input id="s-date" type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />

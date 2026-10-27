@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { T, type Lang } from "@/lib/i18n";
 
 // Pełnoekranowa okładka galerii: zdjęcie spokojnie się wyłania, potem tytuł i przycisk
 export default function Hero({
@@ -11,6 +12,7 @@ export default function Hero({
   locked,
   error,
   studio,
+  lang = "pl",
 }: {
   id: string;
   title: string;
@@ -19,7 +21,9 @@ export default function Hero({
   coverUrl: string | null;
   locked: boolean;
   error: boolean;
+  lang?: Lang;
 }) {
+  const t = T[lang];
   const [loaded, setLoaded] = useState(!coverUrl);
   const [showForm, setShowForm] = useState(error);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -51,34 +55,34 @@ export default function Hero({
           showForm ? (
             <form method="post" action={`/api/galleries/${id}/unlock`} className="hero-form">
               <label htmlFor="password" className="sr-only">
-                Hasło do galerii
+                {t.password}
               </label>
               <input
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Hasło do galerii"
+                placeholder={t.password}
                 autoComplete="off"
                 required
                 autoFocus
               />
               <button type="submit" className="hero-btn">
-                Otwórz
+                {t.open}
               </button>
               {error && (
                 <p className="hero-error" role="alert">
-                  Nieprawidłowe hasło. Sprawdź wiadomość od fotografa.
+                  {t.wrongPassword}
                 </p>
               )}
             </form>
           ) : (
             <button type="button" className="hero-btn" onClick={() => setShowForm(true)}>
-              Wejdź do galerii
+              {t.enter}
             </button>
           )
         ) : (
           <a href="#zdjecia" className="hero-btn">
-            Zobacz zdjęcia
+            {t.seePhotos}
           </a>
         )}
       </div>

@@ -6,6 +6,7 @@ import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, hasAccess, accessCookieName, isExpired, type GalleryMeta } from "@/lib/galleries";
 import Hero from "./Hero";
 import GalleryView, { formatEventDate } from "./GalleryView";
+import { T } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,7 @@ export default async function Galeria({
     error = true;
   }
   const title = meta?.title || titleFromId(id);
+  const t = T[meta?.lang ?? "pl"];
 
   // Po wygaśnięciu pakietu klient widzi tylko krótką informację
   if (isExpired(meta)) {
@@ -65,7 +67,7 @@ export default async function Galeria({
       <section className="expired-page">
         <p className="wordmark">Lenslie</p>
         <h1>{title}</h1>
-        <p>Dostęp do tej galerii wygasł. Skontaktuj się z fotografem, jeśli potrzebujesz zdjęć.</p>
+        <p>{t.expired}</p>
       </section>
     );
   }
@@ -80,7 +82,7 @@ export default async function Galeria({
         <section className="expired-page">
           <p className="wordmark">Lenslie</p>
           <h1>{title}</h1>
-          <p>Ta galeria nie jest jeszcze opublikowana. Fotograf udostępni ją wkrótce.</p>
+          <p>{t.notPublished}</p>
         </section>
       );
     }
@@ -98,7 +100,8 @@ export default async function Galeria({
       <Hero
         id={id}
         title={title}
-        subtitle={formatEventDate(meta?.eventDate)}
+        subtitle={formatEventDate(meta?.eventDate, meta?.lang)}
+        lang={meta?.lang}
         studio={brand.studioName}
         coverUrl={summary.coverUrl}
         locked

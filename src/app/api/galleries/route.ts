@@ -24,6 +24,7 @@ export async function POST(req: Request) {
         period?: number;
         eventDate?: string;
         welcome?: string;
+        lang?: string;
       }
     | null;
 
@@ -92,6 +93,7 @@ export async function POST(req: Request) {
     const d = body.eventDate.trim();
     meta.eventDate = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : undefined;
   }
+  if (body?.lang === "pl" || body?.lang === "en") meta.lang = body.lang;
   if (typeof body?.welcome === "string") {
     meta.welcome = body.welcome.trim().slice(0, 1500) || undefined;
   }

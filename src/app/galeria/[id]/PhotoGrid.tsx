@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Lightbox from "@/components/Lightbox";
 import DownloadMenu from "@/components/DownloadMenu";
 import DownloadAll from "./DownloadAll";
+import { T, type Lang } from "@/lib/i18n";
 
 export type GridItem = {
   name: string;
@@ -45,6 +46,7 @@ export default function PhotoGrid({
   watermark,
   galleryId,
   favorites,
+  lang = "pl",
 }: {
   groups: Group[];
   layout: "mozaika" | "siatka";
@@ -55,7 +57,9 @@ export default function PhotoGrid({
   galleryId?: string;
   // Ulubione: null = funkcja wyłączona (np. link dla gości)
   favorites?: Favorites | null;
+  lang?: Lang;
 }) {
+  const t = T[lang];
   const [favs, setFavs] = useState<Set<string>>(new Set(favorites?.photos ?? []));
   const [who, setWho] = useState<string | null>(favorites?.name ?? null);
   const [onlyFavs, setOnlyFavs] = useState(false);
@@ -96,7 +100,7 @@ export default function PhotoGrid({
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const err = new Error(data.error ?? "Nie udało się zapisać.") as Error & { code?: string };
+      const err = new Error(data.error ?? t.saveError) as Error & { code?: string };
       err.code = data.code;
       throw err;
     }
@@ -144,7 +148,7 @@ export default function PhotoGrid({
         setFavs(new Set(res.photos));
       }
     } catch (err) {
-      setFavError(err instanceof Error ? err.message : "Nie udało się zapisać.");
+      setFavError(err instanceof Error ? err.message : t.saveError);
     }
   }
 
@@ -154,9 +158,9 @@ export default function PhotoGrid({
     setFavError("");
     try {
       await favApi({ action: "note", note: fd.get("note"), notify: true });
-      setSent("Dziękujemy! Fotograf zobaczy Twój wybór w swoim panelu.");
+      setSent(t.sentThanks);
     } catch (err) {
-      setFavError(err instanceof Error ? err.message : "Nie udało się wysłać.");
+      setFavError(err instanceof Error ? err.message : t.sendError);
     }
   }
 
@@ -178,30 +182,31 @@ export default function PhotoGrid({
   return (
     <>
       {named.length > 1 && (
-        <nav className="section-nav" aria-label="Sekcje galerii">
+        <nav className="section-nav" aria-label={t.sections}>
           {shownGroups
             .filter((g) => g.photos.length > 0)
             .map((g) => (
               <a key={g.id} href={`#sekcja-${g.id}`}>
-                {g.name ?? "Pozostałe"}
+                {g.name ?? t.other}
               </a>
             ))}
         </nav>
       )}
 
-      {onlyFavs && all.length === 0 && <p className="notice">Nie masz jeszcze ulubionych zdjęć.</p>}
+      {onlyFavs && all.length === 0 && <p className="notice">{t.noFavs}</p>}
 
       {shownGroups
         .filter((g) => g.photos.length > 0)
         .map((g) => (
-          <section key={g.id} id={`sekcja-${g.id}`} className="client-section" aria-label={g.name ?? "Zdjęcia"}>
+          <section key={g.id} id={`sekcja-${g.id}`} className="client-section" aria-label={g.name ?? t.otherPhotos}>
             {named.length > 0 && (
               <div className="section-head">
-                <h2>{g.name ?? "Pozostałe zdjęcia"}</h2>
+                <h2>{g.name ?? t.otherPhotos}</h2>
                 {downloads !== "none" && (
                   <DownloadAll
                     small
-                    label="Pobierz sekcję"
+                    label={t.downloadSection}
+                    lang={lang}
                     allowFull={downloads === "all"}
                     zipName={`${zipBase}-${slug(g.name ?? "pozostale")}.zip`}
                     items={g.photos.map((p) => ({
@@ -217,7 +222,7 @@ export default function PhotoGrid({
             <div className={layout === "siatka" ? "client-grid even" : "client-grid"}>
               {g.photos.map((p) => (
                 <figure key={p.name} className="photo">
-                  <button type="button" className="photo-open" onClick={() => openAt(p)} aria-label={`Otwórz zdjęcie ${p.fileName}`}>
+                  <button type="button" className="photo-open" onClick={() => openAt(p)} aria-label={`${t.openPhoto} ${p.fileName}`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p.webUrl}
@@ -233,7 +238,7 @@ export default function PhotoGrid({
                     </span>
                   )}
                   {favorites && favs.has(p.name) && (
-                    <button type="button" className="fav-mark" onClick={() => toggleFav(p.name)} aria-label={`Usuń ${p.fileName} z ulubionych`}>
+                    <button type="button" className="fav-mark" onClick={() => toggleFav(p.name)} aria-label={`${t.removeFav}: ${p.fileName}`}>
                       <Heart on size={18} />
                     </button>
                   )}
@@ -244,25 +249,26 @@ export default function PhotoGrid({
                         className={favs.has(p.name) ? "pa-btn fav on" : "pa-btn fav"}
                         onClick={() => toggleFav(p.name)}
                         aria-pressed={favs.has(p.name)}
-                        aria-label={favs.has(p.name) ? `Usuń ${p.fileName} z ulubionych` : `Dodaj ${p.fileName} do ulubionych`}
+                        aria-label={`${favs.has(p.name) ? t.removeFav : t.addFav}: ${p.fileName}`}
                       >
                         <Heart on={favs.has(p.name)} size={22} />
-                        <span>Ulubione</span>
+                        <span>{t.favorites}</span>
                       </button>
                     )}
                     {downloads !== "none" && p.webDownloadUrl && (
                       <DownloadMenu
+                        lang={lang}
                         fullUrl={downloads === "all" ? p.downloadUrl : undefined}
                         webUrl={p.webDownloadUrl}
                         fileName={p.fileName}
                       />
                     )}
-                    <button type="button" className="pa-btn" onClick={() => openAt(p)} aria-label={`Powiększ ${p.fileName}`}>
+                    <button type="button" className="pa-btn" onClick={() => openAt(p)} aria-label={`${t.enlarge} ${p.fileName}`}>
                       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
                         <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
                         <path d="M8.5 11h5M11 8.5v5M20 20l-4.5-4.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                       </svg>
-                      <span>Powiększ</span>
+                      <span>{t.enlarge}</span>
                     </button>
                   </div>
                 </figure>
@@ -288,6 +294,7 @@ export default function PhotoGrid({
           autoplay={autoplay}
           musicUrl={musicUrl}
           allowDownload={downloads !== "none"}
+          lang={lang}
           tools={
             favorites
               ? (i) => {
@@ -300,8 +307,8 @@ export default function PhotoGrid({
                       className={on ? "lb-btn lb-fav on" : "lb-btn lb-fav"}
                       onClick={() => toggleFav(p.name)}
                       aria-pressed={on}
-                      aria-label={on ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
-                      title={on ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+                      aria-label={on ? t.removeFav : t.addFav}
+                      title={on ? t.removeFav : t.addFav}
                     >
                       <Heart on={on} />
                     </button>
@@ -313,12 +320,12 @@ export default function PhotoGrid({
       )}
 
       {favorites && pastCover && (favs.size > 0 || onlyFavs) && (
-        <div className="fav-bar" role="region" aria-label="Ulubione">
+        <div className="fav-bar" role="region" aria-label={t.favorites}>
           <span className="fav-count">
             <Heart on size={16} /> {favs.size}
           </span>
           <button type="button" onClick={() => setOnlyFavs((v) => !v)}>
-            {onlyFavs ? "Pokaż wszystkie" : "Pokaż ulubione"}
+            {onlyFavs ? t.showAll : t.showFavs}
           </button>
           <button
             type="button"
@@ -329,7 +336,7 @@ export default function PhotoGrid({
               sendRef.current?.showModal();
             }}
           >
-            Wyślij fotografowi
+            {t.sendToPhotographer}
           </button>
         </div>
       )}
@@ -351,14 +358,13 @@ export default function PhotoGrid({
                 startSelection(e.currentTarget);
               }}
             >
-              <h2 id="fav-start">Twoje ulubione</h2>
+              <h2 id="fav-start">{t.favTitle}</h2>
               <p className="modal-lead">
-                Zaznaczaj serduszkiem zdjęcia, które najbardziej Ci się podobają, np. do albumu lub wydruku. Fotograf zobaczy
-                Twój wybór.
+                {t.favLead}
               </p>
-              <label htmlFor="fav-name">Imię</label>
+              <label htmlFor="fav-name">{t.name}</label>
               <input id="fav-name" name="name" required maxLength={80} autoComplete="given-name" autoFocus />
-              <label htmlFor="fav-email">E-mail (opcjonalnie)</label>
+              <label htmlFor="fav-email">{t.emailOptional}</label>
               <input id="fav-email" name="email" type="email" maxLength={120} autoComplete="email" />
               {favError && (
                 <p className="error" role="alert">
@@ -367,10 +373,10 @@ export default function PhotoGrid({
               )}
               <div className="modal-actions">
                 <button type="button" className="as-link" onClick={() => startRef.current?.close()}>
-                  Anuluj
+                  {t.cancel}
                 </button>
                 <button type="submit" className="btn">
-                  Zaczynam wybierać
+                  {t.startChoosing}
                 </button>
               </div>
             </form>
@@ -391,23 +397,23 @@ export default function PhotoGrid({
                 sendSelection(e.currentTarget);
               }}
             >
-              <h2 id="fav-send">Wyślij wybór fotografowi</h2>
+              <h2 id="fav-send">{t.sendTitle}</h2>
               {sent ? (
                 <>
                   <p className="modal-lead">{sent}</p>
                   <div className="modal-actions">
                     <span />
                     <button type="button" className="btn" onClick={() => sendRef.current?.close()}>
-                      Zamknij
+                      {t.close}
                     </button>
                   </div>
                 </>
               ) : (
                 <>
                   <p className="modal-lead">
-                    Wybrane zdjęcia: {favs.size}. Możesz dodać wiadomość, np. które zdjęcia do albumu, a które do druku.
+                    {t.sendLead(favs.size)}
                   </p>
-                  <label htmlFor="fav-note">Wiadomość (opcjonalnie)</label>
+                  <label htmlFor="fav-note">{t.messageOptional}</label>
                   <textarea id="fav-note" name="note" rows={4} maxLength={2000} className="modal-textarea" />
                   {favError && (
                     <p className="error" role="alert">
@@ -416,10 +422,10 @@ export default function PhotoGrid({
                   )}
                   <div className="modal-actions">
                     <button type="button" className="as-link" onClick={() => sendRef.current?.close()}>
-                      Anuluj
+                      {t.cancel}
                     </button>
                     <button type="submit" className="btn">
-                      Wyślij
+                      {t.send}
                     </button>
                   </div>
                 </>

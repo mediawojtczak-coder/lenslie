@@ -3,15 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { saveZip, type ZipItem, type ZipKind } from "@/lib/zip-client";
 import { track } from "@/lib/track";
+import { T, type Lang } from "@/lib/i18n";
 
 // Przycisk pobierania wielu zdjęć jako ZIP (cała galeria albo jedna sekcja)
 export default function DownloadAll({
   items,
   zipName,
-  label = "Pobierz wszystkie",
+  label,
   small = false,
   allowFull = true,
   onDone,
+  lang = "pl",
 }: {
   items: ZipItem[];
   zipName: string;
@@ -19,7 +21,9 @@ export default function DownloadAll({
   small?: boolean;
   allowFull?: boolean;
   onDone?: (kind: ZipKind) => void;
+  lang?: Lang;
 }) {
+  const t = T[lang];
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [count, setCount] = useState(0);
   const [menu, setMenu] = useState(false);
@@ -60,24 +64,24 @@ export default function DownloadAll({
         aria-haspopup={allowFull ? "menu" : undefined}
         aria-expanded={allowFull ? menu : undefined}
       >
-        {state === "busy" ? `Przygotowuję… ${count} z ${items.length}` : label}
+        {state === "busy" ? t.preparing(count, items.length) : (label ?? t.downloadAll)}
       </button>
       {menu && (
         <div className="dl-pop dl-pop-down" role="menu">
           <button type="button" role="menuitem" onClick={() => run("full")}>
-            <strong>Pełna rozdzielczość</strong>
-            <span>Oryginały do druku i albumu</span>
+            <strong>{t.full}</strong>
+            <span>{t.fullDesc}</span>
           </button>
           <button type="button" role="menuitem" onClick={() => run("web")}>
-            <strong>Do internetu</strong>
-            <span>Mniejsze pliki, szybsze pobieranie</span>
+            <strong>{t.web}</strong>
+            <span>{t.webDesc}</span>
           </button>
         </div>
       )}
-      {state === "done" && <p className="hint-center">Pobieranie zakończone.</p>}
+      {state === "done" && <p className="hint-center">{t.downloadDone}</p>}
       {state === "error" && (
         <p className="error hint-center" role="alert">
-          Nie udało się pobrać wszystkich zdjęć. Odśwież stronę i spróbuj ponownie.
+          {t.downloadError}
         </p>
       )}
     </div>

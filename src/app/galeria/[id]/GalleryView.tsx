@@ -10,20 +10,16 @@ import Hero from "./Hero";
 import PhotoGrid, { type Group, type GridItem } from "./PhotoGrid";
 import SlideshowButton from "./SlideshowButton";
 import Track from "./Track";
+import { T } from "@/lib/i18n";
 
 const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
-export function formatEventDate(d?: string) {
-  return d ? dateFmt.format(new Date(`${d}T00:00:00Z`)) : undefined;
+export function formatEventDate(d?: string, lang: "pl" | "en" = "pl") {
+  if (!d) return undefined;
+  const fmt = lang === "en" ? new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) : dateFmt;
+  return fmt.format(new Date(`${d}T00:00:00Z`));
 }
 
-function photosLabel(n: number) {
-  if (n === 1) return "1 zdjęcie";
-  const lastTwo = n % 100;
-  const last = n % 10;
-  if (last >= 2 && last <= 4 && !(lastTwo >= 12 && lastTwo <= 14)) return `${n} zdjęcia`;
-  return `${n} zdjęć`;
-}
 
 const rank: Record<Downloads, number> = { none: 0, web: 1, all: 2 };
 
@@ -42,6 +38,8 @@ export default async function GalleryView({
   // Fotograf ogląda wersję roboczą przed publikacją
   preview?: boolean;
 }) {
+  const lang = meta?.lang ?? "pl";
+  const t = T[lang];
   const watermark = watermarkOn(meta) ? meta!.watermark!.text : null;
 
   const brand = await getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null }));
@@ -97,7 +95,7 @@ export default async function GalleryView({
   const shown = photos.filter((p) => visibleNames.has(p.name));
 
   const subtitle =
-    [formatEventDate(meta?.eventDate), shown.length > 0 ? photosLabel(shown.length) : null].filter(Boolean).join(" · ") ||
+    [formatEventDate(meta?.eventDate, lang), shown.length > 0 ? t.photos(shown.length) : null].filter(Boolean).join(" · ") ||
     undefined;
   const musicUrl = meta?.music ? await getMusicUrl(id).catch(() => null) : null;
   const cover = pickCover(shown, meta?.cover) ?? pickCover(photos, meta?.cover);
@@ -126,6 +124,7 @@ export default async function GalleryView({
         coverUrl={cover?.webUrl ?? null}
         locked={false}
         error={false}
+        lang={lang}
       />
 
       <div className="g-bar" id="zdjecia">
@@ -141,11 +140,12 @@ export default async function GalleryView({
         )}
         <p className="g-bar-title">{title}</p>
         <div className="g-bar-actions">
-          {visible.length > 1 && <SlideshowButton />}
+          {visible.length > 1 && <SlideshowButton lang={lang} />}
           {visible.length > 0 && downloads !== "none" && (
             <DownloadAll
               zipName={`${id}.zip`}
               allowFull={downloads === "all"}
+              lang={lang}
               items={visible.map((p) => ({
                 url: p.downloadUrl ?? "",
                 fileName: p.fileName,
@@ -157,7 +157,7 @@ export default async function GalleryView({
           {mode === "client" && meta?.passwordHash && (
             <form method="post" action={`/api/galleries/${id}/lock`}>
               <button type="submit" className="g-logout">
-                Wyloguj
+                {t.logout}
               </button>
             </form>
           )}
@@ -166,8 +166,8 @@ export default async function GalleryView({
 
       <main className="g-photos">
         {meta?.welcome && <p className="g-welcome">{meta.welcome}</p>}
-        {error && <p className="notice">Nie udało się wczytać zdjęć. Odśwież stronę za chwilę.</p>}
-        {!error && visible.length === 0 && <p className="notice">W tej galerii nie ma jeszcze zdjęć.</p>}
+        {error && <p className="notice">{t.loadError}</p>}
+        {!error && visible.length === 0 && <p className="notice">{t.empty}</p>}
         {visible.length > 0 && (
           <PhotoGrid
             layout={meta?.layout ?? "mozaika"}
@@ -178,13 +178,14 @@ export default async function GalleryView({
             watermark={watermark}
             galleryId={id}
             favorites={favorites}
+            lang={lang}
           />
         )}
       </main>
       {!preview && <Track galleryId={id} mode={mode} />}
       <footer className="g-footer">
         {brand.studioName && <span>{brand.studioName} · </span>}
-        <Link href="/">Galeria w Lenslie</Link>
+        <Link href="/">{t.footer}</Link>
       </footer>
     </>
   );

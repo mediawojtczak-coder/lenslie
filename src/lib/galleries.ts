@@ -34,6 +34,8 @@ export type GalleryMeta = {
   // Osobny link dla gości wesela
   guest?: GuestLink;
   // Wysłane automatyczne powiadomienia (daty), czyszczone po przedłużeniu
+  // Język galerii widzianej przez klienta
+  lang?: "pl" | "en";
   notices?: { expiring?: string; deleting?: string; draft?: string };
 };
 

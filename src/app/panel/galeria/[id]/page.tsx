@@ -147,6 +147,7 @@ export default async function ZarzadzanieGalerii({
             eventDate={meta?.eventDate ?? ""}
             welcome={meta?.welcome ?? ""}
             hasMusic={Boolean(meta?.music)}
+            lang={meta?.lang ?? "pl"}
           >
             <ProtectionCard
               id={id}

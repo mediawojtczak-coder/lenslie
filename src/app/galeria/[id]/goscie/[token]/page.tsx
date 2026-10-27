@@ -2,6 +2,7 @@ import { timingSafeEqual } from "crypto";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, isExpired } from "@/lib/galleries";
 import GalleryView from "../../GalleryView";
+import { T } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +21,13 @@ export default async function GalleriaGosci({ params }: { params: Promise<{ id: 
   const meta = isValidGalleryId(id) ? await getMeta(id).catch(() => null) : null;
   const guest = meta?.guest;
 
+  const t = T[meta?.lang ?? "pl"];
   if (!meta || !meta.plan || !guest?.enabled || !sameToken(guest.token, String(token))) {
     return (
       <section className="expired-page">
         <p className="wordmark">Lenslie</p>
-        <h1>Link jest nieaktywny</h1>
-        <p>Ten link do galerii wygasł albo został wyłączony. Poproś parę młodą lub fotografa o nowy.</p>
+        <h1>{t.linkInactiveTitle}</h1>
+        <p>{t.linkInactive}</p>
       </section>
     );
   }
@@ -34,7 +36,7 @@ export default async function GalleriaGosci({ params }: { params: Promise<{ id: 
       <section className="expired-page">
         <p className="wordmark">Lenslie</p>
         <h1>{meta.title}</h1>
-        <p>Dostęp do tej galerii wygasł.</p>
+        <p>{t.expiredShort}</p>
       </section>
     );
   }

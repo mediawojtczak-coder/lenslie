@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { T, type Lang } from "@/lib/i18n";
 
 // Przycisk „Pobierz” z wyborem: pełna rozdzielczość albo lżejsza wersja do internetu
 export default function DownloadMenu({
@@ -8,13 +9,16 @@ export default function DownloadMenu({
   webUrl,
   fileName,
   variant = "tile",
+  lang = "pl",
 }: {
   // Bez pełnej rozdzielczości przycisk od razu pobiera wersję do internetu
   fullUrl?: string;
   webUrl: string;
   fileName: string;
   variant?: "tile" | "lightbox";
+  lang?: Lang;
 }) {
+  const t = T[lang];
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -46,13 +50,13 @@ export default function DownloadMenu({
           data-track="download"
           data-photo={fileName}
           className={variant === "tile" ? "pa-btn" : "lb-btn"}
-          aria-label={`Pobierz ${fileName}`}
-          title="Pobierz"
+          aria-label={`${t.download} ${fileName}`}
+          title={t.download}
         >
           <svg viewBox="0 0 24 24" width={variant === "tile" ? 22 : 20} height={variant === "tile" ? 22 : 20} aria-hidden="true">
             <path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          {variant === "tile" && <span>Pobierz</span>}
+          {variant === "tile" && <span>{t.download}</span>}
         </a>
       </div>
     );
@@ -66,24 +70,24 @@ export default function DownloadMenu({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`Pobierz ${fileName}`}
-        title="Pobierz"
+        aria-label={`${t.download} ${fileName}`}
+        title={t.download}
       >
         <svg viewBox="0 0 24 24" width={variant === "tile" ? 22 : 20} height={variant === "tile" ? 22 : 20} aria-hidden="true">
           <path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        {variant === "tile" && <span>Pobierz</span>}
+        {variant === "tile" && <span>{t.download}</span>}
       </button>
 
       {open && (
         <div className="dl-pop" role="menu">
           <a role="menuitem" href={fullUrl} download data-track="download" data-photo={fileName} onClick={() => setOpen(false)}>
-            <strong>Pełna rozdzielczość</strong>
-            <span>Oryginał do druku i albumu</span>
+            <strong>{t.full}</strong>
+            <span>{t.fullDescOne}</span>
           </a>
           <a role="menuitem" href={webUrl} download data-track="download" data-photo={fileName} onClick={() => setOpen(false)}>
-            <strong>Do internetu</strong>
-            <span>Mniejszy plik na Facebooka, Instagram</span>
+            <strong>{t.web}</strong>
+            <span>{t.webDescOne}</span>
           </a>
         </div>
       )}
