@@ -1,7 +1,24 @@
 import Link from "next/link";
 import PricingPlans from "@/components/PricingPlans";
+import DeviceShowcase from "@/components/DeviceShowcase";
+import { getGalleryPhotos } from "@/lib/photos";
+import { getMeta } from "@/lib/galleries";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+// Galeria pokazowa: utwórz w panelu galerię o nazwie „Pokaz” i wgraj do niej zdjęcia na stronę główną
+const SHOWCASE_ID = "pokaz";
+
+export default async function Home() {
+  const [photos, meta] = await Promise.all([
+    getGalleryPhotos(SHOWCASE_ID).catch(() => []),
+    getMeta(SHOWCASE_ID).catch(() => null),
+  ]);
+  const urls = photos.map((p) => p.webUrl);
+  const showcaseTitle = meta?.title && meta.title.toLowerCase() !== "pokaz" ? meta.title : "Anna & Marek";
+
+  const tiles = ["t1 b", "t2", "t3 c", "t4 d"];
+
   return (
     <>
       <section className="hero">
@@ -12,15 +29,19 @@ export default function Home() {
         </p>
         <div className="actions">
           <Link href="/logowanie" className="btn">Załóż konto</Link>
-          <Link href="/galeria/demo" className="link-quiet">Zobacz przykładową galerię</Link>
+          <Link href="/cennik" className="link-quiet">Zobacz cennik</Link>
         </div>
       </section>
 
       <section className="mosaic" aria-hidden="true">
-        <div className="tile t1 b" />
-        <div className="tile t2" />
-        <div className="tile t3 c" />
-        <div className="tile t4 d" />
+        {tiles.map((t, i) =>
+          urls[i] ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={t} src={urls[i]} alt="" className={`tile mosaic-img ${t}`} />
+          ) : (
+            <div key={t} className={`tile ${t}`} />
+          ),
+        )}
       </section>
 
       <section className="features">
@@ -36,6 +57,17 @@ export default function Home() {
           <h2>Pod Twoją marką</h2>
           <p>Twoje logo, Twoja domena. Lenslie pozostaje w tle.</p>
         </div>
+      </section>
+
+      <section className="showcase">
+        <div className="showcase-text">
+          <h2>Tak zobaczy to Twój klient</h2>
+          <p>
+            Zdjęcie z sesji na cały ekran, a pod nim cała galeria. Na komputerze i telefonie,
+            bez instalowania czegokolwiek.
+          </p>
+        </div>
+        <DeviceShowcase photos={urls.slice(0, 12)} title={showcaseTitle} />
       </section>
 
       <section className="home-pricing" id="cennik">
