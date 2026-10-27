@@ -1736,21 +1736,37 @@ ol.stat-list { counter-reset: s; }
 .gu-grid .gu-tile { aspect-ratio: 1; margin: 0; border-radius: 6px; }
 .gu-grid .gu-tile img { height: 100%; object-fit: cover; }
 
-/* ===== Kartka z kodem QR do druku ===== */
-.qr-sheet { display: grid; grid-template-columns: 1fr 1fr; gap: 0; background: #fff; max-width: 210mm; margin: 0 auto; }
-.qr-card { height: 148mm; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 14mm 12mm; border: 1px dashed #e6dfda; color: #3b3633; }
-.qr-card .qr-kicker { font-size: 8pt; letter-spacing: .22em; text-transform: uppercase; color: #958c85; margin: 0 0 6mm; }
-.qr-card h2 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 20pt; line-height: 1.1; margin: 0 0 3mm; }
-.qr-card .qr-date { font-size: 9pt; color: #958c85; margin: 0 0 7mm; }
-.qr-card img { width: 46mm; height: 46mm; }
-.qr-card .qr-lead { font-size: 10pt; line-height: 1.45; margin: 7mm 0 0; max-width: 70mm; }
-.qr-card .qr-url { font-size: 7pt; color: #958c85; margin-top: 3mm; word-break: break-all; }
+/* ===== Kartka z kodem QR do druku (luksusowa) ===== */
+.qr-sheet { display: grid; grid-template-columns: 1fr 1fr; background: #fff; max-width: 210mm; margin: 0 auto; box-shadow: 0 20px 60px -30px rgba(59, 54, 51, .35); }
+.qc { height: 148.5mm; padding: 6mm; outline: 0.2mm dashed #ece6e1; outline-offset: -0.1mm; background: #fff; }
+.qc-frame {
+  height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  border: 0.35mm solid #c7ad8f; outline: 0.2mm solid #c7ad8f; outline-offset: -1.6mm; padding: 6mm 7mm; color: #3b3633;
+}
+.qc-kicker { font-family: var(--font-display), Georgia, serif; font-size: 6.6pt; letter-spacing: .34em; text-transform: uppercase; color: #a8865f; margin: 0 0 2mm; }
+.qc-sprig { width: 34mm; height: 6mm; fill: none; stroke: #b9997a; stroke-width: 1.1; stroke-linecap: round; margin-bottom: 1mm; }
+.qc-names { font-family: var(--font-script), var(--font-display), Georgia, serif; font-weight: 400; font-size: 27pt; line-height: 1.05; margin: 0 0 1.5mm; color: #3b3633; }
+.qc-date { display: flex; align-items: center; gap: 3mm; font-family: var(--font-display), Georgia, serif; font-size: 7pt; letter-spacing: .24em; text-transform: uppercase; color: #8a7d74; margin: 0 0 5mm; }
+.qc-date span { width: 8mm; height: 0.2mm; background: #c7ad8f; }
+.qc-code { position: relative; padding: 3mm; margin-bottom: 4.5mm; }
+.qc-qr { display: block; width: 38mm; height: 38mm; }
+.qc-qr svg { width: 100%; height: 100%; display: block; }
+.qc-corner { position: absolute; width: 4mm; height: 4mm; border-color: #b9997a; border-style: solid; border-width: 0; }
+.qc-corner.tl { top: 0; left: 0; border-top-width: 0.3mm; border-left-width: 0.3mm; }
+.qc-corner.tr { top: 0; right: 0; border-top-width: 0.3mm; border-right-width: 0.3mm; }
+.qc-corner.bl { bottom: 0; left: 0; border-bottom-width: 0.3mm; border-left-width: 0.3mm; }
+.qc-corner.br { bottom: 0; right: 0; border-bottom-width: 0.3mm; border-right-width: 0.3mm; }
+.qc-lead { font-family: var(--font-display), Georgia, serif; font-style: italic; font-size: 9.5pt; line-height: 1.45; margin: 0 0 2.5mm; color: #3b3633; }
+.qc-thanks { font-family: var(--font-script), Georgia, serif; font-size: 16pt; color: #a8865f; margin: 0; line-height: 1.1; }
+.qc-studio { font-size: 5.6pt; letter-spacing: .3em; text-transform: uppercase; color: #a39890; margin: 2.5mm 0 0; }
 .qr-tools { max-width: 210mm; margin: 0 auto 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.qr-tools .hint-inline { flex: 1 1 260px; margin: 0; }
 @media print {
   @page { size: A4; margin: 0; }
   body { background: #fff !important; }
   .qr-tools, .app-bar { display: none !important; }
-  .qr-card { border-color: #eee; }
+  .qr-sheet { box-shadow: none; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 .qr-print { padding: 24px 16px 40px; }
 .qr-panel-row { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
@@ -1759,7 +1775,7 @@ ol.stat-list { counter-reset: s; }
 .qr-panel-row p { color: var(--taupe); font-size: .9rem; margin: 0 0 14px; }
 .gu-admin { position: relative; margin: 0; cursor: default; }
 .gu-admin .photo-del { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(253, 252, 250, .92); color: var(--ink); cursor: pointer; font-size: 1.1rem; line-height: 1; }
-@media print { .qr-print { padding: 0; } .qr-card { height: 148.5mm; } }
+@media print { .qr-print { padding: 0; } }
 .qr-panel-row .qr-img { margin: 0; }
 .gu-admin-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
 .gu-cover-prev { width: 220px; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: var(--blush); display: grid; place-items: center; flex: 0 0 auto; }

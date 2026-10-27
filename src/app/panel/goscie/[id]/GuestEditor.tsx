@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import QRCode from "qrcode";
+import FancyQr, { qrPng } from "@/components/FancyQr";
 import { useLang } from "@/components/LangProvider";
 import { tr, money, locale } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
@@ -62,7 +62,7 @@ export default function GuestEditor({
   const fmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", year: "numeric" });
 
   useEffect(() => {
-    QRCode.toDataURL(publicUrl, { width: 640, margin: 1, color: { dark: "#3b3633", light: "#ffffff" } }).then(setQr).catch(() => setQr(""));
+    qrPng(publicUrl).then(setQr).catch(() => setQr(""));
   }, [publicUrl]);
 
   // Okładka: zmniejszamy w przeglądarce do 2400 px i wysyłamy prosto do magazynu
@@ -193,12 +193,7 @@ export default function GuestEditor({
       <section className="settings-card qr-panel">
         <h2>{t("Kod QR na stoły", "QR code for the tables")}</h2>
         <div className="qr-panel-row">
-          {qr ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={qr} alt={t("Kod QR do strony gości", "QR code to the guest page")} className="qr-img" />
-          ) : (
-            <div className="qr-img qr-empty" />
-          )}
+          <FancyQr text={publicUrl} className="qr-img qc-qr" label={t("Kod QR do strony gości", "QR code to the guest page")} />
           <div>
             <p>{t("Goście skanują kod aparatem w telefonie i od razu dodają zdjęcia – bez aplikacji i logowania.", "Guests scan the code with their phone camera and add photos right away – no app, no login.")}</p>
             <p className="share-sub">{t("Link dla gości", "Guest link")}</p>
