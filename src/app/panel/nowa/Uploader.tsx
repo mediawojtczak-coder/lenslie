@@ -42,9 +42,15 @@ async function put(url: string, body: Blob, type: string) {
   if (!res.ok) throw new Error(`Wgrywanie nie powiodło się (${res.status})`);
 }
 
-export default function Uploader() {
+export default function Uploader({
+  initialName = "",
+  galleryId,
+}: {
+  initialName?: string;
+  galleryId?: string;
+}) {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [name, setName] = useState(initialName);
   const [clientPassword, setClientPassword] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [done, setDone] = useState(0);
@@ -52,7 +58,7 @@ export default function Uploader() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<string | null>(null);
 
-  const slug = toSlug(name);
+  const slug = galleryId ?? toSlug(name);
 
   async function handleUpload(e: FormEvent) {
     e.preventDefault();
@@ -122,6 +128,7 @@ export default function Uploader() {
         placeholder="np. Anna i Marek"
         value={name}
         onChange={(e) => setName(e.target.value)}
+        readOnly={Boolean(galleryId)}
       />
       {slug && <p className="hint">Adres galerii: /galeria/{slug}</p>}
 

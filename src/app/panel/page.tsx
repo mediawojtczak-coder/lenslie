@@ -1,57 +1,140 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
-import Uploader from "./Uploader";
+import { getGallerySummary } from "@/lib/photos";
+import { getMeta } from "@/lib/galleries";
 
 export const dynamic = "force-dynamic";
 
 type GalleryRow = { id: string; title: string; created_at: string };
 
+type Card = GalleryRow & { count: number; coverUrl: string | null; protected: boolean };
+
 const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric" });
 
-export default async function Panel() {
-  const { supabase, user } = await getUser();
-  if (!user) redirect("/logowanie");
+const FILTERS = [
+  { key: "", label: "Wszystkie" },
+  { key: "haslo", label: "Z hasłem" },
+  { key: "otwarte", label: "Otwarte" },
+  { key: "puste", label: "Bez zdjęć" },
+] as const;
+
+function photosLabel(n: number) {
+  if (n === 1) return "1 zdjęcie";
+  const lastTwo = n % 100;
+  const last = n % 10;
+  if (last >= 2 && last <= 4 && !(lastTwo >= 12 && lastTwo <= 14)) return `${n} zdjęcia`;
+  return `${n} zdjęć`;
+}
+
+export default async function Panel({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; filtr?: string }>;
+}) {
+  const { q = "", filtr = "" } = await searchParams;
+  const { supabase } = await getUser();
 
   const { data } = await supabase
     .from("galleries")
     .select("id, title, created_at")
     .order("created_at", { ascending: false });
-  const galleries = (data ?? []) as GalleryRow[];
+  const rows = (data ?? []) as GalleryRow[];
+
+  const cards: Card[] = await Promise.all(
+    rows.map(async (g) => {
+      const [summary, meta] = await Promise.all([
+        getGallerySummary(g.id).catch(() => ({ count: 0, coverUrl: null })),
+        getMeta(g.id).catch(() => null),
+      ]);
+      return { ...g, ...summary, protected: Boolean(meta?.passwordHash) };
+    }),
+  );
+
+  const counts: Record<string, number> = {
+    "": cards.length,
+    haslo: cards.filter((c) => c.protected).length,
+    otwarte: cards.filter((c) => !c.protected).length,
+    puste: cards.filter((c) => c.count === 0).length,
+  };
+
+  const query = q.trim().toLowerCase();
+  const visible = cards.filter((c) => {
+    if (filtr === "haslo" && !c.protected) return false;
+    if (filtr === "otwarte" && c.protected) return false;
+    if (filtr === "puste" && c.count > 0) return false;
+    if (query && !c.title.toLowerCase().includes(query) && !c.id.includes(query)) return false;
+    return true;
+  });
+
+  const linkFor = (key: string) => {
+    const p = new URLSearchParams();
+    if (key) p.set("filtr", key);
+    if (q) p.set("q", q);
+    const s = p.toString();
+    return s ? `/panel?${s}` : "/panel";
+  };
 
   return (
-    <section className="panel">
-      <div className="panel-head">
-        <div>
-          <h1>Twoje galerie</h1>
-          <p className="lead">Zalogowano jako {user.email}</p>
-        </div>
-        <form method="post" action="/auth/wyloguj">
-          <button className="link-quiet as-link" type="submit">Wyloguj</button>
-        </form>
-      </div>
-
-      {galleries.length === 0 ? (
-        <p className="notice-left">Nie masz jeszcze żadnej galerii. Utwórz pierwszą poniżej.</p>
-      ) : (
-        <ul className="gallery-list">
-          {galleries.map((g) => (
-            <li key={g.id}>
-              <Link href={`/galeria/${g.id}`}>{g.title}</Link>
-              <span>{dateFmt.format(new Date(g.created_at))}</span>
-            </li>
+    <div className="app-body">
+      <aside className="app-side">
+        <Link href="/panel/nowa" className="btn btn-wide">Nowa galeria</Link>
+        <nav aria-label="Filtry galerii">
+          {FILTERS.map((f) => (
+            <Link
+              key={f.key}
+              href={linkFor(f.key)}
+              className={filtr === f.key ? "side-link active" : "side-link"}
+              aria-current={filtr === f.key ? "page" : undefined}
+            >
+              <span>{f.label}</span>
+              <span className="side-count">{counts[f.key]}</span>
+            </Link>
           ))}
-        </ul>
-      )}
+        </nav>
+      </aside>
 
-      <div className="narrow-wide new-gallery">
-        <h2>Nowa galeria</h2>
-        <p className="lead">
-          Wpisz nazwę sesji i wybierz zdjęcia. Aby dodać zdjęcia do istniejącej galerii, wpisz
-          dokładnie tę samą nazwę.
-        </p>
-        <Uploader />
-      </div>
-    </section>
+      <main className="app-main">
+        <div className="app-head">
+          <h1>{query ? `Wyniki dla „${q.trim()}”` : "Twoje galerie"}</h1>
+          {query && <Link href={linkFor(filtr)} className="link-quiet">Wyczyść wyszukiwanie</Link>}
+        </div>
+
+        {cards.length === 0 ? (
+          <div className="empty-state">
+            <p>Nie masz jeszcze żadnej galerii.</p>
+            <Link href="/panel/nowa" className="btn">Utwórz pierwszą galerię</Link>
+          </div>
+        ) : visible.length === 0 ? (
+          <p className="notice-left">Brak galerii pasujących do wybranych filtrów.</p>
+        ) : (
+          <ul className="card-grid">
+            {visible.map((c) => (
+              <li key={c.id} className="g-card">
+                <Link href={`/galeria/${c.id}`} className="g-cover" target="_blank">
+                  {c.coverUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.coverUrl} alt="" loading="lazy" />
+                  ) : (
+                    <span className="g-cover-empty">Brak zdjęć</span>
+                  )}
+                  {c.protected && <span className="g-badge">Hasło</span>}
+                </Link>
+                <div className="g-info">
+                  <Link href={`/galeria/${c.id}`} className="g-title" target="_blank">
+                    {c.title}
+                  </Link>
+                  <p className="g-meta">
+                    {photosLabel(c.count)} · {dateFmt.format(new Date(c.created_at))}
+                  </p>
+                  <Link href={`/panel/nowa?galeria=${c.id}`} className="g-action">
+                    Dodaj zdjęcia
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
+    </div>
   );
 }

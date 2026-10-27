@@ -64,3 +64,15 @@ export async function getGalleryPhotos(id: string): Promise<Photo[]> {
     }),
   );
 }
+
+// Okładka i liczba zdjęć galerii (do kafelków w panelu)
+export async function getGallerySummary(id: string): Promise<{ count: number; coverUrl: string | null }> {
+  if (!process.env.R2_ENDPOINT) return { count: 0, coverUrl: null };
+  const keys = await listKeys(`${galleryPrefix(id)}web/`);
+  if (keys.length === 0) return { count: 0, coverUrl: null };
+  keys.sort((a, b) => a.localeCompare(b, "pl", { numeric: true }));
+  const coverUrl = await getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: keys[0] }), {
+    expiresIn: 7200,
+  });
+  return { count: keys.length, coverUrl };
+}
