@@ -121,7 +121,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                       {(o.amount / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł
                       {o.status !== "paid" && <span className="badge-soft">{o.status === "pending" ? "nieopłacona" : "błąd"}</span>}
                     </td>
-                    <td className="wrap">{o.description.replace(/^Lenslie – /, "")}</td>
+                    <td className="wrap">{o.description.replace(/^Lenslie [–-] /, "")}</td>
                     <td>{o.email}</td>
                     <td className="wrap">
                       {o.status !== "paid" ? (

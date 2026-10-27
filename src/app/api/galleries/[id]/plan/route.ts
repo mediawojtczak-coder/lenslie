@@ -43,7 +43,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     email: user.email ?? "",
     amount: Math.round(checked.amount * 100),
     action: checked.action,
-    description: `Lenslie – ${checked.label} – ${meta.title}`.slice(0, 1024),
+    description: `Lenslie - ${checked.label} - ${meta.title}`.slice(0, 1024),
     status: "pending" as const,
     invoice: inv.billing.want ? inv.billing : null,
     createdAt: new Date().toISOString(),

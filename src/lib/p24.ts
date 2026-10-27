@@ -67,6 +67,7 @@ export async function registerTransaction(o: Order, origin: string): Promise<str
     amount: o.amount,
     currency: "PLN",
     description: o.description,
+    encoding: "UTF-8",
     email: o.email,
     country: "PL",
     language: "pl",
