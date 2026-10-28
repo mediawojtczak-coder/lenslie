@@ -3,6 +3,7 @@
      i lżejszą wersję do oglądania (2048 px), tak jak wgrywanie w panelu. ]]
 
 local LrView = import 'LrView'
+local LrBinding = import 'LrBinding'
 local LrDialogs = import 'LrDialogs'
 local LrTasks = import 'LrTasks'
 local LrErrors = import 'LrErrors'
@@ -120,7 +121,7 @@ function provider.sectionsForTopOfDialog(f, props)
 				f:edit_field { value = bind 'email', width_in_chars = 30, immediate = true },
 			},
 			f:row {
-				visible = LrView.negativeOfKey 'signedIn',
+				visible = LrBinding.negativeOfKey 'signedIn',
 				f:static_text { title = t('Hasło:', 'Password:'), alignment = 'right', width = share 'lenslieLabel' },
 				f:password_field { value = bind 'password', width_in_chars = 30, immediate = true },
 			},
@@ -128,7 +129,7 @@ function provider.sectionsForTopOfDialog(f, props)
 				f:static_text { title = '', width = share 'lenslieLabel' },
 				f:push_button {
 					title = t('Zaloguj', 'Sign in'),
-					enabled = LrView.negativeOfKey 'busy',
+					enabled = LrBinding.negativeOfKey 'busy',
 					action = function()
 						LrTasks.startAsyncTask(function() signIn(props) end)
 					end,
