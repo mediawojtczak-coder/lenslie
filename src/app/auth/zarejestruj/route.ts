@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { sendSignupMail } from "@/lib/auth-mail";
 import { getLang, setUserLang } from "@/lib/lang-server";
 import { recordReferral, cleanCode } from "@/lib/referrals";
+import { notifyAdmins } from "@/lib/email";
 
 // Zakładanie konta fotografa. Supabase wysyła e-mail z linkiem potwierdzającym.
 export async function POST(req: Request) {
@@ -26,6 +27,15 @@ export async function POST(req: Request) {
   if (password.length < 8) return back("haslo");
   if (!terms) return back("regulamin");
 
+  // Powiadomienie dla administratora o nowym fotografie
+  const announce = (lang: string) =>
+    notifyAdmins(`Nowy fotograf: ${email}${studio ? ` (${studio})` : ""}`, "Nowe konto w Lenslie", [
+      `E-mail: ${email}.`,
+      `Studio: ${studio || "nie podano"}.`,
+      `Język: ${lang === "en" ? "angielski" : "polski"}.${refCode ? ` Z polecenia (kod ${refCode}).` : ""}`,
+      "Konto będzie aktywne po kliknięciu linku w mailu potwierdzającym.",
+    ]).catch(() => undefined);
+
   try {
     const lang = await getLang();
     const result = await sendSignupMail(email, password, studio || null, new URL(req.url).origin, lang);
@@ -33,7 +43,10 @@ export async function POST(req: Request) {
       await recordReferral(result.userId, email, refCode).catch(() => undefined);
       await setUserLang(result.userId, lang).catch(() => undefined);
     }
-    if (result.status === "sent") return back("wyslano");
+    if (result.status === "sent") {
+      await announce(lang);
+      return back("wyslano");
+    }
     if (result.status === "exists") return back("istnieje");
     if (result.status === "error") return back("serwer");
     const supabase = await createClient();
@@ -54,6 +67,7 @@ export async function POST(req: Request) {
     if (signed?.user?.id) {
       await recordReferral(signed.user.id, email, refCode).catch(() => undefined);
       await setUserLang(signed.user.id, lang).catch(() => undefined);
+      await announce(lang);
     }
   } catch (err) {
     console.error("Błąd rejestracji:", err);
