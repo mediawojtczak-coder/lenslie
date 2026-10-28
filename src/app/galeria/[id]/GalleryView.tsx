@@ -245,7 +245,6 @@ export default async function GalleryView({
         </div>
       </div>
 
-      {extendOffer && <ExtendAccess id={id} offer={extendOffer} lang={lang} />}
       <main className="g-photos">
         {clientVideos.length > 0 && <VideoSection videos={clientVideos} lang={lang} />}
         {meta?.welcome && <p className="g-welcome">{meta.welcome}</p>}
@@ -267,6 +266,7 @@ export default async function GalleryView({
           />
         )}
       </main>
+      {extendOffer && <ExtendAccess id={id} offer={extendOffer} lang={lang} />}
       {!preview && <Track galleryId={id} mode={mode} />}
       <footer className="g-footer">
         {brand.studioName && <span>{brand.studioName} · </span>}
