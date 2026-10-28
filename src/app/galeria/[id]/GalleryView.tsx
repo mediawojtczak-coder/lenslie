@@ -65,6 +65,8 @@ export default async function GalleryView({
   let photos: Photo[] = [];
   try {
     photos = applyOrder(await getGalleryPhotos(id, { watermark: Boolean(watermark) }), meta?.order);
+    // Zdjęcie bez nałożonego znaku wodnego (np. świeżo z Lightrooma) czeka, aż panel je zabezpieczy
+    if (watermark && !preview) photos = photos.filter((p) => p.watermarked !== false);
   } catch {
     error = true;
   }

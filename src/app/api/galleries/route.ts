@@ -3,7 +3,6 @@ import { E } from "@/lib/api-lang";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, saveMeta, hashPassword, type GalleryMeta } from "@/lib/galleries";
 import { getUser } from "@/lib/supabase/server";
-import { getPlan, isPeriod, addMonths } from "@/lib/plans";
 
 export const runtime = "nodejs";
 
@@ -99,16 +98,7 @@ export async function POST(req: Request) {
     meta.welcome = body.welcome.trim().slice(0, 1500) || undefined;
   }
 
-  // Pakiet wybiera się raz, przy tworzeniu galerii. Późniejsze zmiany tylko przez /api/galleries/[id]/plan
-  if (!meta.plan) {
-    const plan = getPlan(body?.plan);
-    const period = body?.period;
-    if (plan && isPeriod(period)) {
-      meta.plan = plan.id;
-      meta.period = period;
-      meta.expiresAt = addMonths(new Date(), period).toISOString();
-    }
-  }
+  // Pakiet (publikacja) tylko przez /api/galleries/[id]/plan – po opłaceniu. Tu nie da się go ustawić.
   await saveMeta(id, meta);
 
   return NextResponse.json({ ok: true, id, protected: Boolean(meta.passwordHash) });

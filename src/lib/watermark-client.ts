@@ -46,3 +46,29 @@ export async function watermarkFromUrl(src: string, text: string): Promise<Blob>
   drawWatermark(ctx, canvas.width, canvas.height, text);
   return canvasToJpeg(canvas);
 }
+
+// Nakłada znak wodny na zdjęcia galerii, które go jeszcze nie mają (np. wysłane z Lightrooma)
+export async function applyWatermarkTo(galleryId: string, names: string[], text: string, onProgress: (done: number) => void) {
+  let done = 0;
+  for (let start = 0; start < names.length; start += 30) {
+    const res = await fetch(`/api/galleries/${galleryId}/protection`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "wm-urls", names: names.slice(start, start + 30) }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? "wm");
+    const items: { name: string; src: string; put: string }[] = data.items;
+    let next = 0;
+    const worker = async () => {
+      while (next < items.length) {
+        const it = items[next++];
+        const blob = await watermarkFromUrl(it.src, text);
+        const put = await fetch(it.put, { method: "PUT", body: blob, headers: { "Content-Type": "image/jpeg" } });
+        if (!put.ok) throw new Error("wm-put");
+        onProgress(++done);
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+  }
+}

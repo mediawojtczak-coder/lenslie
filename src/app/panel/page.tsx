@@ -136,6 +136,9 @@ export default async function Panel({
           <Link href="/panel/goscie" className="side-link">
             <span>{t("Zdjęcia od gości", "Guest uploads")}</span>
           </Link>
+          <Link href="/panel/lightroom" className="side-link">
+            <span>{t("Wtyczka Lightroom", "Lightroom plug-in")}</span>
+          </Link>
           <Link href="/panel/rezerwacje" className="side-link">
             <span>{t("Rezerwacje sesji", "Session bookings")}</span>
           </Link>

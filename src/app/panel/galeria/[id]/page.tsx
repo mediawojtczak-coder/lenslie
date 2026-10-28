@@ -20,6 +20,7 @@ import ProtectionCard from "./ProtectionCard";
 import GuestCard from "./GuestCard";
 import SelectionsTab from "./SelectionsTab";
 import StatsTab from "./StatsTab";
+import WmAutoFix from "./WmAutoFix";
 import SaleCard from "./SaleCard";
 import VideoManager from "./VideoManager";
 import { refreshVideos, videoPrice } from "@/lib/videos";
@@ -80,7 +81,7 @@ export default async function ZarzadzanieGalerii({
 
   // Zdjęcia, na które znak wodny nie został jeszcze nałożony
   let wmMissing: string[] = [];
-  if (tab === "ustawienia" && watermarkOn(meta)) {
+  if (watermarkOn(meta)) {
     const wm = new Set(await listKeys(`${galleryPrefix(id)}wm/`).catch(() => [] as string[]));
     wmMissing = photos.filter((p) => !wm.has(`${galleryPrefix(id)}wm/${p.name}.jpg`)).map((p) => p.name);
   }
@@ -139,6 +140,7 @@ export default async function ZarzadzanieGalerii({
 
       <main className="app-main">
         {platnosc && <PaymentNotice sessionId={platnosc} galleryId={id} />}
+        {tab !== "ustawienia" && wmMissing.length > 0 && meta?.watermark?.text && <WmAutoFix id={id} names={wmMissing} text={meta.watermark.text} />}
         {meta?.plan ? (
           <>
             <ShareBar
