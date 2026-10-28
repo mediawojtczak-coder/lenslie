@@ -21,8 +21,11 @@ import { tr } from "@/lib/lang";
 export const dynamic = "force-dynamic";
 
 // Konto fotografa: nazwa studia i logo widoczne w galeriach klientów, zmiana hasła
-export default async function Konto({ searchParams }: { searchParams: Promise<{ "nowe-haslo"?: string; platnosc?: string }> }) {
+export default async function Konto({ searchParams }: { searchParams: Promise<{ "nowe-haslo"?: string; platnosc?: string; tab?: string }> }) {
   const sp = await searchParams;
+  const TABS = ["saldo", "studio", "faktury", "wplaty", "domena", "polecenia", "logowanie"] as const;
+  type Tab = (typeof TABS)[number];
+  const tab: Tab = sp["nowe-haslo"] ? "logowanie" : sp.platnosc ? "saldo" : (TABS as readonly string[]).includes(sp.tab ?? "") ? (sp.tab as Tab) : "saldo";
   const lang = await getLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const { supabase, user } = await getUser();
@@ -43,7 +46,21 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
       <aside className="app-side">
         <Link href="/panel" className="link-quiet back-link">← {t("Wszystkie galerie", "All galleries")}</Link>
         <nav aria-label={t("Konto", "Account")}>
-          <span className="side-link active">{t("Moje konto", "My account")}</span>
+          {(
+            [
+              ["saldo", t("Saldo i historia", "Balance & history")],
+              ["studio", t("Studio i logo", "Studio & logo")],
+              ["faktury", t("Dane do faktury", "Invoice details")],
+              ["wplaty", t("Wpłaty od klientów", "Client payments")],
+              ["domena", t("Własna domena", "Custom domain")],
+              ["polecenia", t("Poleć Lenslie", "Refer a friend")],
+              ["logowanie", t("Logowanie i hasło", "Sign-in & password")],
+            ] as [Tab, string][]
+          ).map(([k, label]) => (
+            <Link key={k} href={`/panel/konto?tab=${k}`} className={tab === k ? "side-link active" : "side-link"} aria-current={tab === k ? "page" : undefined}>
+              <span>{label}</span>
+            </Link>
+          ))}
         </nav>
         <SideLogout />
       </aside>
@@ -58,16 +75,16 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
               <RefreshSoon />
             </p>
           )}
-          <WalletCard balance={wallet.balance} history={wallet.history} billing={billing} topups={TOPUPS} />
-          <PayoutCard payout={payout} />
-          <DomainCard
+          {tab === "saldo" && <WalletCard balance={wallet.balance} history={wallet.history} billing={billing} topups={TOPUPS} />}
+          {tab === "wplaty" && <PayoutCard payout={payout} />}
+          {tab === "domena" && (vercelEnabled() ? <DomainCard
             rec={domainRec ? { host: domainRec.host, paidUntil: domainRec.paidUntil } : null}
             active={domainActive(domainRec)}
             price={DOMAIN_PRICE}
             balance={wallet.balance}
             enabled={vercelEnabled()}
-          />
-          {refUser && (
+          /> : <p className="hint-inline">{t("Własne domeny nie są jeszcze włączone.", "Custom domains are not enabled yet.")}</p>)}
+          {tab === "polecenia" && refUser && (
             <ReferralCard
               link={`${siteUrl()}/rejestracja?polecenie=${refUser.code}`}
               invited={refUser.invited}
@@ -75,18 +92,19 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
               threshold={THRESHOLD}
             />
           )}
-          {sp["nowe-haslo"] && <p className="warn-inline">{t("Ustaw nowe hasło w sekcji „Logowanie” poniżej.", "Set a new password in the “Sign-in” section below.")}</p>}
+          {sp["nowe-haslo"] && <p className="warn-inline">{t("Ustaw nowe hasło poniżej.", "Set a new password below.")}</p>}
           {error && (
             <p className="warn-inline">
               {t("Profil nie jest jeszcze gotowy.", "Your profile is not ready yet.")}
             </p>
           )}
-          <AccountForms
+          {(tab === "studio" || tab === "faktury" || tab === "logowanie") && <AccountForms
+            section={tab === "faktury" ? "billing" : tab === "logowanie" ? "password" : "studio"}
             email={user!.email ?? ""}
             studioName={profile?.studio_name ?? ""}
             logoUrl={await logoUrl(profile?.logo_key)}
             billing={billing}
-          />
+          />}
         </div>
       </main>
     </div>

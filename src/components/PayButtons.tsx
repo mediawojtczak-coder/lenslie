@@ -43,7 +43,7 @@ export default function PayButtons({
           <p className="pay-short">
             {t("Stan konta", "Balance")}: <strong>{fmt(balance)}</strong>
             {balance > 0 && <> · {t("do dopłaty", "missing")} {fmt(priceGr - balance)}</>} ·{" "}
-            <a href="/panel/konto#saldo">{t("Doładuj konto ›", "Top up ›")}</a>
+            <a href="/panel/konto?tab=saldo">{t("Doładuj konto ›", "Top up ›")}</a>
           </p>
           <button type="button" className="btn btn-wide btn-dark" disabled={busy || disabled} onClick={() => onPay("p24")}>
             {busy ? t("Przechodzę do płatności…", "Redirecting to payment…") : `${t("Zapłać", "Pay")} ${fmt(priceGr)} ${label}`}

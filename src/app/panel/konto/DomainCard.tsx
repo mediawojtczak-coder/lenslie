@@ -154,7 +154,7 @@ export default function DomainCard({
         <input id="d-host" value={host} onChange={(e) => setHost(e.target.value)} placeholder={t("np. galerie.twojastrona.pl", "e.g. photos.yourwebsite.com")} />
         {error && (
           <p className="error" role="alert">
-            {error} {funds && <a href="#saldo">{t("Doładuj konto ›", "Top up ›")}</a>}
+            {error} {funds && <a href="/panel/konto?tab=saldo">{t("Doładuj konto ›", "Top up ›")}</a>}
           </p>
         )}
         <button type="submit" className="btn" disabled={busy || !host.trim()}>

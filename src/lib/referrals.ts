@@ -96,7 +96,7 @@ export async function referralPayment(uid: string, amountGr: number) {
       html: emailLayout(
         "Thank you for the referral!",
         [`The photographer you referred has started using Lenslie. PLN ${REWARD} has been added to your balance – you can use it to publish galleries.`],
-        { label: "See balance", url: `${siteUrl()}/panel/konto#saldo` },
+        { label: "See balance", url: `${siteUrl()}/panel/konto?tab=saldo` },
         "en",
       ),
     }).catch(() => undefined);
@@ -107,7 +107,7 @@ export async function referralPayment(uid: string, amountGr: number) {
       html: emailLayout(
         "Dziękujemy za polecenie!",
         [`Fotograf, którego poleciłeś, zaczął korzystać z Lenslie. Na Twoje saldo trafiło ${REWARD} zł – możesz je wykorzystać na publikację galerii.`],
-        { label: "Zobacz saldo", url: `${siteUrl()}/panel/konto#saldo` },
+        { label: "Zobacz saldo", url: `${siteUrl()}/panel/konto?tab=saldo` },
       ),
     }).catch(() => undefined);
   }

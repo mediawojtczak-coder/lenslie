@@ -29,7 +29,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <input id="q" name="q" type="search" placeholder={t("Szukaj galerii lub klienta", "Search galleries or clients")} />
         </form>
 
-        <Link href="/panel/konto#saldo" className="wallet-chip" title={t("Saldo konta – doładuj", "Account balance – top up")}>
+        <Link href="/panel/konto?tab=saldo" className="wallet-chip" title={t("Saldo konta – doładuj", "Account balance – top up")}>
           {money(wallet.balance / 100, lang, true)}
         </Link>
 
@@ -44,7 +44,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <Link href="/panel/znajdz-siebie" className="account-link">{t("Znajdź siebie", "Find me")}</Link>
             <Link href="/panel/goscie" className="account-link">{t("Zdjęcia od gości", "Guest uploads")}</Link>
             <Link href="/panel/rezerwacje" className="account-link">{t("Rezerwacje sesji", "Session bookings")}</Link>
-            <Link href="/panel/konto#polecenia" className="account-link">{t("Poleć Lenslie – 20 zł", "Refer a friend – PLN 20")}</Link>
+            <Link href="/panel/konto?tab=polecenia" className="account-link">{t("Poleć Lenslie – 20 zł", "Refer a friend – PLN 20")}</Link>
             {isAdminEmail(user.email) && (
               <Link href="/admin" className="account-link">{t("Panel administratora", "Admin")}</Link>
             )}

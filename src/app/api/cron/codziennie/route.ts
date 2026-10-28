@@ -307,7 +307,7 @@ export async function GET(req: Request) {
             html: emailLayout(
               "Your custom domain expires soon",
               [`Your galleries at ${rec.host} work until ${dateFmt.format(new Date(rec.paidUntil))}. Renew the domain for a year for PLN ${DOMAIN_PRICE} from your balance so your clients' links keep working.`],
-              { label: "Renew domain", url: `${siteUrl()}/panel/konto#domena` },
+              { label: "Renew domain", url: `${siteUrl()}/panel/konto?tab=domena` },
               "en",
             ),
           });
@@ -318,7 +318,7 @@ export async function GET(req: Request) {
             html: emailLayout(
               "Własna domena wkrótce wygaśnie",
               [`Twoje galerie pod adresem ${rec.host} działają do ${dateFmt.format(new Date(rec.paidUntil))}. Przedłuż domenę o rok za ${DOMAIN_PRICE} zł z salda, aby linki u klientów dalej działały.`],
-              { label: "Przedłuż domenę", url: `${siteUrl()}/panel/konto#domena` },
+              { label: "Przedłuż domenę", url: `${siteUrl()}/panel/konto?tab=domena` },
             ),
           });
         }

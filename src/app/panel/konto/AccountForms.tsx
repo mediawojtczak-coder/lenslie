@@ -22,7 +22,9 @@ export default function AccountForms({
   studioName: initialName,
   logoUrl,
   billing: initialBilling,
+  section = "studio",
 }: {
+  section?: "studio" | "billing" | "password";
   email: string;
   studioName: string;
   logoUrl: string | null;
@@ -72,6 +74,8 @@ export default function AccountForms({
 
   return (
     <>
+      {section === "studio" && (
+      <>
       <form
         className="settings-card"
         onSubmit={(e) => {
@@ -140,7 +144,10 @@ export default function AccountForms({
         </div>
         {note("logo")}
       </div>
+      </>
+      )}
 
+      {section === "billing" && (
       <form
         className="settings-card"
         onSubmit={(e) => {
@@ -159,7 +166,9 @@ export default function AccountForms({
           {busy === "billing" ? t("Zapisuję…", "Saving…") : t("Zapisz dane", "Save details")}
         </button>
       </form>
+      )}
 
+      {section === "password" && (
       <form
         className="settings-card"
         onSubmit={(e) => {
@@ -188,6 +197,7 @@ export default function AccountForms({
           {busy === "password" ? t("Zmieniam…", "Changing…") : t("Zmień hasło", "Change password")}
         </button>
       </form>
+      )}
     </>
   );
 }

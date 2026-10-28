@@ -99,7 +99,7 @@ export default function SaleCard({
           {!hasPayout && (
             <p className="warn-inline">
               {t("Podaj numer konta lub telefon do BLIK, na które klienci mają wpłacać: ", "Add the bank account or BLIK phone your clients should pay to: ")}
-              <Link href="/panel/konto#wplaty">{t("Moje konto › Wpłaty od klientów", "My account › Client payments")}</Link>
+              <Link href="/panel/konto?tab=wplaty">{t("Moje konto › Wpłaty od klientów", "My account › Client payments")}</Link>
             </p>
           )}
         </>
