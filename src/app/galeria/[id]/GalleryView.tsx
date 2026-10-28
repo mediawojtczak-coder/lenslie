@@ -19,6 +19,7 @@ const scriptFont = Great_Vibes({ weight: "400", subsets: ["latin", "latin-ext"],
 import { saleOn, getSaleOrder, getPayoutForGallery, type SaleOrder } from "@/lib/sales";
 import type { SaleInfo } from "./PhotoGrid";
 import VideoSection, { type ClientVideo } from "./VideoSection";
+import FaceSearch from "./FaceSearch";
 import { refreshVideos, signedVideoUrl, iframeUrl } from "@/lib/videos";
 import { saveMeta } from "@/lib/galleries";
 
@@ -212,6 +213,9 @@ export default async function GalleryView({
         )}
         <p className="g-bar-title">{title}</p>
         <div className="g-bar-actions">
+          {!preview && meta?.faces?.enabled && meta.faces.paid && (meta.faces.indexed ?? 0) > 0 && visible.length > 0 && (
+            <FaceSearch galleryId={id} guestToken={mode === "guest" ? meta.guest?.token : undefined} lang={lang} />
+          )}
           {visible.length > 1 && <SlideshowButton lang={lang} />}
           {visible.length > 0 && downloads !== "none" && (
             <DownloadAll

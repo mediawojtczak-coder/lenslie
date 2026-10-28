@@ -62,6 +62,8 @@ const EN: Record<string, string> = {
   "Ten adres strony jest zajęty albo niepoprawny.": "This page address is taken or invalid.",
   "Strona może mieć najwyżej 40 zdjęć.": "The page can have at most 40 photos.",
   "Najpierw zapisz adres strony.": "Save the page address first.",
+  "Potwierdź zgody osób na zdjęciach.": "Confirm the consent of the people in the photos.",
+  "Najpierw włącz tę funkcję.": "Turn on this feature first.",
   "Nie ma filmów do opłacenia.": "There are no videos to pay for.",
   "To wydarzenie jest już aktywne.": "This event is already active.",
   "Numer konta powinien mieć 26 cyfr.": "The bank account number should have 26 digits.",

@@ -1946,3 +1946,16 @@ main.pf.pf-dark { --pf-bg: #121010; --pf-ink: #f1ece7; --pf-muted: #9c928a; --pf
   .pf-photo { margin-bottom: 6px; }
   .pf-form-row { grid-template-columns: 1fr; }
 }
+
+/* ===== Znajdź siebie na zdjęciach ===== */
+.g-face-btn { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--blush-deep); background: transparent; color: var(--ink); font: inherit; font-size: .85rem; padding: 8px 16px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.g-face-btn:hover { background: var(--blush); }
+.face-modal .face-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.face-modal .face-actions .btn { flex: 1 1 160px; margin: 0; }
+.face-wait { display: flex; align-items: center; gap: 12px; color: var(--ink); font-size: .92rem; margin: 6px 0; }
+.face-spin { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--blush-deep); border-top-color: var(--ink); animation: face-spin 1s linear infinite; flex: 0 0 auto; }
+@keyframes face-spin { to { transform: rotate(360deg); } }
+.face-msg { color: #8a4f43; font-size: .9rem; margin: 14px 0 0; }
+.face-privacy { color: var(--taupe); font-size: .78rem; line-height: 1.5; margin: 22px 0 0; }
+.face-result { display: flex; justify-content: center; align-items: center; gap: 16px; flex-wrap: wrap; margin: 0 auto 24px; padding: 14px 20px; max-width: 640px; border-radius: 999px; background: var(--blush); font-size: .92rem; }
+@media (max-width: 760px) { .g-face-btn span { display: none; } .g-face-btn { padding: 8px 10px; } }

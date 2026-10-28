@@ -152,6 +152,21 @@ function RegulaminPl() {
         </li>
       </ol>
 
+      <h2>§ 6d. Dodatki</h2>
+      <ol>
+        <li>Motywy galerii premium kosztują 19 zł brutto za motyw, płatne jednorazowo; zakupiony motyw można używać we wszystkich Galeriach Konta.</li>
+        <li>
+          Strona portfolio kosztuje 24 zł brutto za miesiąc albo 240 zł brutto za 12 miesięcy, płatne z góry. Po końcu
+          opłaconego okresu strona przestaje być widoczna. Fotograf odpowiada za treści i zdjęcia na stronie, w tym za zgody
+          osób na nich widocznych.
+        </li>
+        <li>
+          „Znajdź siebie na zdjęciach” kosztuje 49 zł brutto za Galerię, płatne jednorazowo. Fotograf, włączając funkcję,
+          potwierdza, że ma podstawę prawną do przetwarzania danych biometrycznych osób na zdjęciach (np. ich zgodę) i że
+          zostały one poinformowane o funkcji. Szczegóły w Polityce prywatności.
+        </li>
+      </ol>
+
       <h2>§ 7. Treści i prawa autorskie</h2>
       <ol>
         <li>
@@ -305,6 +320,13 @@ function TermsEn() {
       <ol>
         <li>The “Guest uploads” service lets event guests upload photos via a link or QR code without an account. The fee is PLN 99 gross per event and covers 12 months of uploading and viewing (up to 30 GB), followed by 30 days to download the photos, after which they are deleted.</li>
         <li>The Photographer who created the event is responsible for content uploaded by guests. The Photographer can delete uploaded photos, and the Provider removes unlawful content upon notice.</li>
+      </ol>
+
+      <h2>§ 6d. Add-ons</h2>
+      <ol>
+        <li>Premium gallery themes cost PLN 19 gross per theme, paid once; a purchased theme can be used in all Galleries of the Account.</li>
+        <li>The portfolio website costs PLN 24 gross per month or PLN 240 gross for 12 months, paid in advance. When the paid period ends, the website is no longer visible. The Photographer is responsible for the content and photos on the website, including the consent of the people in them.</li>
+        <li>“Find yourself in the photos” costs PLN 49 gross per Gallery, paid once. By turning it on, the Photographer confirms they have a legal basis to process biometric data of the people in the photos (e.g. their consent) and that they have been informed. See the Privacy policy for details.</li>
       </ol>
 
       <h2>§ 7. Content and copyright</h2>

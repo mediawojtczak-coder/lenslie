@@ -125,9 +125,20 @@ export default function PhotoGrid({
   const startRef = useRef<HTMLDialogElement>(null);
   const sendRef = useRef<HTMLDialogElement>(null);
 
+  // Wynik „Znajdź siebie” – pokazujemy tylko zdjęcia z tą osobą
+  const [faceSet, setFaceSet] = useState<Set<string> | null>(null);
+  useEffect(() => {
+    const on = (e: Event) => setFaceSet(new Set((e as CustomEvent<string[]>).detail));
+    window.addEventListener("lenslie:faces", on);
+    return () => window.removeEventListener("lenslie:faces", on);
+  }, []);
   const shownGroups = useMemo(
-    () => (onlyFavs ? groups.map((g) => ({ ...g, photos: g.photos.filter((p) => favs.has(p.name)) })) : groups),
-    [groups, onlyFavs, favs],
+    () =>
+      groups.map((g) => ({
+        ...g,
+        photos: g.photos.filter((p) => (!onlyFavs || favs.has(p.name)) && (!faceSet || faceSet.has(p.name))),
+      })),
+    [groups, onlyFavs, favs, faceSet],
   );
   const all = useMemo(() => shownGroups.flatMap((g) => g.photos), [shownGroups]);
   const [open, setOpen] = useState<number | null>(null);
@@ -276,6 +287,15 @@ export default function PhotoGrid({
               </a>
             ))}
         </nav>
+      )}
+
+      {faceSet && (
+        <div className="face-result" role="status">
+          <span>{t.faceFound(all.length)}</span>
+          <button type="button" className="as-link" onClick={() => setFaceSet(null)}>
+            {t.showAllPhotos}
+          </button>
+        </div>
       )}
 
       {sale && (

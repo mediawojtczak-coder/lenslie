@@ -27,6 +27,8 @@ import { PERIODS } from "@/lib/plans";
 import { saveMeta } from "@/lib/galleries";
 import PickLimitCard from "./PickLimitCard";
 import ThemeCard from "./ThemeCard";
+import FacesCard from "./FacesCard";
+import { FACES_PRICE } from "@/lib/faces";
 import { THEMES, getOwnedThemes } from "@/lib/themes";
 import { getPayout } from "@/lib/sales";
 
@@ -191,6 +193,14 @@ export default async function ZarzadzanieGalerii({
               watermark={meta?.watermark ?? { enabled: false, text: "" }}
               wmMissing={wmMissing}
               photoCount={photos.length}
+            />
+            <FacesCard
+              id={id}
+              faces={meta?.faces ?? null}
+              photos={photos.map((p) => ({ name: p.name, url: p.webUrl }))}
+              price={FACES_PRICE}
+              balance={balance}
+              billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
             />
             <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} />
             <PickLimitCard id={id} limit={meta?.pickLimit ?? null} selling={Boolean(meta?.sale?.enabled)} />

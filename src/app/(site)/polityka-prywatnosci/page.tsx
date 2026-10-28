@@ -67,6 +67,16 @@ function PolitykaPl() {
         programu EU-US Data Privacy Framework.
       </p>
 
+      <h2>4a. Wyszukiwanie twarzy („Znajdź siebie na zdjęciach”)</h2>
+      <p>
+        Jeśli fotograf włączy tę funkcję w galerii, w przeglądarce fotografa tworzone są liczbowe opisy twarzy widocznych
+        na zdjęciach (bez wycinania ani zapisywania samych twarzy). Opisy są przechowywane na serwerze razem z galerią i
+        usuwane wraz z nią albo po wyłączeniu funkcji. Selfie osoby wyszukującej jest analizowane wyłącznie w jej
+        przeglądarce i nie jest wysyłane; do porównania trafia tylko liczbowy opis, który nie jest zapisywany. Za podstawę
+        prawną przetwarzania danych osób na zdjęciach (np. ich zgodę) odpowiada fotograf; Lenslie działa jako podmiot
+        przetwarzający. Biblioteka i modele rozpoznawania są pobierane z serwerów jsDelivr.
+      </p>
+
       <h2>5. Pliki cookie</h2>
       <p>Używamy wyłącznie niezbędnych plików cookie i pamięci przeglądarki:</p>
       <ul>
@@ -133,6 +143,16 @@ function PrivacyEn() {
         <li>PayPro S.A. (Przelewy24) – payment processing.</li>
       </ul>
       <p>Some providers are based in the USA. Data transfers are based on standard contractual clauses or the EU-US Data Privacy Framework.</p>
+
+      <h2>4a. Face search (“Find yourself in the photos”)</h2>
+      <p>
+        If the photographer turns this feature on for a gallery, numeric face descriptions of the faces in the photos are
+        created in the photographer's browser (faces themselves are not cut out or stored). The descriptions are stored on
+        the server with the gallery and deleted together with it or when the feature is turned off. The searching person's
+        selfie is analysed only in their browser and is never sent; only a numeric description is used for matching and is
+        not stored. The photographer is responsible for the legal basis (e.g. consent) for processing the data of people in
+        the photos; Lenslie acts as a processor. The recognition library and models are loaded from jsDelivr servers.
+      </p>
 
       <h2>5. Cookies</h2>
       <p>We only use strictly necessary cookies and browser storage:</p>
