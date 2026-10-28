@@ -321,6 +321,9 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 }
 .g-meta { margin: 6px 0 12px; color: var(--taupe); font-size: .82rem; }
 .g-action { font-size: .85rem; color: var(--brass); }
+.g-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.g-views { display: inline-flex; align-items: center; gap: 5px; font-size: .8rem; color: var(--taupe); text-decoration: none; white-space: nowrap; }
+.g-views:hover { color: var(--ink); }
 
 .empty-state {
   background: #fff; border-radius: 6px; padding: 80px 24px; text-align: center;

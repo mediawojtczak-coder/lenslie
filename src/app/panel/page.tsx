@@ -20,6 +20,7 @@ type Card = GalleryRow & {
   planName: string | null;
   expiresAt: string | null;
   expired: boolean;
+  views: number | null;
 };
 
 
@@ -41,6 +42,12 @@ export default async function Panel({
   const lang = await getLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const dateFmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", year: "numeric" });
+  const viewsLabel = (n: number) => {
+    if (lang === "en") return n === 1 ? "1 view" : `${n} views`;
+    if (n === 1) return "1 wyświetlenie";
+    const l = n % 10, l2 = n % 100;
+    return `${n} ${l >= 2 && l <= 4 && !(l2 >= 12 && l2 <= 14) ? "wyświetlenia" : "wyświetleń"}`;
+  };
   const photosLabel = (n: number) => (lang === "en" ? (n === 1 ? "1 photo" : `${n} photos`) : photosLabelPl(n));
   const FILTERS = [
     { key: "", label: t("Wszystkie", "All") },
@@ -60,6 +67,12 @@ export default async function Panel({
     rows.map(async (g) => {
       const meta = await getMeta(g.id).catch(() => null);
       const summary = await getGallerySummary(g.id, meta?.cover).catch(() => ({ count: 0, coverUrl: null }));
+      // Liczba otwarć galerii (klient i goście)
+      const { count: views, error: viewsErr } = await supabase
+        .from("gallery_events")
+        .select("kind", { count: "exact", head: true })
+        .eq("gallery_id", g.id)
+        .in("kind", ["view", "guest_view"]);
       return {
         ...g,
         ...summary,
@@ -67,6 +80,7 @@ export default async function Panel({
         planName: (() => { const p = getPlan(meta?.plan); return p ? planName(p, lang) : null; })(),
         expiresAt: meta?.expiresAt ?? null,
         expired: isExpired(meta),
+        views: viewsErr ? null : (views ?? 0),
       };
     }),
   );
@@ -179,9 +193,20 @@ export default async function Panel({
                       ? `${c.expired ? t("Wygasła", "Expired") : t("Dostęp do", "Available until")} ${dateFmt.format(new Date(c.expiresAt))}`
                       : `${t("Utworzona", "Created")} ${dateFmt.format(new Date(c.created_at))}`}
                   </p>
-                  <a href={`/galeria/${c.id}`} className="g-action" target="_blank" rel="noreferrer">
-                    {t("Podgląd dla klienta", "Client preview")}
-                  </a>
+                  <div className="g-foot">
+                    <a href={`/galeria/${c.id}`} className="g-action" target="_blank" rel="noreferrer">
+                      {t("Podgląd dla klienta", "Client preview")}
+                    </a>
+                    {c.views !== null && (
+                      <Link href={`/panel/galeria/${c.id}?tab=statystyki`} className="g-views" title={t("Wyświetlenia galerii", "Gallery views")}>
+                        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                          <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                          <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                        </svg>
+                        {viewsLabel(c.views)}
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </li>
             ))}
