@@ -22,7 +22,8 @@ export default async function Goscie() {
         <Link href="/panel" className="link-quiet back-link">← {t("Galerie", "Galleries")}</Link>
         <CreateGuestEvent label={t("Nowe wydarzenie", "New event")} className="btn btn-wide" />
         <nav aria-label={t("Zdjęcia od gości", "Guest uploads")}>
-          <span className="side-link active">{t("Zdjęcia od gości", "Guest uploads")}</span>
+          <span className="side-link active">{t("Moje wydarzenia", "My events")}</span>
+          <Link href="/panel/goscie/oferta" className="side-link">{t("Oferta i cennik", "Offer & pricing")}</Link>
         </nav>
         <SideLogout />
       </aside>
