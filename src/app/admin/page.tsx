@@ -199,12 +199,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             <tbody>
               {[...months].reverse().filter((m) => m.revenue || m.users).map((m) => (
                 <tr key={m.key}>
-                  <td>{m.label}</td>
-                  <td>{gr(m.revenue)}</td>
-                  <td>{gr(m.topups)}</td>
-                  <td>{gr(m.fee)}</td>
-                  <td>{m.count}</td>
-                  <td>{m.users}</td>
+                  <td data-l="Miesiąc">{m.label}</td>
+                  <td data-l="Przychód brutto">{gr(m.revenue)}</td>
+                  <td data-l="w tym doładowania">{gr(m.topups)}</td>
+                  <td data-l="Prowizja P24 (szac.)">{gr(m.fee)}</td>
+                  <td data-l="Płatności">{m.count}</td>
+                  <td data-l="Nowi fotografowie">{m.users}</td>
                 </tr>
               ))}
             </tbody>
@@ -234,14 +234,14 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
               <tbody>
                 {orders.map((o) => (
                   <tr key={o.sessionId}>
-                    <td>{fmtDate(o.paidAt ?? o.createdAt)}</td>
-                    <td>
+                    <td data-l="Data">{fmtDate(o.paidAt ?? o.createdAt)}</td>
+                    <td data-l="Kwota">
                       {(o.amount / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł
                       {o.status !== "paid" && <span className="badge-soft">{o.status === "pending" ? "nieopłacona" : "błąd"}</span>}
                     </td>
-                    <td className="wrap">{o.description.replace(/^Lenslie [–-] /, "")}</td>
-                    <td>{o.email}</td>
-                    <td className="wrap">
+                    <td data-l="Za co" className="wrap">{o.description.replace(/^Lenslie [–-] /, "")}</td>
+                    <td data-l="Konto">{o.email}</td>
+                    <td data-l="Faktura" className="wrap">
                       {o.status !== "paid" ? (
                         "–"
                       ) : o.invoice ? (
@@ -332,15 +332,15 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                 const bytes = own.reduce((s, g) => s + (usage.get(g.id) ?? 0), 0);
                 return (
                   <tr key={u.id}>
-                    <td>
+                    <td data-l="E-mail">
                       {u.email}
                       {!u.email_confirmed_at && <span className="badge-soft">niepotwierdzony</span>}
                     </td>
-                    <td>{studios.get(u.id) ?? "–"}</td>
-                    <td>{own.length}</td>
-                    <td>{formatBytes(bytes)}</td>
-                    <td>{fmtDate(u.created_at)}</td>
-                    <td>{fmtDate(u.last_sign_in_at)}</td>
+                    <td data-l="Studio">{studios.get(u.id) ?? "–"}</td>
+                    <td data-l="Galerie">{own.length}</td>
+                    <td data-l="Miejsce">{formatBytes(bytes)}</td>
+                    <td data-l="Konto od">{fmtDate(u.created_at)}</td>
+                    <td data-l="Ostatnie logowanie">{fmtDate(u.last_sign_in_at)}</td>
                   </tr>
                 );
               })}
@@ -368,15 +368,15 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                 const plan = getPlan(m?.plan);
                 return (
                   <tr key={g.id}>
-                    <td>
+                    <td data-l="Galeria">
                       <a href={`/galeria/${g.id}`} target="_blank" rel="noreferrer">
                         {g.title}
                       </a>
                     </td>
-                    <td>{g.owner_id ? (emails.get(g.owner_id) ?? "–") : "brak właściciela"}</td>
-                    <td>{plan ? `${plan.name} · ${m?.period} mies.` : "–"}</td>
-                    <td className={isExpired(m) ? "is-expired" : undefined}>{fmtDate(m?.expiresAt)}</td>
-                    <td>{formatBytes(usage.get(g.id) ?? 0)}</td>
+                    <td data-l="Fotograf">{g.owner_id ? (emails.get(g.owner_id) ?? "–") : "brak właściciela"}</td>
+                    <td data-l="Pakiet">{plan ? `${plan.name} · ${m?.period} mies.` : "–"}</td>
+                    <td data-l="Dostęp do" className={isExpired(m) ? "is-expired" : undefined}>{fmtDate(m?.expiresAt)}</td>
+                    <td data-l="Miejsce">{formatBytes(usage.get(g.id) ?? 0)}</td>
                   </tr>
                 );
               })}

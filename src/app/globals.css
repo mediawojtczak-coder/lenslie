@@ -2135,3 +2135,27 @@ main.pf { max-width: none; margin: 0; padding: 0; min-height: 100vh; }
   .qo-card { width: 220px; }
   .qo-phone { width: 190px; }
 }
+
+/* ===== Panel admina na telefonie ===== */
+.admin { grid-template-columns: minmax(0, 1fr); }
+.admin > * { min-width: 0; }
+@media (max-width: 700px) {
+  .admin .settings-card { padding: 20px 16px; }
+  .admin .table-wrap { margin: 0; overflow: visible; }
+  .admin-table thead { display: none; }
+  .admin-table, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; }
+  .admin-table tr { padding: 12px 0; border-bottom: 1px solid var(--hair); }
+  .admin-table td, .admin-table td.wrap { border: 0; padding: 3px 0; min-width: 0; white-space: normal; display: flex; justify-content: space-between; align-items: baseline; gap: 14px; text-align: right; overflow-wrap: anywhere; }
+  .admin-table td::before { content: attr(data-l); color: var(--taupe); font-size: .76rem; text-align: left; flex: 0 0 auto; }
+  .admin-table td:first-child { font-weight: 500; font-size: .95rem; text-align: left; justify-content: flex-start; flex-wrap: wrap; }
+  .admin-table td:first-child::before { display: none; }
+  .admin-table .inv-cell { align-items: flex-end; text-align: right; }
+  .admin-table .inv-btn { align-self: flex-end; }
+  .admin .slot-gen > div, .admin .slot-gen .btn { flex: 1 1 100%; }
+  .admin .slot-gen .plain-select { margin-bottom: 0; }
+  .admin-head h1 { margin: 0; }
+  .admin-actions { width: 100%; }
+  .admin-actions form { flex: 1 1 0; }
+  .admin-actions .btn { width: 100%; }
+  .orphans li { flex-wrap: wrap; overflow-wrap: anywhere; }
+}
