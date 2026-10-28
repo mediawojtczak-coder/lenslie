@@ -40,7 +40,9 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
 
   const reminders = await getReminders().catch(() => []);
   const allOrders = await listOrders(5000).catch(() => []);
-  const orders = allOrders.slice(0, 100).filter((o) => o.status === "paid" || Date.now() - new Date(o.createdAt).getTime() < 24 * 3600 * 1000);
+  const orders = allOrders.slice(0, 200);
+  const paidOrders = orders.filter((o) => o.status === "paid").slice(0, 100);
+  const pendingOrders = orders.filter((o) => o.status !== "paid" && Date.now() - new Date(o.createdAt).getTime() < 7 * 24 * 3600 * 1000);
   const users = usersRes.data?.users ?? [];
   const galleries = (galleriesRes.data ?? []) as G[];
   const studios = new Map(((profilesRes.data ?? []) as { id: string; studio_name: string | null }[]).map((p) => [p.id, p.studio_name]));
@@ -109,6 +111,57 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     { label: "Koszt R2 miesięcznie", value: `${storageCostUsd.toFixed(2)} USD` },
     { label: "Wartość pakietów (test)", value: `${value} zł` },
   ];
+
+  const ordersTable = (list: typeof orders) => (
+<div className="table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Kwota</th>
+                  <th>Za co</th>
+                  <th>Konto</th>
+                  <th>Faktura</th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.map((o) => (
+                  <tr key={o.sessionId}>
+                    <td data-l="Data">{fmtDate(o.paidAt ?? o.createdAt)}</td>
+                    <td data-l="Kwota">
+                      {(o.amount / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł
+                      {o.status !== "paid" && <span className="badge-soft">{o.status === "pending" ? "nieopłacona" : "błąd"}</span>}
+                    </td>
+                    <td data-l="Za co" className="wrap">{o.description.replace(/^Lenslie [–-] /, "")}</td>
+                    <td data-l="Konto">{o.email}</td>
+                    <td data-l="Faktura" className="wrap">
+                      {o.status !== "paid" ? (
+                        "–"
+                      ) : o.invoice ? (
+                        <div className="inv-cell">
+                          <span>
+                            {o.invoice.company}, NIP {o.invoice.nip}
+                            <br />
+                            {o.invoice.street}, {o.invoice.postcode} {o.invoice.city}
+                          </span>
+                          <form method="post" action="/api/admin/invoice">
+                            <input type="hidden" name="sid" value={o.sessionId} />
+                            <input type="hidden" name="issued" value={o.invoiceIssued ? "0" : "1"} />
+                            <button type="submit" className={o.invoiceIssued ? "inv-btn done" : "inv-btn"}>
+                              {o.invoiceIssued ? "✓ Wystawiona" : "Oznacz jako wystawioną"}
+                            </button>
+                          </form>
+                        </div>
+                      ) : (
+                        <span className="hint-inline">nie chce</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+  );
 
   return (
     <main className="app-main admin">
@@ -217,57 +270,13 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
 
       <section className="settings-card" id="platnosci">
         <h2>Płatności</h2>
-        {orders.length === 0 ? (
-          <p className="hint-inline">Brak płatności.</p>
-        ) : (
-          <div className="table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Data</th>
-                  <th>Kwota</th>
-                  <th>Za co</th>
-                  <th>Konto</th>
-                  <th>Faktura</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((o) => (
-                  <tr key={o.sessionId}>
-                    <td data-l="Data">{fmtDate(o.paidAt ?? o.createdAt)}</td>
-                    <td data-l="Kwota">
-                      {(o.amount / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł
-                      {o.status !== "paid" && <span className="badge-soft">{o.status === "pending" ? "nieopłacona" : "błąd"}</span>}
-                    </td>
-                    <td data-l="Za co" className="wrap">{o.description.replace(/^Lenslie [–-] /, "")}</td>
-                    <td data-l="Konto">{o.email}</td>
-                    <td data-l="Faktura" className="wrap">
-                      {o.status !== "paid" ? (
-                        "–"
-                      ) : o.invoice ? (
-                        <div className="inv-cell">
-                          <span>
-                            {o.invoice.company}, NIP {o.invoice.nip}
-                            <br />
-                            {o.invoice.street}, {o.invoice.postcode} {o.invoice.city}
-                          </span>
-                          <form method="post" action="/api/admin/invoice">
-                            <input type="hidden" name="sid" value={o.sessionId} />
-                            <input type="hidden" name="issued" value={o.invoiceIssued ? "0" : "1"} />
-                            <button type="submit" className={o.invoiceIssued ? "inv-btn done" : "inv-btn"}>
-                              {o.invoiceIssued ? "✓ Wystawiona" : "Oznacz jako wystawioną"}
-                            </button>
-                          </form>
-                        </div>
-                      ) : (
-                        <span className="hint-inline">nie chce</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {paidOrders.length === 0 ? <p className="hint-inline">Brak opłaconych płatności.</p> : ordersTable(paidOrders)}
+        {pendingOrders.length > 0 && (
+          <details className="pending-orders">
+            <summary>Nieopłacone – przerwane płatności z ostatnich 7 dni ({pendingOrders.length})</summary>
+            <p className="hint-inline">Ktoś zaczął płacić, ale nie dokończył albo bramka zwróciła błąd. Nic nie wpłynęło – to tylko podpowiedź, do kogo warto się odezwać.</p>
+            {ordersTable(pendingOrders)}
+          </details>
         )}
       </section>
 

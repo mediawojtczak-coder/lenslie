@@ -2194,3 +2194,10 @@ main.pf { max-width: none; margin: 0; padding: 0; min-height: 100vh; }
 .ext-periods.three .ext-period strong { font-size: .88rem; }
 .ext-sub { font-size: .8rem; color: var(--taupe); margin: 0 0 8px; }
 .g-expiry { border-bottom: 0; border-top: 1px solid var(--hair); margin-top: 32px; padding: 18px 16px; }
+.pending-orders { margin-top: 22px; border-top: 1px solid var(--hair); padding-top: 14px; }
+.pending-orders summary { cursor: pointer; color: var(--taupe); font-size: .88rem; }
+.pending-orders[open] summary { margin-bottom: 8px; }
+@media (max-width: 700px) {
+  .admin-table td:has(.badge-soft) { justify-content: flex-start; gap: 10px; }
+  .admin-table td:has(.badge-soft)::before { margin-right: auto; }
+}
