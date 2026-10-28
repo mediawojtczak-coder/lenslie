@@ -2,13 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 
-export default function ContactForm({ slug, lang }: { slug: string; lang: "pl" | "en" }) {
+export default function PortfolioContact({ slug, lang, preview = false }: { slug: string; lang: "pl" | "en"; preview?: boolean }) {
   const t = (pl: string, en: string) => (lang === "en" ? en : pl);
   const [state, setState] = useState<"idle" | "busy" | "sent">("idle");
   const [error, setError] = useState("");
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (preview) return;
     const fd = new FormData(e.currentTarget);
     setState("busy");
     setError("");

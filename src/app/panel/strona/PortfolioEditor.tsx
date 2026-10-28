@@ -8,6 +8,8 @@ import PayButtons from "@/components/PayButtons";
 import InvoiceFields from "@/components/InvoiceFields";
 import { canvasToJpeg } from "@/lib/watermark-client";
 import type { Billing } from "@/lib/billing";
+import PortfolioView from "@/components/PortfolioView";
+import PortfolioContact from "@/components/PortfolioContact";
 
 type Service = { name: string; price: string; desc: string };
 type Site = {
@@ -50,6 +52,8 @@ export default function PortfolioEditor({
   active,
   paidUntil,
   base,
+  logo,
+  events,
   prices,
   balance,
   billing,
@@ -59,6 +63,8 @@ export default function PortfolioEditor({
   active: boolean;
   paidUntil: string | null;
   base: string;
+  logo: string | null;
+  events: { id: string; title: string; price: string; free: number }[];
   prices: Record<number, number>;
   balance: number;
   billing: Billing;
@@ -126,9 +132,49 @@ export default function PortfolioEditor({
   }
 
   const services = s.services;
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+
+  // Podgląd na żywo; puste pola wypełniamy przykładową treścią, żeby od razu było widać efekt
+  const en = s.lang === "en";
+  const demo = {
+    title: en ? "Your Studio" : "Twoje Studio",
+    tagline: en ? "Wedding photography full of emotion" : "Fotografia ślubna pełna emocji",
+    about: en
+      ? "I photograph weddings the way they really are – with laughter, tears and all the quiet moments in between. Every story is different, and every gallery is made by hand."
+      : "Fotografuję śluby takimi, jakie są naprawdę – ze śmiechem, wzruszeniem i wszystkimi cichymi chwilami pomiędzy. Każda historia jest inna, a każdą galerię tworzę z dbałością o detal.",
+    services: en
+      ? [
+          { name: "Wedding day", price: "from £1,900", desc: "Full-day coverage, 600+ edited photos, online gallery" },
+          { name: "Engagement session", price: "£450", desc: "Two hours at a location of your choice, 60 photos" },
+          { name: "Elopement", price: "from £950", desc: "An intimate ceremony, up to 4 hours" },
+        ]
+      : [
+          { name: "Reportaż ślubny", price: "od 5 900 zł", desc: "Cały dzień, ponad 600 dopracowanych zdjęć, galeria online" },
+          { name: "Sesja narzeczeńska", price: "1 200 zł", desc: "Dwie godziny w wybranym plenerze, 60 zdjęć" },
+          { name: "Ślub kameralny", price: "od 2 900 zł", desc: "Ceremonia w małym gronie, do 4 godzin" },
+        ],
+    photos: [1, 2, 4, 3, 6, 5, 7, 2, 4].map((n) => `/home/foto-${n}.jpg`),
+  };
+  const usesDemo = !s.title || !s.about || services.length === 0 || photos.length === 0;
+  const previewData = {
+    title: s.title || demo.title,
+    tagline: s.tagline || (s.title ? "" : demo.tagline),
+    about: s.about || demo.about,
+    city: s.city || (en ? "London & destination" : "Poznań i cała Polska"),
+    phone: s.phone,
+    instagram: s.instagram,
+    facebook: s.facebook,
+    services: services.filter((x) => x.name).length ? services.filter((x) => x.name) : demo.services,
+    photos: photos.length ? photos.map((p) => p.url) : demo.photos,
+    events,
+    dark: s.dark,
+    lang: s.lang,
+    logo,
+  };
   const setService = (i: number, k: keyof Service, v: string) => setS({ ...s, services: services.map((x, j) => (j === i ? { ...x, [k]: v } : x)) });
 
   return (
+    <div className="pf-editor">
     <div className="settings">
       <section className="share-bar">
         <div className="share-status">
@@ -309,6 +355,37 @@ export default function PortfolioEditor({
         />
         {!s.slug && <p className="hint-inline">{t("Najpierw zapisz adres strony.", "Save the page address first.")}</p>}
       </section>
+    </div>
+
+    <aside className="pf-preview" aria-label={t("Podgląd strony", "Website preview")}>
+      <div className="pf-preview-bar">
+        <p>{t("Podgląd na żywo", "Live preview")}</p>
+        <div className="period-switch small">
+          <button type="button" className={device === "desktop" ? "period active" : "period"} onClick={() => setDevice("desktop")}>
+            {t("Komputer", "Desktop")}
+          </button>
+          <button type="button" className={device === "mobile" ? "period active" : "period"} onClick={() => setDevice("mobile")}>
+            {t("Telefon", "Phone")}
+          </button>
+        </div>
+      </div>
+      <div className={device === "mobile" ? "pf-frame mobile" : "pf-frame"}>
+        <div className="pf-frame-top">
+          <i />
+          <i />
+          <i />
+          <span>{`${base.replace(/^https?:\/\//, "")}${s.slug || "twoj-adres"}`}</span>
+        </div>
+        <div className="pf-viewport">
+          <PortfolioView d={previewData} preview contact={<PortfolioContact slug="" lang={s.lang} preview />} />
+        </div>
+      </div>
+      {usesDemo && (
+        <p className="pf-demo-note">
+          {t("Puste miejsca wypełniliśmy przykładową treścią – zniknie, gdy uzupełnisz swoją.", "Empty fields show sample content – it disappears once you add your own.")}
+        </p>
+      )}
+    </aside>
     </div>
   );
 }
