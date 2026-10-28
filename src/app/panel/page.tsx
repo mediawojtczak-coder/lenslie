@@ -1,6 +1,5 @@
 import Link from "next/link";
 import SideLogout from "@/components/SideLogout";
-import QrPromo from "@/components/QrPromo";
 import { getUser } from "@/lib/supabase/server";
 import { getGallerySummary } from "@/lib/photos";
 import { getMeta, isExpired } from "@/lib/galleries";
@@ -126,8 +125,11 @@ export default async function Panel({
           <Link href="/panel/rezerwacje" className="side-link">
             <span>{t("Rezerwacje sesji", "Session bookings")}</span>
           </Link>
+          <Link href="/panel/goscie/oferta" className="side-link">
+            <span>{t("Kody QR na stoły", "QR codes for tables")}</span>
+            <span className="side-count">99 zł</span>
+          </Link>
         </nav>
-        <QrPromo lang={lang} />
         <SideLogout />
       </aside>
 

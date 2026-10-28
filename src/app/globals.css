@@ -2095,19 +2095,6 @@ main.pf { max-width: none; margin: 0; padding: 0; min-height: 100vh; }
 .dom-warn { color: #8a4f43 !important; }
 
 /* ===== Reklama i oferta „Zdjęcia od gości” w panelu ===== */
-.qr-promo { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 16px 16px 14px; border-radius: 12px; text-decoration: none; color: #f3ede6; background: linear-gradient(160deg, #3b3330, #231e1b); box-shadow: 0 14px 30px -18px rgba(35, 30, 27, .7); overflow: hidden; }
-.qr-promo:hover { box-shadow: 0 18px 34px -16px rgba(35, 30, 27, .8); }
-.qr-promo-badge { position: absolute; top: 12px; right: 12px; font-size: .6rem; letter-spacing: .16em; text-transform: uppercase; background: #c9a87c; color: #231e1b; padding: 3px 8px; border-radius: 999px; }
-.qr-promo-card { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 92px; padding: 8px 8px 10px; margin: 0 0 10px; background: #fffdf9; border: 1px solid #d8c09a; outline: 1px solid #d8c09a; outline-offset: -4px; transform: rotate(-4deg); }
-.qr-promo-names { font-family: var(--font-display), Georgia, serif; font-style: italic; font-size: .62rem; color: #3b3633; }
-.qr-promo-code { display: grid; grid-template-columns: repeat(5, 8px); gap: 2px; }
-.qr-promo-code i { width: 8px; height: 8px; border-radius: 50%; background: #eee6dc; }
-.qr-promo-code i.on { background: #3b3633; }
-.qr-promo strong { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.15rem; }
-.qr-promo small { font-size: .78rem; color: #c9bdb2; line-height: 1.4; }
-.qr-promo em { font-style: normal; font-size: .76rem; color: #d9bb8c; margin-top: 6px; }
-@media (max-width: 760px) { .qr-promo { display: none; } }
-
 .qo { max-width: 1180px; }
 .qo-hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; padding: 8px 0 56px; }
 .qo-hero h1 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: clamp(2.2rem, 4.4vw, 3.6rem); line-height: 1.06; margin: 0 0 20px; }
