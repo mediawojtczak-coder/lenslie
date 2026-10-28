@@ -184,7 +184,9 @@ export default async function GalleryView({
   }
 
   // Klient widzi, ile dni zostało, i może sam przedłużyć dostęp
-  const extendOffer = mode === "client" && !preview ? await clientExtendOffer(id, meta).catch(() => null) : null;
+  // Pasek pojawia się dopiero na 14 dni przed końcem dostępu
+  const offerAll = mode === "client" && !preview ? await clientExtendOffer(id, meta).catch(() => null) : null;
+  const extendOffer = offerAll && offerAll.daysLeft <= 14 ? offerAll : null;
 
   return (
     <div className={`gtheme gtheme-${theme} ${scriptFont.variable}`}>
