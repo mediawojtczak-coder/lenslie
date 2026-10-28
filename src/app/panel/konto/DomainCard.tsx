@@ -84,6 +84,94 @@ export default function DomainCard({
         <strong>{t("galerie.twojastrona.pl/anna-i-marek", "photos.yourwebsite.com/anna-and-mark")}</strong> {t("zamiast lenslie.com. Koszt:", "instead of lenslie.com. Cost:")}{" "}
         <strong>{z(price)} {t("za rok", "per year")}</strong>{t(", płatne z salda.", ", paid from your balance.")}
       </p>
+      <p className="dom-need">
+        <strong>{t("Potrzebujesz własnej domeny", "You need your own domain")}</strong>{" "}
+        {t(
+          "(np. twojastrona.pl, kupionej w home.pl, OVH, nazwa.pl itp.). Nie kupujesz nowej – tworzysz w niej subdomenę, np. galerie.twojastrona.pl. Twoja strona i poczta działają dalej bez zmian.",
+          "(e.g. yourwebsite.com from any registrar). You don't buy a new one – you create a subdomain in it, e.g. photos.yourwebsite.com. Your website and email keep working unchanged.",
+        )}
+      </p>
+
+      <details className="dom-guide" open={!rec}>
+        <summary>{t("Instrukcja krok po kroku (na przykładzie home.pl)", "Step-by-step guide")}</summary>
+        <ol>
+          <li>
+            <strong>{t("Wpisz subdomenę w Lenslie", "Enter the subdomain in Lenslie")}</strong>
+            <p>
+              {t(
+                "Poniżej wpisz np. galerie.twojastrona.pl i kliknij „Kup i podłącz”. Lenslie pokaże rekord DNS do dodania: typ CNAME, nazwę (np. galerie) i wartość (długi adres zakończony na vercel-dns…com).",
+                "Below, enter e.g. photos.yourwebsite.com and click “Buy and connect”. Lenslie shows a DNS record to add: type CNAME, a name (e.g. photos) and a value (a long address ending in vercel-dns…com).",
+              )}
+            </p>
+          </li>
+          <li>
+            <strong>{t("Otwórz ustawienia DNS domeny w home.pl", "Open your domain's DNS settings")}</strong>
+            <p>
+              {t(
+                "Zaloguj się na panel.home.pl → Domeny → kliknij swoją domenę → „Zarządzaj rekordami DNS” → „Dodaj nowy rekord”.",
+                "Log in to your domain provider → Domains → your domain → DNS records → Add record.",
+              )}
+            </p>
+          </li>
+          <li>
+            <strong>{t("Dodaj rekord CNAME", "Add a CNAME record")}</strong>
+            <table className="admin-table dom-table">
+              <tbody>
+                <tr>
+                  <td>{t("Typ rekordu", "Type")}</td>
+                  <td>CNAME</td>
+                </tr>
+                <tr>
+                  <td>Host</td>
+                  <td>
+                    <code>galerie</code> {t("(sama nazwa subdomeny, bez reszty adresu)", "(just the subdomain name)")}
+                  </td>
+                </tr>
+                <tr>
+                  <td>{t("Nazwa kanoniczna", "Target / value")}</td>
+                  <td>
+                    {t("wartość z Lenslie z kropką na końcu, np.", "the value from Lenslie, e.g.")} <code>abc123.vercel-dns-017.com.</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>TTL</td>
+                  <td>{t("zostaw puste", "leave default")}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p className="dom-warn">
+              {t(
+                "Uwaga: w home.pl „Host” to nazwa subdomeny, a „Nazwa kanoniczna” to adres docelowy – łatwo je pomylić. Nie zmieniaj ani nie usuwaj innych rekordów.",
+                "Don't change or delete any other records.",
+              )}
+            </p>
+          </li>
+          <li>
+            <strong>{t("Odczekaj 15–60 minut", "Wait 15–60 minutes")}</strong>
+            <p>
+              {t(
+                "Nie otwieraj nowego adresu od razu – komputer może zapamiętać „brak strony” na kilka godzin. Potem kliknij tutaj „Sprawdź ponownie”. Certyfikat HTTPS ustawimy sami.",
+                "Don't open the new address right away – your computer may remember “not found” for hours. Then click “Check again” here. We set up HTTPS automatically.",
+              )}
+            </p>
+          </li>
+          <li>
+            <strong>{t("Gotowe", "Done")}</strong>
+            <p>
+              {t(
+                "Gdy pojawi się „Domena działa”, linki w „Udostępnij” i kody QR mają Twój adres. Wcześniejsze linki z lenslie.com dalej działają.",
+                "When you see “The domain works”, links in “Share” and QR codes use your address. Older lenslie.com links keep working.",
+              )}
+            </p>
+          </li>
+        </ol>
+        <p className="hint-inline">
+          {t(
+            "Inne firmy działają tak samo: OVH (Strefa DNS → Dodaj rekord), nazwa.pl (Zarządzanie DNS), Cloudflare (DNS → Add record, wyłącz pomarańczową chmurkę – „DNS only”). Jeśli strona pokazuje „witryna nieosiągalna” tylko u Ciebie, sprawdź na telefonie na danych komórkowych albo wyczyść pamięć w Chrome: chrome://net-internals/#dns → „Clear host cache”.",
+            "Other providers work the same way. With Cloudflare, turn off the orange cloud (“DNS only”). If the site shows “unreachable” only for you, check on your phone using mobile data.",
+          )}
+        </p>
+      </details>
 
       {rec && (
         <div className="domain-box">

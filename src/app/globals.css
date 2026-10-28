@@ -2083,3 +2083,13 @@ main.pf { max-width: none; margin: 0; padding: 0; min-height: 100vh; }
 .fsp-item > div:nth-child(2) { flex: 1; }
 .fsp-thumb { width: 72px; height: 72px; border-radius: 8px; background: var(--blush) center / cover; flex: 0 0 auto; }
 .period-switch.small .period { padding: 7px 14px; font-size: .78rem; }
+.dom-need { background: var(--blush); border-radius: 8px; padding: 14px 16px; font-size: .88rem !important; color: var(--ink) !important; }
+.dom-guide { border: 1px solid var(--hair); border-radius: 8px; padding: 0 18px; margin: 0 0 22px; }
+.dom-guide summary { cursor: pointer; padding: 14px 0; font-size: .92rem; font-weight: 500; }
+.dom-guide ol { margin: 4px 0 14px; padding-left: 20px; display: grid; gap: 16px; }
+.dom-guide li strong { font-weight: 500; font-size: .92rem; }
+.dom-guide li p { margin: 4px 0 0; color: var(--taupe); font-size: .86rem; line-height: 1.6; }
+.dom-table { margin: 10px 0 6px; font-size: .84rem; }
+.dom-table td:first-child { color: var(--taupe); white-space: nowrap; width: 140px; }
+.dom-table code, .dom-guide code { background: #f5efea; padding: 1px 6px; border-radius: 4px; font-size: .82rem; word-break: break-all; }
+.dom-warn { color: #8a4f43 !important; }
