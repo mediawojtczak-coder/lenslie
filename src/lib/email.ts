@@ -1,5 +1,5 @@
 // Wysyłka e-maili przez Resend (https://resend.com). Bez klucza RESEND_API_KEY nic nie wysyła i zwraca false.
-export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+export async function sendEmail({ to, subject, html, replyTo }: { to: string; subject: string; html: string; replyTo?: string }) {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM ?? "Lenslie <powiadomienia@lenslie.com>";
   if (!key || !to) return false;
@@ -7,7 +7,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, html }),
+      body: JSON.stringify({ from, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
     });
     if (!res.ok) console.error("Resend:", res.status, await res.text().catch(() => ""));
     return res.ok;
