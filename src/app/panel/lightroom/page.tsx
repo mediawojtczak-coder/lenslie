@@ -3,7 +3,8 @@ import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
 import { getLang } from "@/lib/lang-server";
 import { tr, locale } from "@/lib/lang";
-import { listTokens, LR_PLUGIN_VERSION } from "@/lib/lr";
+import { notFound } from "next/navigation";
+import { listTokens, lrAllowed, LR_PLUGIN_VERSION } from "@/lib/lr";
 import RevokeButton from "./RevokeButton";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,7 @@ export const dynamic = "force-dynamic";
 // Wtyczka Lightroom Classic: pobranie, instalacja krok po kroku i połączone komputery
 export default async function LightroomPage() {
   const { user } = await getUser();
+  if (!lrAllowed(user?.email)) notFound();
   const lang = await getLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const tokens = user ? await listTokens(user.id).catch(() => []) : [];

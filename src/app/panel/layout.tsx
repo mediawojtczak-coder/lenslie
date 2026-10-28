@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/supabase/admin";
+import { lrAllowed } from "@/lib/lr";
 import { getWallet } from "@/lib/wallet";
 import { getLang } from "@/lib/lang-server";
 import { tr, money } from "@/lib/lang";
@@ -44,7 +45,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <Link href="/panel/znajdz-siebie" className="account-link">{t("Znajdź siebie", "Find me")}</Link>
             <Link href="/panel/goscie" className="account-link">{t("Zdjęcia od gości", "Guest uploads")}</Link>
             <Link href="/panel/rezerwacje" className="account-link">{t("Rezerwacje sesji", "Session bookings")}</Link>
-            <Link href="/panel/lightroom" className="account-link">{t("Wtyczka Lightroom", "Lightroom plug-in")}</Link>
+            {lrAllowed(user.email) && <Link href="/panel/lightroom" className="account-link">{t("Wtyczka Lightroom", "Lightroom plug-in")}</Link>}
             <Link href="/panel/konto?tab=polecenia" className="account-link">{t("Poleć Lenslie – 20 zł", "Refer a friend – PLN 20")}</Link>
             {isAdminEmail(user.email) && (
               <Link href="/admin" className="account-link">{t("Panel administratora", "Admin")}</Link>

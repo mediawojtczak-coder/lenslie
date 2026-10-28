@@ -1,6 +1,7 @@
 import Link from "next/link";
 import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
+import { lrAllowed } from "@/lib/lr";
 import { getGallerySummary } from "@/lib/photos";
 import { getMeta, isExpired } from "@/lib/galleries";
 import { getPlan } from "@/lib/plans";
@@ -55,7 +56,8 @@ export default async function Panel({
     { key: "otwarte", label: t("Otwarte", "Open") },
     { key: "puste", label: t("Bez zdjęć", "Empty") },
   ] as const;
-  const { supabase } = await getUser();
+  const { supabase, user: me } = await getUser();
+  const showLr = lrAllowed(me?.email);
 
   const { data } = await supabase
     .from("galleries")
@@ -136,9 +138,11 @@ export default async function Panel({
           <Link href="/panel/goscie" className="side-link">
             <span>{t("Zdjęcia od gości", "Guest uploads")}</span>
           </Link>
-          <Link href="/panel/lightroom" className="side-link">
-            <span>{t("Wtyczka Lightroom", "Lightroom plug-in")}</span>
-          </Link>
+          {showLr && (
+            <Link href="/panel/lightroom" className="side-link">
+              <span>{t("Wtyczka Lightroom", "Lightroom plug-in")}</span>
+            </Link>
+          )}
           <Link href="/panel/rezerwacje" className="side-link">
             <span>{t("Rezerwacje sesji", "Session bookings")}</span>
           </Link>

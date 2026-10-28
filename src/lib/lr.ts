@@ -6,6 +6,13 @@ import { adminClient } from "@/lib/supabase/admin";
 // Wtyczka Lightroom Classic: fotograf loguje się raz e-mailem i hasłem, wtyczka dostaje własny klucz (token).
 // Przechowujemy tylko skrót klucza: lr-tokens/<sha256>.json -> { uid }, a listę kluczy konta w profiles/<uid>/lr.json.
 export const LR_PLUGIN_VERSION = "1.0.0";
+
+// Testy: wtyczka dostępna tylko dla tych kont. Pusta lista = dla wszystkich.
+const LR_BETA = ["adamwojtczak7@gmail.com"];
+export function lrAllowed(email?: string | null) {
+  if (!LR_BETA.length) return true;
+  return Boolean(email && LR_BETA.includes(email.toLowerCase()));
+}
 const MAX_TOKENS = 5;
 
 type TokenRec = { uid: string; createdAt: string; device?: string };
@@ -64,7 +71,7 @@ export async function lrUser(req: Request): Promise<LrUser | null> {
   const db = adminClient();
   if (!db) return null;
   const { data } = await db.auth.admin.getUserById(rec.uid);
-  if (!data?.user?.email) return null;
+  if (!data?.user?.email || !lrAllowed(data.user.email)) return null;
   const lang = req.headers.get("accept-language")?.toLowerCase().startsWith("en") ? "en" : "pl";
   return { uid: rec.uid, email: data.user.email, lang };
 }

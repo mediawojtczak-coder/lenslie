@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { issueToken, lrError, LR_PLUGIN_VERSION } from "@/lib/lr";
+import { issueToken, lrError, lrAllowed, LR_PLUGIN_VERSION } from "@/lib/lr";
 import { getUserLang } from "@/lib/lang-server";
 
 export const runtime = "nodejs";
@@ -23,6 +23,9 @@ export async function POST(req: Request) {
     return lrError(lang, "Nieprawidłowy e-mail lub hasło.", "Wrong e-mail or password.", 401);
   }
   await supabase.auth.signOut().catch(() => undefined);
+  if (!lrAllowed(data.user.email)) {
+    return lrError(lang, "Wtyczka Lightroom nie jest jeszcze dostępna dla Twojego konta.", "The Lightroom plug-in isn't available for your account yet.", 403);
+  }
   const token = await issueToken(data.user.id, String(body?.device ?? "Lightroom").slice(0, 60));
   const userLang = await getUserLang(data.user.id).catch(() => lang);
   return Response.json({ token, email: data.user.email, lang: userLang, version: LR_PLUGIN_VERSION });
