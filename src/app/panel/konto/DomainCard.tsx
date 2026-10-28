@@ -115,6 +115,12 @@ export default function DomainCard({
                     </tr>
                   </tbody>
                 </table>
+                <p className="hint-inline">
+                  {t(
+                    `Nie kupujesz nowej domeny – rekord dodajesz w ustawieniach DNS domeny, którą już masz (${rec.host.split(".").slice(1).join(".")}). W home.pl: Moje konto → Domeny → wybierz domenę → Strefa DNS / Rekordy DNS → Dodaj rekord.`,
+                    `You don't buy a new domain – add the record in the DNS settings of the domain you already own (${rec.host.split(".").slice(1).join(".")}).`,
+                  )}
+                </p>
                 <p className="hint-inline">{t("Zmiana działa zwykle po kilku minutach, czasem do kilku godzin. Certyfikat HTTPS ustawiamy automatycznie.", "The change usually works within minutes, sometimes up to a few hours. We set up the HTTPS certificate automatically.")}</p>
                 <button type="button" className="btn btn-ghost btn-small" onClick={check} disabled={busy}>
                   {t("Sprawdź ponownie", "Check again")}
