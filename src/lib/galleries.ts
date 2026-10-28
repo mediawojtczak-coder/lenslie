@@ -11,6 +11,8 @@ export type GalleryMeta = {
   title: string;
   // Klient może sam przedłużyć dostęp (domyślnie tak)
   clientExtend?: boolean;
+  // Przypomnienia mailowe dla klienta o końcu dostępu (sentFor = data wygaśnięcia, dla której już wysłano)
+  reminders?: { email: string; days: number; token: string; sentFor?: string }[];
   passwordHash?: string;
   // Hasło do udostępnienia klientowi (widoczne tylko dla fotografa w panelu)
   password?: string;

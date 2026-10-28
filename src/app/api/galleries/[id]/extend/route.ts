@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, hasAccess, accessCookieName, isExpired } from "@/lib/galleries";
-import { checkAction } from "@/lib/plan-actions";
-import { clientExtendOffer } from "@/lib/client-extend";
+import { clientExtendOffer, clientExtendPrice } from "@/lib/client-extend";
 import { isPeriod } from "@/lib/plans";
 import { adminClient } from "@/lib/supabase/admin";
 import { p24Enabled, newSessionId, saveOrder, registerTransaction } from "@/lib/p24";
@@ -21,7 +20,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!isValidGalleryId(id)) return err("Nie znaleziono galerii.", "Gallery not found.", 404);
   const meta = await getMeta(id).catch(() => null);
   const offer = await clientExtendOffer(id, meta);
-  if (!meta || !offer) return err("Tej galerii nie można przedłużyć.", "This gallery can't be extended.");
+  if (!meta || !offer?.canExtend) return err("Tej galerii nie można przedłużyć.", "This gallery can't be extended.");
   // Aktywna galeria z hasłem: przedłużyć może tylko ktoś, kto ją otworzył
   const store = await cookies();
   if (!isExpired(meta) && !hasAccess(id, meta, store.get(accessCookieName(id))?.value)) {
@@ -30,8 +29,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const email = String(body.email ?? "").trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120) return err("Podaj poprawny adres e-mail.", "Enter a valid e-mail address.");
   if (!isPeriod(body.period)) return err("Wybierz okres.", "Choose a period.");
-  const c = await checkAction(id, meta, { action: "extend", period: body.period });
-  if (!c.ok) return err(c.error, c.error);
+  const c = clientExtendPrice(meta, body.period);
   if (!p24Enabled()) return err("Płatności są chwilowo niedostępne.", "Payments are temporarily unavailable.", 503);
 
   const db = adminClient();

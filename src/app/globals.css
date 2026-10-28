@@ -2186,3 +2186,10 @@ main.pf { max-width: none; margin: 0; padding: 0; min-height: 100vh; }
 .ext-expired h2 { font-size: 1.4rem; }
 .expired-page .ext-expired p { max-width: none; margin: 0 0 18px; font-size: .9rem; }
 .expired-page .ext-expired .ext-note { margin: 12px 0 0; }
+.g-expiry-acts { display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.g-expiry-btn { display: inline-flex; align-items: center; gap: 6px; }
+.g-expiry-btn.ghost, .g-expiry.soon .g-expiry-btn.ghost { background: transparent; border-color: var(--blush-deep); color: var(--ink); }
+.ext-periods.three { grid-template-columns: repeat(3, 1fr); }
+.ext-periods.three .ext-period { align-items: center; text-align: center; padding: 12px 6px; }
+.ext-periods.three .ext-period strong { font-size: .88rem; }
+.ext-sub { font-size: .8rem; color: var(--taupe); margin: 0 0 8px; }

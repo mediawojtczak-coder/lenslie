@@ -4,7 +4,8 @@ import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
 import { listKeys } from "@/lib/photos";
 import { getMeta, saveMeta, DRAFT_REMIND_DAYS, DRAFT_DELETE_DAYS, draftDeleteDate, type GalleryMeta } from "@/lib/galleries";
 import { adminClient } from "@/lib/supabase/admin";
-import { getOwnerContact } from "@/lib/profiles";
+import { getOwnerContact, getGalleryBrand } from "@/lib/profiles";
+import { clientExtendOn } from "@/lib/client-extend";
 import { getUserLang } from "@/lib/lang-server";
 import { deleteGalleryVideos, deleteVideo } from "@/lib/videos";
 import { sendEmail, emailLayout, siteUrl, notifyAdmins } from "@/lib/email";
@@ -150,6 +151,52 @@ export async function GET(req: Request) {
     const daysLeft = (expires - now) / DAY;
     const notices = { ...(meta.notices ?? {}) };
     const panelUrl = `${siteUrl()}/panel/galeria/${id}`;
+
+    // 0. Przypomnienia, które ustawił sobie klient w galerii
+    const due = (meta.reminders ?? []).filter((r) => daysLeft > 0 && daysLeft <= r.days && r.sentFor !== meta.expiresAt);
+    if (due.length) {
+      log.push(`${id}: przypomnienia klienta (${due.length})`);
+      if (!dry) {
+        const en = meta.lang === "en";
+        const dateFmt = dateIn(meta.lang ?? "pl");
+        const brand = await getGalleryBrand(id).catch(() => ({ studioName: null as string | null }));
+        const owner = await getOwnerContact(id).catch(() => null);
+        const canExtend = clientExtendOn(meta);
+        const until = dateFmt.format(new Date(expires));
+        const left = Math.max(1, Math.ceil(daysLeft));
+        for (const r of due) {
+          const off = `${siteUrl()}/api/galleries/${id}/reminder?off=${r.token}`;
+          const ok = await sendEmail({
+            to: r.email,
+            replyTo: owner?.email,
+            subject: en ? `“${meta.title}” – gallery access ends on ${until}` : `„${meta.title}” – dostęp do galerii kończy się ${until}`,
+            html: emailLayout(
+              en ? "Your gallery expires soon" : "Galeria wkrótce wygaśnie",
+              en
+                ? [
+                    `Access to the gallery “${meta.title}”${brand.studioName ? ` from ${brand.studioName}` : ""} ends in ${left} ${left === 1 ? "day" : "days"} – on ${until}.`,
+                    canExtend
+                      ? "Download the photos you want to keep, or extend access in the gallery with one click."
+                      : "Download the photos you want to keep, or ask your photographer to extend access.",
+                  ]
+                : [
+                    `Dostęp do galerii „${meta.title}”${brand.studioName ? ` od ${brand.studioName}` : ""} kończy się za ${left} ${left === 1 ? "dzień" : "dni"} – ${until}.`,
+                    canExtend
+                      ? "Pobierz zdjęcia, które chcesz zachować, albo przedłuż dostęp jednym kliknięciem w galerii."
+                      : "Pobierz zdjęcia, które chcesz zachować, albo poproś fotografa o przedłużenie dostępu.",
+                  ],
+              { label: en ? "Open the gallery" : "Otwórz galerię", url: `${siteUrl()}/galeria/${id}` },
+              meta.lang ?? "pl",
+            ).replace(
+              "</div></body></html>",
+              `<p style="font-size:12px;color:#958c85;margin:8px 0 0">${en ? "You set this reminder in the gallery." : "To przypomnienie ustawiono w galerii."} <a href="${off}" style="color:#958c85">${en ? "Turn off reminders" : "Wyłącz przypomnienia"}</a></p></div></body></html>`,
+            ),
+          });
+          if (ok) r.sentFor = meta.expiresAt;
+        }
+        await saveMeta(id, meta);
+      }
+    }
 
     // 1. Przypomnienie: galeria wkrótce wygaśnie
     if (daysLeft > 0 && daysLeft <= REMIND_BEFORE && !notices.expiring) {
