@@ -7,6 +7,8 @@ import { getUser } from "@/lib/supabase/server";
 import { T } from "@/lib/i18n";
 import { isThemeId, type ThemeId } from "@/lib/themes";
 import Hero from "./Hero";
+import ExtendAccess from "./ExtendAccess";
+import { clientExtendOffer } from "@/lib/client-extend";
 import GalleryView, { formatEventDate } from "./GalleryView";
 
 function titleFromId(id: string) {
@@ -32,11 +34,12 @@ export async function ClientGallery({ id, blad, motyw }: { id: string; blad?: st
 
   // Po wygaśnięciu pakietu klient widzi tylko krótką informację
   if (isExpired(meta)) {
+    const offer = await clientExtendOffer(id, meta).catch(() => null);
     return (
       <section className="expired-page">
         <p className="wordmark">Lenslie</p>
         <h1>{title}</h1>
-        <p>{t.expired}</p>
+        {offer ? <ExtendAccess id={id} offer={offer} lang={meta?.lang ?? "pl"} /> : <p>{t.expired}</p>}
       </section>
     );
   }

@@ -20,6 +20,8 @@ import { saleOn, getSaleOrder, getPayoutForGallery, type SaleOrder } from "@/lib
 import type { SaleInfo } from "./PhotoGrid";
 import VideoSection, { type ClientVideo } from "./VideoSection";
 import FaceSearch from "./FaceSearch";
+import ExtendAccess from "./ExtendAccess";
+import { clientExtendOffer } from "@/lib/client-extend";
 import { refreshVideos, signedVideoUrl, iframeUrl } from "@/lib/videos";
 import { saveMeta } from "@/lib/galleries";
 
@@ -181,6 +183,9 @@ export default async function GalleryView({
     };
   }
 
+  // Klient widzi, ile dni zostało, i może sam przedłużyć dostęp
+  const extendOffer = mode === "client" && !preview ? await clientExtendOffer(id, meta).catch(() => null) : null;
+
   return (
     <div className={`gtheme gtheme-${theme} ${scriptFont.variable}`}>
       {preview && (
@@ -240,6 +245,7 @@ export default async function GalleryView({
         </div>
       </div>
 
+      {extendOffer && <ExtendAccess id={id} offer={extendOffer} lang={lang} />}
       <main className="g-photos">
         {clientVideos.length > 0 && <VideoSection videos={clientVideos} lang={lang} />}
         {meta?.welcome && <p className="g-welcome">{meta.welcome}</p>}

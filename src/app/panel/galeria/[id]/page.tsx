@@ -26,6 +26,7 @@ import { refreshVideos, videoPrice } from "@/lib/videos";
 import { PERIODS } from "@/lib/plans";
 import { saveMeta } from "@/lib/galleries";
 import PickLimitCard from "./PickLimitCard";
+import ClientExtendCard from "./ClientExtendCard";
 import ThemeCard from "./ThemeCard";
 import FacesCard from "./FacesCard";
 import { FACES_PRICE } from "@/lib/faces";
@@ -212,6 +213,7 @@ export default async function ZarzadzanieGalerii({
             />
             <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} />
             <PickLimitCard id={id} limit={meta?.pickLimit ?? null} selling={Boolean(meta?.sale?.enabled)} />
+            <ClientExtendCard id={id} on={meta?.clientExtend !== false} />
             <GuestCard id={id} guest={meta?.guest ?? null} sections={meta?.sections ?? []} />
           </SettingsForm>
         ) : (

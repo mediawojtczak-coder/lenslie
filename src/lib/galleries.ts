@@ -9,6 +9,8 @@ import type { ThemeId } from "@/lib/themes";
 // Opis galerii zapisany obok zdjęć w R2: galleries/<id>/meta.json
 export type GalleryMeta = {
   title: string;
+  // Klient może sam przedłużyć dostęp (domyślnie tak)
+  clientExtend?: boolean;
   passwordHash?: string;
   // Hasło do udostępnienia klientowi (widoczne tylko dla fotografa w panelu)
   password?: string;

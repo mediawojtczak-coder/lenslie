@@ -8,6 +8,7 @@ import { fulfillProduct } from "@/lib/products";
 import { addEntries } from "@/lib/wallet";
 import { referralPayment } from "@/lib/referrals";
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
+import { getOwnerContact } from "@/lib/profiles";
 
 export const runtime = "nodejs";
 
@@ -47,6 +48,27 @@ export async function POST(req: Request) {
     await applyAction(order.galleryId, order.action);
   }
   await saveOrder({ ...order, status: "paid", paidAt: new Date().toISOString(), orderId: n.orderId });
+  // Klient sam przedłużył galerię – dajemy znać fotografowi
+  if (order.byClient && order.action.action === "extend") {
+    const owner = await getOwnerContact(order.galleryId).catch(() => null);
+    const meta = await getMeta(order.galleryId).catch(() => null);
+    if (owner && meta?.expiresAt) {
+      const en = owner.lang === "en";
+      const until = new Intl.DateTimeFormat(en ? "en-GB" : "pl-PL", { day: "numeric", month: "long", year: "numeric" }).format(new Date(meta.expiresAt));
+      await sendEmail({
+        to: owner.email,
+        subject: en ? `Your client extended “${meta.title}”` : `Klient przedłużył galerię „${meta.title}”`,
+        html: emailLayout(
+          en ? "Gallery extended by your client" : "Klient przedłużył galerię",
+          en
+            ? [`Your client (${order.email}) paid to extend “${meta.title}” by ${order.action.period} months.`, `The gallery is now available until ${until}.`]
+            : [`Klient (${order.email}) opłacił przedłużenie galerii „${meta.title}” o ${order.action.period} mies.`, `Galeria jest teraz dostępna do ${until}.`],
+          { label: en ? "Open the gallery" : "Otwórz galerię", url: `${siteUrl()}/panel/galeria/${order.galleryId}` },
+          owner.lang,
+        ),
+      }).catch(() => undefined);
+    }
+  }
   await referralPayment(order.ownerId, order.amount).catch((e) => console.error("Polecenia:", e));
 
   // Mail do administratora: nowa płatność (z danymi do faktury, jeśli klient jej chce)

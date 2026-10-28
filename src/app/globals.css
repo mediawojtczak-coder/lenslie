@@ -2159,3 +2159,30 @@ main.pf { max-width: none; margin: 0; padding: 0; min-height: 100vh; }
   .admin-actions .btn { width: 100%; }
   .orphans li { flex-wrap: wrap; overflow-wrap: anywhere; }
 }
+
+/* ===== Klient: ile dni zostało i przedłużenie dostępu ===== */
+.g-expiry { display: flex; align-items: center; justify-content: center; gap: 8px 18px; flex-wrap: wrap; padding: 12px 16px; font-size: .84rem; color: var(--taupe); border-bottom: 1px solid var(--hair); text-align: center; }
+.g-expiry > span { display: inline-flex; align-items: center; gap: 7px; flex-wrap: wrap; justify-content: center; }
+.g-expiry small { font-size: inherit; opacity: .8; }
+.g-expiry.soon { color: #8a5a3c; background: #fbf3ea; }
+.g-expiry-btn { border: 1px solid var(--blush-deep); background: transparent; color: var(--ink); border-radius: 999px; padding: 6px 16px; font: inherit; font-size: .8rem; cursor: pointer; }
+.g-expiry-btn:hover { background: var(--blush); }
+.g-expiry.soon .g-expiry-btn { background: #3b3633; border-color: #3b3633; color: #fff; }
+.ext-modal { position: fixed; inset: 0; z-index: 60; background: rgba(30, 26, 24, .55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.ext-box { position: relative; width: 100%; max-width: 440px; max-height: calc(100vh - 32px); overflow-y: auto; background: #fdfcfa; border-radius: 16px; padding: 30px 26px 24px; box-shadow: 0 30px 70px -30px rgba(0, 0, 0, .5); color: var(--ink); text-align: left; }
+.ext-box h2, .ext-expired h2 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.7rem; margin: 0 0 8px; }
+.ext-lead { color: var(--taupe); font-size: .9rem; margin: 0 0 20px; }
+.ext-close { position: absolute; top: 10px; right: 12px; width: 34px; height: 34px; border: 0; background: none; font-size: 1.5rem; color: var(--taupe); cursor: pointer; }
+.ext-periods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+.ext-period { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px 14px; border: 1px solid var(--hair); border-radius: 10px; background: #fff; font: inherit; color: var(--ink); cursor: pointer; text-align: left; }
+.ext-period span { font-size: .8rem; color: var(--taupe); }
+.ext-period strong { font-weight: 500; font-size: 1.05rem; }
+.ext-period.on { border-color: #3b3633; box-shadow: inset 0 0 0 1px #3b3633; }
+.ext-form label { font-size: .8rem; color: var(--taupe); }
+.ext-form input { margin: 4px 0 16px; }
+.ext-form .btn { margin: 0; }
+.ext-note { font-size: .74rem; color: var(--taupe); margin: 12px 0 0; text-align: center; }
+.ext-expired { width: 100%; max-width: 440px; margin-top: 18px; text-align: left; background: #fff; border-radius: 16px; padding: 26px 22px; box-shadow: 0 20px 50px -30px rgba(43, 37, 34, .35); }
+.ext-expired h2 { font-size: 1.4rem; }
+.expired-page .ext-expired p { max-width: none; margin: 0 0 18px; font-size: .9rem; }
+.expired-page .ext-expired .ext-note { margin: 12px 0 0; }

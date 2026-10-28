@@ -42,6 +42,7 @@ export type Order = {
   orderId?: number;
   invoice?: Billing | null; // dane do faktury, gdy klient jej chce
   invoiceIssued?: boolean;
+  byClient?: boolean; // przedłużenie opłacone przez klienta galerii
 };
 
 const orderKey = (sid: string) => `payments/${sid}.json`;
