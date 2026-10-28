@@ -12,7 +12,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         <Link href="/" className="wordmark">Lenslie</Link>
         <nav>
           <Link href="/cennik">{t("Cennik", "Pricing")}</Link>
-          <Link href="/znajdz-siebie" className="nav-fs">{t("Znajdź siebie", "Find me")}</Link>
           <Link href="/logowanie">{t("Zaloguj", "Log in")}</Link>
           {process.env.REGISTRATION_OPEN === "1" && (
             <Link href="/rejestracja" className="nav-cta">
@@ -27,7 +26,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         <p className="wordmark">Lenslie</p>
         <nav aria-label={t("Stopka", "Footer")}>
           <Link href="/cennik">{t("Cennik", "Pricing")}</Link>
-          <Link href="/znajdz-siebie">{t("Znajdź siebie na zdjęciach", "Find yourself in the photos")}</Link>
           <Link href="/rejestracja">{t("Załóż konto", "Sign up")}</Link>
           <Link href="/regulamin">{t("Regulamin", "Terms of service")}</Link>
           <Link href="/polityka-prywatnosci">{t("Polityka prywatności", "Privacy policy")}</Link>

@@ -1651,15 +1651,14 @@ ol.stat-list { counter-reset: s; }
 /* Nagłówek strony na telefonie: logo i język w pierwszym wierszu, linki w drugim */
 @media (max-width: 600px) {
   .top {
-    display: grid; grid-template-columns: auto auto auto 1fr auto; grid-template-areas: "logo logo logo . cta" "a fs b . lang";
-    align-items: center; column-gap: 18px; row-gap: 16px; padding: 18px 16px 6px;
+    display: grid; grid-template-columns: auto auto 1fr auto; grid-template-areas: "logo logo logo lang" "a b . cta";
+    align-items: center; column-gap: 22px; row-gap: 16px; padding: 18px 16px 6px;
   }
-  .top nav > .nav-fs { grid-area: fs; white-space: nowrap; }
   .top > .wordmark { grid-area: logo; font-size: 1.5rem; line-height: 1; }
   .top nav { display: contents; }
   .top nav > a { white-space: nowrap; font-size: .92rem; }
   .top nav > a:nth-of-type(1) { grid-area: a; }
-  .top nav > a:nth-of-type(3) { grid-area: b; }
+  .top nav > a:nth-of-type(2) { grid-area: b; }
   .top nav > .nav-cta { grid-area: cta; padding: 7px 14px; font-size: .85rem; }
   .top nav > .lang-switch { grid-area: lang; justify-self: end; }
 }
@@ -2018,3 +2017,9 @@ main.pf.pf-dark { --pf-bg: #121010; --pf-ink: #f1ece7; --pf-muted: #9c928a; --pf
   .fs-split > div { padding: 30px 24px; }
   .fs-privacy { padding: 56px 22px; }
 }
+.fsp-intro { background: #fff; border-radius: 12px; padding: 32px 34px; margin-bottom: 24px; box-shadow: 0 1px 2px rgba(59, 54, 51, .05); }
+.fsp-intro h1 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 2rem; margin: 0 0 10px; }
+.fsp-intro p:not(.fs-kicker) { color: var(--taupe); margin: 0 0 14px; max-width: 46em; }
+.fsp-item { justify-content: flex-start; }
+.fsp-item > div:nth-child(2) { flex: 1; }
+.fsp-thumb { width: 72px; height: 72px; border-radius: 8px; background: var(--blush) center / cover; flex: 0 0 auto; }
