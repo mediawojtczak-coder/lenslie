@@ -32,7 +32,9 @@ export async function POST(req: Request) {
 
   if (body.action === "status") {
     if (!current) return NextResponse.json({ error: await E("Brak domeny.") }, { status: 404 });
-    return NextResponse.json({ ok: true, ...(await vercelDomainStatus(current.host)) });
+    const st = await vercelDomainStatus(current.host);
+    if (st.configured !== Boolean(current.verified)) await saveDomain({ ...current, verified: st.configured });
+    return NextResponse.json({ ok: true, ...st });
   }
 
   if (body.action === "buy" || body.action === "change") {

@@ -10,7 +10,7 @@ import PublishBar from "./PublishBar";
 import PaymentNotice from "./PaymentNotice";
 import { getBilling } from "@/lib/billing";
 import { getWallet } from "@/lib/wallet";
-import { getDomainByUser, domainActive } from "@/lib/domains";
+import { getDomainByUser, domainActive, vercelDomainStatus, saveDomain } from "@/lib/domains";
 import { getLang } from "@/lib/lang-server";
 import { tr, locale } from "@/lib/lang";
 import PlanBar from "./PlanBar";
@@ -53,7 +53,15 @@ export default async function ZarzadzanieGalerii({
   const billing = user ? await getBilling(user.id) : null;
   const balance = user ? (await getWallet(user.id)).balance : 0;
   const domainRec = user ? await getDomainByUser(user.id).catch(() => null) : null;
-  const domain = domainActive(domainRec) ? domainRec!.host : null;
+  // Własna domena w linkach dopiero, gdy DNS już działa – inaczej klient dostałby niedziałający link
+  let domain = domainActive(domainRec) && domainRec!.verified ? domainRec!.host : null;
+  if (domainActive(domainRec) && !domainRec!.verified) {
+    const st = await vercelDomainStatus(domainRec!.host).catch(() => null);
+    if (st?.configured) {
+      await saveDomain({ ...domainRec!, verified: true }).catch(() => undefined);
+      domain = domainRec!.host;
+    }
+  }
   const ownedThemes = user ? await getOwnedThemes(user.id).catch(() => []) : [];
   const hasPayout = user ? Boolean(await getPayout(user.id).catch(() => null)) : false;
   const { data } = await supabase.from("galleries").select("id, title, created_at").eq("id", id).maybeSingle();

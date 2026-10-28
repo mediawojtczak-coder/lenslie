@@ -5,7 +5,8 @@ import { r2, BUCKET } from "@/lib/r2";
 export const DOMAIN_PRICE = 99; // zł za rok
 export const MAIN_HOSTS = ["lenslie.com", "www.lenslie.com", "lenslie.vercel.app", "localhost"];
 
-export type DomainRec = { host: string; uid: string; addedAt: string; paidUntil: string; reminded?: boolean; detached?: boolean };
+// verified: DNS fotografa już wskazuje na Lenslie – dopiero wtedy linki w „Udostępnij” używają tej domeny
+export type DomainRec = { host: string; uid: string; addedAt: string; paidUntil: string; reminded?: boolean; detached?: boolean; verified?: boolean };
 
 const hostKey = (host: string) => `domains/hosts/${host}.json`;
 const userKey = (uid: string) => `domains/users/${uid}.json`;
