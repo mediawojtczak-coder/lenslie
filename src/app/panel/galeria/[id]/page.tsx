@@ -26,6 +26,8 @@ import { refreshVideos, videoPrice } from "@/lib/videos";
 import { PERIODS } from "@/lib/plans";
 import { saveMeta } from "@/lib/galleries";
 import PickLimitCard from "./PickLimitCard";
+import ThemeCard from "./ThemeCard";
+import { THEMES, getOwnedThemes } from "@/lib/themes";
 import { getPayout } from "@/lib/sales";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +52,7 @@ export default async function ZarzadzanieGalerii({
   const balance = user ? (await getWallet(user.id)).balance : 0;
   const domainRec = user ? await getDomainByUser(user.id).catch(() => null) : null;
   const domain = domainActive(domainRec) ? domainRec!.host : null;
+  const ownedThemes = user ? await getOwnedThemes(user.id).catch(() => []) : [];
   const hasPayout = user ? Boolean(await getPayout(user.id).catch(() => null)) : false;
   const { data } = await supabase.from("galleries").select("id, title, created_at").eq("id", id).maybeSingle();
   if (!data) notFound();
@@ -174,6 +177,14 @@ export default async function ZarzadzanieGalerii({
             hasMusic={Boolean(meta?.music)}
             lang={meta?.lang ?? "pl"}
           >
+            <ThemeCard
+              id={id}
+              themes={THEMES}
+              current={meta?.theme ?? "classic"}
+              owned={ownedThemes}
+              balance={balance}
+              billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
+            />
             <ProtectionCard
               id={id}
               downloads={meta?.downloads ?? "all"}

@@ -11,6 +11,11 @@ import PhotoGrid, { type Group, type GridItem } from "./PhotoGrid";
 import SlideshowButton from "./SlideshowButton";
 import Track from "./Track";
 import { T } from "@/lib/i18n";
+import { Great_Vibes } from "next/font/google";
+import { isThemeId, type ThemeId } from "@/lib/themes";
+
+// Odręczne pismo dla motywu rustykalnego
+const scriptFont = Great_Vibes({ weight: "400", subsets: ["latin", "latin-ext"], variable: "--font-script", display: "swap", preload: false });
 import { saleOn, getSaleOrder, getPayoutForGallery, type SaleOrder } from "@/lib/sales";
 import type { SaleInfo } from "./PhotoGrid";
 import VideoSection, { type ClientVideo } from "./VideoSection";
@@ -35,7 +40,10 @@ export default async function GalleryView({
   title,
   mode,
   preview = false,
+  themeOverride,
 }: {
+  // Podgląd motywu przez fotografa (?motyw=…)
+  themeOverride?: ThemeId;
   id: string;
   meta: GalleryMeta | null;
   title: string;
@@ -45,6 +53,7 @@ export default async function GalleryView({
 }) {
   const lang = meta?.lang ?? "pl";
   const t = T[lang];
+  const theme: ThemeId = themeOverride ?? (isThemeId(meta?.theme) ? meta!.theme! : "classic");
   const watermark = watermarkOn(meta) ? meta!.watermark!.text : null;
 
   const brand = await getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null }));
@@ -172,7 +181,7 @@ export default async function GalleryView({
   }
 
   return (
-    <>
+    <div className={`gtheme gtheme-${theme} ${scriptFont.variable}`}>
       {preview && (
         <p className="preview-banner">
           Podgląd wersji roboczej. Klienci zobaczą galerię dopiero po opublikowaniu.{" "}
@@ -253,6 +262,6 @@ export default async function GalleryView({
         {brand.studioName && <span>{brand.studioName} · </span>}
         <a href="https://www.lenslie.com">{t.footer}</a>
       </footer>
-    </>
+    </div>
   );
 }

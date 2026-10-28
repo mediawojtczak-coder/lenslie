@@ -1818,3 +1818,68 @@ main.gu-page { padding: 0 0 40px; }
 .gu-player-bar { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
 .gu-player .g-video-dl { color: #fff; border-color: rgba(255, 255, 255, .3); background: none; font: inherit; font-size: .85rem; cursor: pointer; }
 @media (max-width: 600px) { .gu-videos { grid-template-columns: 1fr; gap: 6px; } }
+
+/* ===== Motywy galerii klienta ===== */
+.gtheme { background: var(--paper); color: var(--ink); min-height: 100vh; }
+.gtheme .g-bar { background: color-mix(in srgb, var(--paper) 94%, transparent); }
+
+/* Czarny elegancki */
+.gtheme-noir {
+  --paper: #131110; --ink: #f2ede8; --taupe: #a1968d; --hair: #2a2522; --blush: #221d1a; --blush-deep: #3a322d; --tile-1: #1d1916;
+}
+.gtheme-noir .btn { background: #f2ede8; border-color: #f2ede8; color: #131110; }
+.gtheme-noir .btn:hover { background: #c9a87c; border-color: #c9a87c; color: #131110; }
+.gtheme-noir .btn-ghost { background: transparent; color: #f2ede8; border-color: #4a413b; }
+.gtheme-noir .g-welcome, .gtheme-noir .section-head h2 { color: #f2ede8; }
+.gtheme-noir .section-nav a:hover { border-bottom-color: #c9a87c; }
+.gtheme-noir .g-video-dl { color: #c9a87c; border-color: #3a322d; }
+.gtheme-noir .sale-card { background: #1b1715; border-color: #2a2522; }
+.gtheme-noir .wordmark, .gtheme-noir .g-bar-title { color: #f2ede8; }
+.gtheme-noir .client-grid { column-gap: 14px; }
+.gtheme-noir .client-grid .photo { margin-bottom: 14px; }
+
+/* Minimalistyczny */
+.gtheme-minimal {
+  --paper: #ffffff; --ink: #111111; --taupe: #7a7a7a; --hair: #eeeeee; --blush: #f5f5f5; --blush-deep: #e6e6e6; --tile-1: #f3f3f3;
+}
+.gtheme-minimal .hero-title, .gtheme-minimal .g-bar-title, .gtheme-minimal .section-head h2, .gtheme-minimal .wordmark {
+  font-family: var(--font-body), system-ui, sans-serif; font-weight: 300; text-transform: uppercase; letter-spacing: .28em;
+}
+.gtheme-minimal .hero-title { font-size: clamp(1.8rem, 4.5vw, 3.2rem); }
+.gtheme-minimal .section-head h2 { font-size: 1rem; }
+.gtheme-minimal .g-welcome { font-family: var(--font-body), system-ui, sans-serif; font-style: normal; font-weight: 300; }
+.gtheme-minimal .btn { border-radius: 0; background: #111; border-color: #111; color: #fff; }
+.gtheme-minimal .btn-ghost { background: transparent; color: #111; }
+.gtheme-minimal .hero-btn { border-radius: 0; }
+.gtheme-minimal .client-grid { column-gap: 4px; }
+.gtheme-minimal .client-grid .photo { margin-bottom: 4px; }
+
+/* Rustykalny ślubny */
+.gtheme-rustic {
+  --paper: #f5eee3; --ink: #4a3b2e; --taupe: #8b7765; --hair: #e4d8c7; --blush: #ebe0cf; --blush-deep: #d9c9b2; --tile-1: #eadfce;
+  background-image: radial-gradient(1100px 500px at 0% 0%, rgba(169, 179, 154, .18), transparent 60%), radial-gradient(900px 500px at 100% 20%, rgba(214, 186, 160, .2), transparent 60%);
+}
+.gtheme-rustic .hero-title { font-family: var(--font-script), var(--font-display), Georgia, serif; font-size: clamp(3.4rem, 9vw, 7rem); letter-spacing: 0; }
+.gtheme-rustic .section-head h2 { font-family: var(--font-script), Georgia, serif; font-size: 2.6rem; color: #6b7a5c; }
+.gtheme-rustic .g-welcome { color: #4a3b2e; }
+.gtheme-rustic .btn { background: #6b7a5c; border-color: #6b7a5c; color: #fff; }
+.gtheme-rustic .btn:hover { background: #57654a; border-color: #57654a; color: #fff; }
+.gtheme-rustic .btn-ghost { background: transparent; color: #4a3b2e; border-color: #c9b79c; }
+.gtheme-rustic .client-grid .photo { border-radius: 4px; overflow: hidden; }
+.gtheme-rustic .g-bar-title { font-family: var(--font-script), Georgia, serif; font-size: 1.8rem; }
+
+/* Panel: wybór motywu */
+.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin: 6px 0 14px; }
+.theme-tile { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 8px 8px 12px; border: 1px solid var(--hair); border-radius: 10px; background: #fff; font: inherit; color: var(--ink); cursor: pointer; }
+.theme-tile.active { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.theme-tile strong { font-size: .88rem; font-weight: 500; margin-top: 6px; }
+.theme-tile small { color: var(--taupe); font-size: .76rem; line-height: 1.35; }
+.theme-tile em { font-style: normal; font-size: .76rem; color: #8a4f43; margin-top: 4px; }
+.theme-prev { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; height: 96px; border-radius: 6px; border: 1px solid rgba(0, 0, 0, .06); }
+.tp-title { font-family: var(--font-display), Georgia, serif; font-size: 1rem; }
+.tp-minimal .tp-title { font-family: var(--font-body), sans-serif; text-transform: uppercase; letter-spacing: .2em; font-size: .7rem; }
+.tp-rustic .tp-title { font-style: italic; }
+.tp-row { display: flex; gap: 4px; }
+.tp-row i { width: 26px; height: 18px; border-radius: 2px; }
+.theme-apply { margin-top: 14px; }
+.theme-buy { margin-top: 16px; }

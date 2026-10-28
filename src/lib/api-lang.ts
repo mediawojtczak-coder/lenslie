@@ -58,6 +58,7 @@ const EN: Record<string, string> = {
   "Film można dodać do opublikowanej galerii.": "You can add a video to a published gallery.",
   "Film może mieć najwyżej 30 GB.": "A video can be at most 30 GB.",
   "Nie znaleziono filmu.": "Video not found.",
+  "Najpierw kup ten motyw.": "Buy this theme first.",
   "Nie ma filmów do opłacenia.": "There are no videos to pay for.",
   "To wydarzenie jest już aktywne.": "This event is already active.",
   "Numer konta powinien mieć 26 cyfr.": "The bank account number should have 26 digits.",

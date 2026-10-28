@@ -22,6 +22,10 @@ const sign = (o: Record<string, unknown>) => createHash("sha384").update(JSON.st
 export type TopupAction = { action: "topup"; amount: number; bonus: number };
 export type GuestEventAction = { action: "guest-event"; eventId: string };
 export type VideosAction = { action: "videos"; galleryId: string; ids: string[] };
+export type ProductAction =
+  | { action: "product"; product: "theme"; uid: string; theme: import("@/lib/themes").ThemeId; galleryId?: string }
+  | { action: "product"; product: "portfolio"; uid: string; months: number }
+  | { action: "product"; product: "faces"; uid: string; galleryId: string };
 
 export type Order = {
   sessionId: string;
@@ -29,7 +33,7 @@ export type Order = {
   ownerId: string;
   email: string;
   amount: number; // grosze
-  action: PlanAction | TopupAction | GuestEventAction | VideosAction;
+  action: PlanAction | TopupAction | GuestEventAction | VideosAction | ProductAction;
   returnPath?: string;
   description: string;
   status: "pending" | "paid" | "error";

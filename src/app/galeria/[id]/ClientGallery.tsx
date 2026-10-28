@@ -5,6 +5,7 @@ import { getMeta, hasAccess, accessCookieName, isExpired, type GalleryMeta } fro
 import { getGalleryBrand } from "@/lib/profiles";
 import { getUser } from "@/lib/supabase/server";
 import { T } from "@/lib/i18n";
+import { isThemeId, type ThemeId } from "@/lib/themes";
 import Hero from "./Hero";
 import GalleryView, { formatEventDate } from "./GalleryView";
 
@@ -14,7 +15,7 @@ function titleFromId(id: string) {
 }
 
 // Galeria widziana przez klienta – używana pod adresem Lenslie i pod własną domeną fotografa
-export async function ClientGallery({ id, blad }: { id: string; blad?: string }) {
+export async function ClientGallery({ id, blad, motyw }: { id: string; blad?: string; motyw?: string }) {
   if (!isValidGalleryId(id)) {
     return <p className="notice">Nie znaleziono galerii.</p>;
   }
@@ -64,7 +65,9 @@ export async function ClientGallery({ id, blad }: { id: string; blad?: string })
       getGallerySummary(id, meta?.cover).catch(() => ({ count: 0, coverUrl: null })),
       getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null })),
     ]);
+    const th = isThemeId(meta?.theme) ? meta!.theme! : "classic";
     return (
+      <div className={`gtheme gtheme-${th}`}>
       <Hero
         id={id}
         title={title}
@@ -75,10 +78,19 @@ export async function ClientGallery({ id, blad }: { id: string; blad?: string })
         locked
         error={Boolean(blad)}
       />
+      </div>
     );
   }
 
   if (error) return <p className="notice">Nie udało się wczytać galerii. Odśwież stronę za chwilę.</p>;
 
-  return <GalleryView id={id} meta={meta} title={title} mode="client" preview={preview} />;
+  // Fotograf może podejrzeć galerię w innym motywie (?motyw=noir)
+  let themeOverride: ThemeId | undefined;
+  if (motyw && isThemeId(motyw)) {
+    const { supabase, user } = await getUser().catch(() => ({ supabase: null, user: null }));
+    const own = user && supabase ? (await supabase.from("galleries").select("id").eq("id", id).maybeSingle()).data : null;
+    if (own) themeOverride = motyw;
+  }
+
+  return <GalleryView id={id} meta={meta} title={title} mode="client" preview={preview} themeOverride={themeOverride} />;
 }

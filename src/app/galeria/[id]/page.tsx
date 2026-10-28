@@ -15,10 +15,10 @@ export default async function Galeria({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ blad?: string }>;
+  searchParams: Promise<{ blad?: string; motyw?: string }>;
 }) {
   const { id } = await params;
-  const { blad } = await searchParams;
+  const { blad, motyw } = await searchParams;
 
   // Przykładowa galeria bez zdjęć
   if (id === "demo") {
@@ -36,5 +36,5 @@ export default async function Galeria({
     );
   }
 
-  return <ClientGallery id={id} blad={blad} />;
+  return <ClientGallery id={id} blad={blad} motyw={motyw} />;
 }
