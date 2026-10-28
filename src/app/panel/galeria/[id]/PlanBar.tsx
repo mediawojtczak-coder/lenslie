@@ -34,7 +34,10 @@ export default function PlanBar({
   usedBytes,
   billing,
   balance,
+  videoExtend = null,
 }: {
+  // Dopłata za przedłużenie filmów w galerii, dla każdego okresu (zł)
+  videoExtend?: Record<number, number> | null;
   id: string;
   planId: PlanId | null;
   period: Period | null;
@@ -114,7 +117,7 @@ export default function PlanBar({
     mode === "upgrade" && plan && targetPlan && period
       ? upgradeCost(plan, targetPlan, period)
       : mode === "extend" && plan
-        ? plan.prices[newPeriod]
+        ? plan.prices[newPeriod] + (videoExtend?.[newPeriod] ?? 0)
         : mode === "choose" && targetPlan
           ? targetPlan.prices[newPeriod]
           : 0;
@@ -220,7 +223,7 @@ export default function PlanBar({
                     {periodShort(p, lang)}
                     {plan && mode === "extend" && (
                       <small className="period-sub">
-                        {zl(plan.prices[p])} · {perMonthL(plan.prices[p], p, lang)}
+                        {zl(plan.prices[p] + (videoExtend?.[p] ?? 0))} · {perMonthL(plan.prices[p] + (videoExtend?.[p] ?? 0), p, lang)}
                       </small>
                     )}
                   </button>
@@ -232,6 +235,11 @@ export default function PlanBar({
           {mode === "upgrade" && (
             <p className="hint-inline">
               {t("Płacisz tylko różnicę w cenie. Data wygaśnięcia galerii się nie zmienia.", "You only pay the price difference. The expiry date stays the same.")}
+            </p>
+          )}
+          {mode === "extend" && plan && videoExtend && (videoExtend[newPeriod] ?? 0) > 0 && (
+            <p className="hint-inline">
+              {t("W tym", "Including")}: {t("galeria", "gallery")} {zl(plan.prices[newPeriod])} + {t("filmy", "videos")} {zl(videoExtend[newPeriod])}
             </p>
           )}
           {mode === "extend" && expiresAt && plan && (

@@ -22,7 +22,8 @@ import SelectionsTab from "./SelectionsTab";
 import StatsTab from "./StatsTab";
 import SaleCard from "./SaleCard";
 import VideoManager from "./VideoManager";
-import { refreshVideos } from "@/lib/videos";
+import { refreshVideos, videoPrice } from "@/lib/videos";
+import { PERIODS } from "@/lib/plans";
 import { saveMeta } from "@/lib/galleries";
 import PickLimitCard from "./PickLimitCard";
 import { getPayout } from "@/lib/sales";
@@ -71,6 +72,11 @@ export default async function ZarzadzanieGalerii({
   }
 
   const cover = pickCover(photos, meta?.cover);
+  // Dopłata za filmy przy przedłużeniu – ta sama, którą liczy serwer przy płatności
+  const paidVideos = (meta?.videos ?? []).filter((v) => v.status === "processing" || v.status === "ready");
+  const videoExtend = paidVideos.length
+    ? Object.fromEntries(PERIODS.map((p) => [p, paidVideos.reduce((s, v) => s + videoPrice(v.size, v.duration, p, false), 0)]))
+    : null;
 
   const { count: selectionCount } = await supabase
     .from("selections")
@@ -138,6 +144,7 @@ export default async function ZarzadzanieGalerii({
               usedBytes={usedBytes}
               billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
               balance={balance}
+              videoExtend={videoExtend}
             />
           </>
         ) : (
