@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { E } from "@/lib/api-lang";
 import { getUser } from "@/lib/supabase/server";
 import { purchase } from "@/lib/purchase";
-import { fmtDuration, proVideoSeconds, getProSub, proActive, proUsage, proTier, proName, proPrice, proHardLimit, proUpgradeCost, PRO_TIERS } from "@/lib/pro";
+import { fmtDuration, proVideoSeconds, getProSub, proActive, proUsage, proTier, proName, proPrice, proHardLimit, proUpgradeCost, proIsBigger } from "@/lib/pro";
 import { formatBytes } from "@/lib/plans";
 import { getLang } from "@/lib/lang-server";
 
@@ -17,12 +17,11 @@ export async function POST(req: Request) {
   if (!tier) return NextResponse.json({ error: await E("Wybierz pakiet.") }, { status: 400 });
   const cur = await getProSub(user.id);
   const active = proActive(cur);
-  const order = PRO_TIERS.map((t) => t.id);
 
   if (body?.action === "upgrade") {
     if (!active) return NextResponse.json({ error: await E("Abonament nie jest aktywny – wybierz pakiet i okres.") }, { status: 400 });
     const from = proTier(cur!.tier)!;
-    if (order.indexOf(tier.id) <= order.indexOf(from.id)) return NextResponse.json({ error: await E("Pakiet można zmienić tylko na większy.") }, { status: 400 });
+    if (!proIsBigger(tier, from)) return NextResponse.json({ error: await E("Pakiet można zmienić tylko na większy.") }, { status: 400 });
     return purchase({
       req,
       user,
@@ -37,7 +36,7 @@ export async function POST(req: Request) {
 
   const months = Number(body?.months) === 12 ? 12 : 1;
   if (active && tier.id !== cur!.tier) {
-    const bigger = order.indexOf(tier.id) > order.indexOf(cur!.tier);
+    const bigger = proIsBigger(tier, proTier(cur!.tier)!);
     return NextResponse.json(
       {
         error: await E(

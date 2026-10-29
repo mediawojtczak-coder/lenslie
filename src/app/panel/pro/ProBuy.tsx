@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useLang } from "@/components/LangProvider";
 import { tr, money } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
 import InvoiceFields from "@/components/InvoiceFields";
 import type { Billing } from "@/lib/billing";
-import { PRO_TIERS, proName, proPrice, proHardLimit, proVideoSeconds, type ProTierId, type ProMonths } from "@/lib/pro-plans";
+import { PRO_TIERS, proIsBigger, proName, proPrice, proHardLimit, proVideoSeconds, type ProTierId, type ProMonths } from "@/lib/pro-plans";
 
 // Zakup / przedłużenie abonamentu Pro albo zmiana na większy pakiet
 export default function ProBuy({
@@ -28,7 +28,6 @@ export default function ProBuy({
 }) {
   const lang = useLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
-  const order = PRO_TIERS.map((x) => x.id);
   const [mode, setMode] = useState<"buy" | "upgrade">("buy");
   const [tier, setTier] = useState<ProTierId>(current ?? "pro700");
   const [months, setMonths] = useState<ProMonths>(12);
@@ -37,7 +36,8 @@ export default function ProBuy({
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
 
-  const bigger = current ? PRO_TIERS.filter((x) => order.indexOf(x.id) > order.indexOf(current)) : [];
+  const cur = PRO_TIERS.find((x) => x.id === current);
+  const bigger = cur ? PRO_TIERS.filter((x) => proIsBigger(x, cur)) : [];
   const sel = PRO_TIERS.find((x) => x.id === tier)!;
   const price = mode === "upgrade" ? (upgrade[tier] ?? 0) : proPrice(sel, months);
   // przy aktywnym abonamencie przedłużamy ten sam pakiet; większy – przez „Zmień na większy”
@@ -80,11 +80,14 @@ export default function ProBuy({
       )}
 
       <div className="pro-tiers">
-        {PRO_TIERS.map((x) => {
+        {PRO_TIERS.map((x, i) => {
           const tooSmall = usedBytes > proHardLimit(x) || videoSeconds > proVideoSeconds(x);
           const hidden = (lockedTier && x.id !== current) || (mode === "upgrade" && !bigger.some((b) => b.id === x.id));
           if (hidden) return null;
+          const firstFilm = x.film && !PRO_TIERS.slice(0, i).some((p) => p.film && !((lockedTier && p.id !== current) || (mode === "upgrade" && !bigger.some((b) => b.id === p.id))));
           return (
+            <Fragment key={x.id}>
+            {firstFilm && <p className="pro-group">{t("Dla filmowców", "For filmmakers")}</p>}
             <button
               key={x.id}
               type="button"
@@ -95,7 +98,9 @@ export default function ProBuy({
             >
               {x.featured && !active && <span className="pub-badge">{t("Najczęściej wybierany", "Most popular")}</span>}
               <strong>{proName(x)}</strong>
-              <small>{t(`filmy do ${x.videoHours} h`, `videos up to ${x.videoHours} h`)}</small>
+              <small>
+                {x.gb >= 1000 ? `${x.gb / 1000} TB` : `${x.gb} GB`} · {t(`filmy do ${x.videoHours} h`, `videos up to ${x.videoHours} h`)}
+              </small>
               {mode === "upgrade" ? (
                 <em>
                   +{money(upgrade[x.id] ?? 0, lang)} <small>{t("do końca okresu", "until period end")}</small>
@@ -106,6 +111,7 @@ export default function ProBuy({
                 </em>
               )}
             </button>
+            </Fragment>
           );
         })}
       </div>

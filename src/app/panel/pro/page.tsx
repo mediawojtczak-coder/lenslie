@@ -7,7 +7,7 @@ import { getBilling } from "@/lib/billing";
 import { getWallet } from "@/lib/wallet";
 import { getOrder } from "@/lib/p24";
 import { formatBytes } from "@/lib/plans";
-import { fmtDuration, proVideoSeconds, getProSub, proActive, proInGrace, proGraceEnd, proTier, proName, proBytes, proUsage, proUpgradeCost, PRO_TIERS, type ProTierId } from "@/lib/pro";
+import { fmtDuration, proVideoSeconds, getProSub, proActive, proInGrace, proGraceEnd, proTier, proName, proBytes, proUsage, proUpgradeCost, proIsBigger, PRO_TIERS, type ProTierId } from "@/lib/pro";
 import RefreshSoon from "../galeria/[id]/RefreshSoon";
 import ProBuy from "./ProBuy";
 
@@ -32,9 +32,8 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
   const tier = sub ? proTier(sub.tier) : undefined;
   const share = tier ? Math.min(1, usage.bytes / proBytes(tier)) : 0;
   const vShare = tier ? Math.min(1, usage.videoSeconds / proVideoSeconds(tier)) : 0;
-  const order_ = PRO_TIERS.map((x) => x.id);
   const upgrade: Partial<Record<ProTierId, number>> = {};
-  if (active && tier) for (const x of PRO_TIERS) if (order_.indexOf(x.id) > order_.indexOf(tier.id)) upgrade[x.id] = proUpgradeCost(tier, x, sub!.paidUntil, sub!.months === 12 ? 12 : 1);
+  if (active && tier) for (const x of PRO_TIERS) if (proIsBigger(x, tier)) upgrade[x.id] = proUpgradeCost(tier, x, sub!.paidUntil, sub!.months === 12 ? 12 : 1);
 
   const included = [
     t("Galerie bez opłat za publikację – ile chcesz, w ramach miejsca", "Publish as many galleries as you like within your storage"),

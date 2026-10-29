@@ -172,6 +172,8 @@ function RegulaminPl() {
         <li>
           Abonament Pro daje miejsce na wszystkie Galerie i filmy Konta: 500 GB za 59 zł, 700 GB za 79 zł, 1000 GB za 99 zł albo
           2000 GB za 189 zł brutto miesięcznie; przy płatności za 12 miesięcy z góry – 708 zł, 948 zł, 1188 zł albo 2268 zł brutto.
+          Pakiety dla filmowców: Pro Film 30 (500 GB, filmy do 30 godzin) za 129 zł i Pro Film 60 (1000 GB, filmy do 60 godzin)
+          za 249 zł brutto miesięcznie; za 12 miesięcy z góry – 1548 zł albo 2988 zł brutto.
         </li>
         <li>
           Abonament opłaca się z góry za miesiąc albo rok. Nie odnawia się automatycznie – 7 dni przed końcem okresu wysyłamy
@@ -186,7 +188,7 @@ function RegulaminPl() {
           Zdjęcia, filmy i wersje robocze Galerii w abonamencie zajmują wspólne miejsce. Łączna długość filmów jest ograniczona do
           10 godzin (500 GB), 15 godzin (700 GB), 20 godzin (1000 GB) albo 40 godzin (2000 GB). Po wykorzystaniu miejsca lub limitu
           filmów nie można dodawać plików do czasu zmiany abonamentu na większy albo usunięcia części Galerii lub filmów. Zmiana na większy pakiet w trakcie okresu
-          wymaga dopłaty różnicy ceny miesięcznej za pozostałe dni; mniejszy pakiet można wybrać po końcu okresu.
+          wymaga dopłaty różnicy ceny za pozostałe dni; tańszy pakiet można wybrać po końcu okresu.
         </li>
         <li>
           W cenie abonamentu są dodatki z § 5a, § 6c i § 6d, Projektor albumów i własna domena – na czas trwania abonamentu i 30
@@ -359,10 +361,10 @@ function TermsEn() {
 
       <h2>§ 6e. Pro subscription</h2>
       <ol>
-        <li>The Pro subscription provides storage for all Galleries and videos of the Account: 500 GB for PLN 59, 700 GB for PLN 79, 1000 GB for PLN 99 or 2000 GB for PLN 189 gross per month; paid 12 months in advance – PLN 708, 948, 1188 or 2268 gross.</li>
+        <li>The Pro subscription provides storage for all Galleries and videos of the Account: 500 GB for PLN 59, 700 GB for PLN 79, 1000 GB for PLN 99 or 2000 GB for PLN 189 gross per month; paid 12 months in advance – PLN 708, 948, 1188 or 2268 gross. Filmmaker plans: Pro Film 30 (500 GB, videos up to 30 hours) for PLN 129 and Pro Film 60 (1000 GB, videos up to 60 hours) for PLN 249 gross per month; paid 12 months in advance – PLN 1548 or 2988 gross.</li>
         <li>The subscription is paid in advance for a month or a year. It does not renew automatically – we send an e-mail reminder 7 days before the period ends. A new period is added to the current one.</li>
         <li>During the subscription the Photographer publishes Galleries without Plan fees, and Galleries are available to Clients until the end of the paid period and for 30 days after it. The subscription can be renewed during that time; if it is not, the Galleries expire and 30 days later we delete them together with their photos and videos.</li>
-        <li>Photos, videos and draft Galleries in the subscription share one storage pool. The total length of videos is limited to 10 hours (500 GB), 15 hours (700 GB), 20 hours (1000 GB) or 40 hours (2000 GB). Once the storage or video limit is reached, no files can be added until the subscription is upgraded or some Galleries or videos are deleted. Upgrading during a period requires paying the difference in the monthly price for the remaining days; a smaller plan can be chosen after the period ends.</li>
+        <li>Photos, videos and draft Galleries in the subscription share one storage pool. The total length of videos is limited to 10 hours (500 GB), 15 hours (700 GB), 20 hours (1000 GB) or 40 hours (2000 GB). Once the storage or video limit is reached, no files can be added until the subscription is upgraded or some Galleries or videos are deleted. Upgrading during a period requires paying the price difference for the remaining days; a cheaper plan can be chosen after the period ends.</li>
         <li>The add-ons in § 5a, § 6c and § 6d, the Album designer and the custom domain are included for the duration of the subscription and 30 days after it. Printed albums are paid separately. Galleries paid earlier under Plans keep their own dates unless the Photographer moves them into the subscription.</li>
       </ol>
 

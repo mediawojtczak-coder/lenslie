@@ -1,9 +1,10 @@
 // Abonamenty Pro dla firm: wspólna pula miejsca na wszystkie galerie i filmy, wszystkie dodatki w cenie.
 // Plik bez zależności serwerowych – używany też w cenniku i panelu.
 
-export type ProTierId = "pro500" | "pro700" | "pro1000" | "pro2000";
+export type ProTierId = "pro500" | "pro700" | "pro1000" | "pro2000" | "film30" | "film60";
 // videoHours – limit długości filmów w galeriach (podgląd w Cloudflare Stream kosztuje za każdą minutę)
-export type ProTier = { id: ProTierId; gb: number; videoHours: number; monthly: number; yearly: number; featured?: boolean };
+// film – pakiety dla filmowców (więcej godzin filmów)
+export type ProTier = { id: ProTierId; gb: number; videoHours: number; monthly: number; yearly: number; featured?: boolean; film?: boolean };
 export type ProMonths = 1 | 12;
 
 export const PRO_TIERS: ProTier[] = [
@@ -12,7 +13,16 @@ export const PRO_TIERS: ProTier[] = [
   { id: "pro700", gb: 700, videoHours: 15, monthly: 79, yearly: 948, featured: true },
   { id: "pro1000", gb: 1000, videoHours: 20, monthly: 99, yearly: 1188 },
   { id: "pro2000", gb: 2000, videoHours: 40, monthly: 189, yearly: 2268 },
+  // dla filmowców
+  { id: "film30", gb: 500, videoHours: 30, monthly: 129, yearly: 1548, film: true },
+  { id: "film60", gb: 1000, videoHours: 60, monthly: 249, yearly: 2988, film: true },
 ];
+
+export const PHOTO_TIERS = PRO_TIERS.filter((t) => !t.film);
+export const FILM_TIERS = PRO_TIERS.filter((t) => t.film);
+
+// „Większy” pakiet = droższy (zmiana w trakcie okresu z dopłatą różnicy); tańszy – po końcu okresu
+export const proIsBigger = (to: ProTier, from: ProTier) => to.monthly > from.monthly;
 
 // Galerie działają jeszcze tyle dni po końcu abonamentu (czas na odnowienie)
 export const PRO_GRACE_DAYS = 30;
@@ -25,7 +35,7 @@ export function proTier(id: unknown): ProTier | undefined {
   return PRO_TIERS.find((t) => t.id === id);
 }
 
-export const proName = (t: ProTier) => `Pro ${t.gb >= 1000 ? `${t.gb / 1000} TB` : `${t.gb} GB`}`;
+export const proName = (t: ProTier) => (t.film ? `Pro Film ${t.videoHours}` : `Pro ${t.gb >= 1000 ? `${t.gb / 1000} TB` : `${t.gb} GB`}`);
 export const proBytes = (t: ProTier) => t.gb * GB;
 export const proHardLimit = (t: ProTier) => Math.floor(proBytes(t) * (1 + PRO_TOLERANCE));
 export const proVideoSeconds = (t: ProTier) => t.videoHours * 3600;

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { money } from "@/lib/lang";
-import { PRO_TIERS, proName, compareFor, COMPARE_ADDONS, COMPARE_GALLERY_GB, COMPARE_GALLERY_PRICE } from "@/lib/pro-plans";
+import { PHOTO_TIERS, FILM_TIERS, proName, compareFor, COMPARE_ADDONS, COMPARE_GALLERY_GB, COMPARE_GALLERY_PRICE } from "@/lib/pro-plans";
 
 // Pakiety Pro na stronie cennika: karty i porównanie z cenami za pojedyncze galerie i dodatki
 export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
@@ -12,26 +12,14 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
     t("Wszystkie płatne dodatki w cenie", "All paid add-ons included"),
   ];
 
-  return (
-    <section className="pro-plans" id="pro">
-      <div className="pro-plans-head">
-        <p className="fs-kicker">{t("Dla firm i studiów", "For studios and businesses")}</p>
-        <h2>{t("Pakiety Pro – jeden abonament na wszystko", "Pro plans – one subscription for everything")}</h2>
-        <p>
-          {t(
-            "Robisz dużo sesji? Zamiast płacić za każdą galerię – stała opłata za miejsce na wszystkie galerie i filmy. Motywy, Moja strona, własna domena, Znajdź siebie, Projektor albumów i Zdjęcia od gości w cenie.",
-            "Shooting a lot? Instead of paying per gallery – one fee for storage for all your galleries and videos. Themes, My website, custom domain, Find me, Album designer and Guest uploads included.",
-          )}
-        </p>
-      </div>
-
-      <div className="pro-cards">
-        {PRO_TIERS.map((x) => (
+  const card = (x: (typeof PHOTO_TIERS)[number]) => (
           <article key={x.id} className={x.featured ? "plan featured" : "plan"}>
             {x.featured && <p className="plan-flag">{t("Najczęściej wybierany", "Most popular")}</p>}
             <h3>{proName(x)}</h3>
             <p className="plan-for">
-              {t(`ok. ${n(Math.round((x.gb * 1024) / 7.5 / 1000))} tys. zdjęć w pełnej rozdzielczości`, `approx. ${n(Math.round((x.gb * 1024) / 7.5 / 1000))},000 full-resolution photos`)}
+              {x.film
+                ? t(`ok. ${Math.round(x.videoHours / 1.5)} wesel rocznie (teledysk + reportaż)`, `approx. ${Math.round(x.videoHours / 1.5)} weddings a year (highlights + full film)`)
+                : t(`ok. ${n(Math.round((x.gb * 1024) / 7.5 / 1000))} tys. zdjęć w pełnej rozdzielczości`, `approx. ${n(Math.round((x.gb * 1024) / 7.5 / 1000))},000 full-resolution photos`)}
             </p>
             <p className="plan-price">
               <span className="amount">{money(x.monthly, lang)}</span>
@@ -55,7 +43,34 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
               {t("Załóż konto", "Sign up")}
             </Link>
           </article>
-        ))}
+  );
+
+  return (
+    <section className="pro-plans" id="pro">
+      <div className="pro-plans-head">
+        <p className="fs-kicker">{t("Dla firm i studiów", "For studios and businesses")}</p>
+        <h2>{t("Pakiety Pro – jeden abonament na wszystko", "Pro plans – one subscription for everything")}</h2>
+        <p>
+          {t(
+            "Robisz dużo sesji? Zamiast płacić za każdą galerię – stała opłata za miejsce na wszystkie galerie i filmy. Motywy, Moja strona, własna domena, Znajdź siebie, Projektor albumów i Zdjęcia od gości w cenie.",
+            "Shooting a lot? Instead of paying per gallery – one fee for storage for all your galleries and videos. Themes, My website, custom domain, Find me, Album designer and Guest uploads included.",
+          )}
+        </p>
+      </div>
+
+      <div className="pro-cards">
+        {PHOTO_TIERS.map(card)}
+      </div>
+
+      <div className="pro-film">
+        <h3>{t("Dla filmowców", "For filmmakers")}</h3>
+        <p>
+          {t(
+            "Więcej godzin filmów w pełnej jakości do pobrania i z podglądem do oglądania na każdym urządzeniu. Wszystkie dodatki Pro w cenie.",
+            "More hours of full-quality films to download, with a preview that plays on any device. All Pro add-ons included.",
+          )}
+        </p>
+        <div className="pro-cards pro-cards-2">{FILM_TIERS.map(card)}</div>
       </div>
 
       <div className="pro-compare">
@@ -71,7 +86,7 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
             <thead>
               <tr>
                 <th scope="col">{t("Na rok", "Per year")}</th>
-                {PRO_TIERS.map((x) => (
+                {PHOTO_TIERS.map((x) => (
                   <th key={x.id} scope="col">
                     {proName(x)}
                   </th>
@@ -81,7 +96,7 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
             <tbody>
               <tr>
                 <th scope="row">{t(`Duże galerie po ${COMPARE_GALLERY_PRICE} zł`, `Large galleries at PLN ${COMPARE_GALLERY_PRICE}`)}</th>
-                {PRO_TIERS.map((x) => {
+                {PHOTO_TIERS.map((x) => {
                   const c = compareFor(x);
                   return (
                     <td key={x.id}>
@@ -93,26 +108,26 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
               {COMPARE_ADDONS.map((a) => (
                 <tr key={a.pl}>
                   <th scope="row">{lang === "en" ? a.en : a.pl}</th>
-                  {PRO_TIERS.map((x) => (
+                  {PHOTO_TIERS.map((x) => (
                     <td key={x.id}>{money(a.price, lang)}</td>
                   ))}
                 </tr>
               ))}
               <tr className="pro-row-sum">
                 <th scope="row">{t("Razem osobno", "Total separately")}</th>
-                {PRO_TIERS.map((x) => (
+                {PHOTO_TIERS.map((x) => (
                   <td key={x.id}>{money(compareFor(x).separately, lang)}</td>
                 ))}
               </tr>
               <tr className="pro-row-pro">
                 <th scope="row">{t("Abonament Pro na rok", "Pro subscription per year")}</th>
-                {PRO_TIERS.map((x) => (
+                {PHOTO_TIERS.map((x) => (
                   <td key={x.id}>{money(x.yearly, lang)}</td>
                 ))}
               </tr>
               <tr className="pro-row-save">
                 <th scope="row">{t("Oszczędzasz", "You save")}</th>
-                {PRO_TIERS.map((x) => (
+                {PHOTO_TIERS.map((x) => (
                   <td key={x.id}>{money(compareFor(x).saving, lang)}</td>
                 ))}
               </tr>
