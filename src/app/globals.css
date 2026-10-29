@@ -2622,3 +2622,26 @@ button.install-app { background: none; border: 0; font: inherit; color: inherit;
 .install-ico { border-radius: 14px; margin: 0 auto 10px; display: block; }
 .install-modal h2 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.7rem; margin: 0 0 8px; }
 .install-steps { text-align: left; margin: 14px 0 22px; padding-left: 22px; display: grid; gap: 8px; font-size: .95rem; }
+
+/* wizualizacja: aplikacja na komputer */
+.fv-app { display: flex; flex-direction: column; align-items: center; }
+.fv-appwin { width: 100%; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 40px 80px -40px rgba(43, 37, 34, .55); border: 1px solid #e8e1da; }
+.fv-appbar { height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 12px; background: #f3efeb; border-bottom: 1px solid #ebe4de; font-size: .72rem; color: var(--taupe); }
+.fv-appbar i { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; }
+.fv-appbar i:nth-child(2) { background: #febc2e; }
+.fv-appbar i:nth-child(3) { background: #28c840; }
+.fv-appbar span { flex: 1; text-align: center; margin-right: 40px; font-weight: 600; color: var(--ink); }
+.fv-appbody { display: flex; min-height: 210px; }
+.fv-appside { width: 26%; padding: 14px 12px; border-right: 1px solid #f0eae5; display: flex; flex-direction: column; gap: 9px; }
+.fv-appside b { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.1rem; margin-bottom: 6px; }
+.fv-appside span { height: 7px; border-radius: 4px; background: #efe9e4; }
+.fv-appside span.on { background: #d9cbc3; width: 80%; }
+.fv-appgrid { flex: 1; padding: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #fbf9f7; }
+.fv-appgrid span { aspect-ratio: 4 / 3; border-radius: 6px; background-size: cover; background-position: center; }
+.fv-dock { margin-top: -14px; position: relative; display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 16px; background: rgba(255, 255, 255, .75); border: 1px solid rgba(255, 255, 255, .9); box-shadow: 0 12px 30px rgba(43, 37, 34, .18); backdrop-filter: blur(8px); }
+.fv-dock i { width: 34px; height: 34px; border-radius: 9px; display: block; }
+.fv-dock img { width: 42px; height: 42px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, .18); }
+.fv-small.fv-app { width: 92%; }
+.fv-small .fv-appbody { min-height: 150px; }
+.fv-small .fv-dock i { width: 26px; height: 26px; }
+.fv-small .fv-dock img { width: 32px; height: 32px; }

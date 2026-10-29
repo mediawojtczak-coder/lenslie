@@ -2,7 +2,7 @@
 // Teksty po polsku i angielsku: [pl, en].
 
 export type L = [string, string];
-export type FeatureVisual = "album" | "print" | "lightroom" | "qr" | "sale" | "portfolio" | "booking" | "video" | "themes" | "domain" | "faces";
+export type FeatureVisual = "album" | "print" | "lightroom" | "qr" | "sale" | "portfolio" | "booking" | "video" | "themes" | "domain" | "faces" | "app";
 
 export type Feature = {
   slug: string;
@@ -148,6 +148,46 @@ export const FEATURES: Feature[] = [
       ],
     },
     cta: { title: ["Oszczędzaj godziny przy każdym zleceniu", "Save hours on every job"], text: ["Wtyczka jest bezpłatna dla wszystkich kont Lenslie.", "The plug-in is free for every Lenslie account."] },
+  },
+  {
+    slug: "aplikacja-na-komputer",
+    visual: "app",
+    card: {
+      title: ["Aplikacja na komputer", "Desktop app"],
+      text: ["Lenslie w osobnym oknie z ikoną w Docku i menu Start – na Macu, Windowsie, telefonie i tablecie.", "Lenslie in its own window with an icon in your Dock or Start menu – on Mac, Windows, phone and tablet."],
+      price: ["Bezpłatnie", "Free"],
+    },
+    kicker: ["Aplikacja na komputer", "Desktop app"],
+    title: ["Twoje galerie zawsze pod ręką – jednym kliknięciem z Docka", "Your galleries always at hand – one click from your Dock"],
+    lead: [
+      "Zainstaluj Lenslie jak zwykły program: własne okno, ikona w Docku albo menu Start, bez paska adresu i kart przeglądarki. Bez pobierania instalatora i bez aktualizowania – zawsze masz najnowszą wersję.",
+      "Install Lenslie like a regular app: its own window, an icon in your Dock or Start menu, no address bar or browser tabs. No installer to download and nothing to update – you always have the latest version.",
+    ],
+    price: ["Bezpłatnie dla każdego konta · Mac, Windows, iPhone, iPad i Android", "Free for every account · Mac, Windows, iPhone, iPad and Android"],
+    steps: [
+      { title: ["Otwierasz panel", "Open your dashboard"], text: ["Zaloguj się do Lenslie w Chrome, Edge albo Safari.", "Sign in to Lenslie in Chrome, Edge or Safari."] },
+      { title: ["Klikasz „Aplikacja na komputer”", "Click “Desktop app”"], text: ["Przycisk jest w menu panelu – w Chrome wystarczy potwierdzić „Zainstaluj”.", "The button is in the dashboard menu – in Chrome just confirm “Install”."] },
+      { title: ["Gotowe", "Done"], text: ["Ikona Lenslie pojawia się w Docku, menu Start albo na ekranie telefonu.", "The Lenslie icon appears in your Dock, Start menu or on your phone's home screen."] },
+    ],
+    forPhotographer: [
+      ["Panel otwierasz jednym kliknięciem, bez szukania karty w przeglądarce.", "Open your dashboard in one click, without hunting for a browser tab."],
+      ["Osobne okno – galerie nie giną między dziesiątkami kart.", "A separate window – galleries don't get lost among dozens of tabs."],
+      ["Zawsze najnowsza wersja – nic nie pobierasz i nie aktualizujesz.", "Always the latest version – nothing to download or update."],
+      ["Ta sama aplikacja na komputerze, telefonie i tablecie.", "The same app on your computer, phone and tablet."],
+    ],
+    forClient: {
+      title: ["Dla klienta", "For your client"],
+      items: [["Galerie klientów działają jak dotąd – w przeglądarce, bez instalowania czegokolwiek.", "Client galleries work just as before – in the browser, nothing to install."]],
+    },
+    band: {
+      title: ["Lekka i bezpieczna", "Light and safe"],
+      points: [
+        { title: ["Nic do pobrania", "Nothing to download"], text: ["Instalacja w kilka sekund prosto z przeglądarki.", "Installs in seconds straight from your browser."] },
+        { title: ["Zawsze aktualna", "Always up to date"], text: ["Nowe funkcje widzisz od razu, bez aktualizacji.", "New features show up instantly, no updates."] },
+        { title: ["Na każdym sprzęcie", "On every device"], text: ["Mac, Windows, iPhone, iPad i Android.", "Mac, Windows, iPhone, iPad and Android."] },
+      ],
+    },
+    cta: { title: ["Miej Lenslie w Docku", "Keep Lenslie in your Dock"], text: ["Załóż konto i zainstaluj aplikację – za darmo.", "Create an account and install the app – for free."] },
   },
   {
     slug: "zdjecia-od-gosci",

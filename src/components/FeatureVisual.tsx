@@ -160,6 +160,43 @@ export default function FeatureVisual({ visual, lang, small = false }: { visual:
           ))}
         </div>
       );
+    case "app":
+      return (
+        <div className={cls} aria-hidden="true">
+          <div className="fv-appwin">
+            <div className="fv-appbar">
+              <i />
+              <i />
+              <i />
+              <span>Lenslie</span>
+            </div>
+            <div className="fv-appbody">
+              <div className="fv-appside">
+                <b>Lenslie</b>
+                <span className="on" />
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="fv-appgrid">
+                {[1, 2, 3, 4, 6, 7].map((n) => (
+                  <span key={n} style={{ backgroundImage: ph(n) }} />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="fv-dock">
+            {["#4a90e2", "#e9e5e1", "#34c759"].map((c) => (
+              <i key={c} style={{ background: c }} />
+            ))}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon-192.png" alt="" />
+            {["#ff9f0a", "#bf5af2"].map((c) => (
+              <i key={c} style={{ background: c }} />
+            ))}
+          </div>
+        </div>
+      );
     case "faces":
     default:
       return (
