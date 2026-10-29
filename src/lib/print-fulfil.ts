@@ -35,7 +35,7 @@ export async function printPaid(orderId: string) {
       [
         `Album ${o.format} cm, ${o.pages} stron${o.copies > 1 ? `, ${o.copies} egz.` : ""} – „${o.title}”.`,
         `Zapłacono ${zl(o.price)}. Album wyślemy InPostem do paczkomatu ${o.shipping.locker} (odbiorca: ${o.shipping.name}).`,
-        "Druk i wysyłka trwają zwykle 5–8 dni roboczych. Numer przesyłki prześlemy mailem.",
+        "Czas realizacji: do 12 dni roboczych. Numer przesyłki prześlemy mailem.",
       ],
       { label: "Otwórz projekt", url: `${siteUrl()}/panel/galeria/${o.galleryId}?tab=album` },
     ),

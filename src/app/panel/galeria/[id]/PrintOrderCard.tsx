@@ -113,8 +113,8 @@ export default function PrintOrderCard({
           </ul>
           <p className="prn-note">
             {t(
-              `Cena za 20 stron · każda kolejna strona ${money(PRINT_EXTRA_PAGE * PRINT_MARKUP, lang)} (do ${PRINT_MAX_PAGES} stron) · wysyłka InPost ${money(PRINT_SHIPPING, lang)}`,
-              `Price for 20 pages · each extra page ${money(PRINT_EXTRA_PAGE * PRINT_MARKUP, lang)} (up to ${PRINT_MAX_PAGES} pages) · InPost delivery ${money(PRINT_SHIPPING, lang)}`,
+              `Cena za 20 stron · każda kolejna strona ${money(PRINT_EXTRA_PAGE * PRINT_MARKUP, lang)} (do ${PRINT_MAX_PAGES} stron) · wysyłka InPost ${money(PRINT_SHIPPING, lang)} · czas realizacji do 12 dni roboczych`,
+              `Price for 20 pages · each extra page ${money(PRINT_EXTRA_PAGE * PRINT_MARKUP, lang)} (up to ${PRINT_MAX_PAGES} pages) · InPost delivery ${money(PRINT_SHIPPING, lang)} · lead time up to 12 working days`,
             )}
           </p>
         </div>
@@ -125,8 +125,8 @@ export default function PrintOrderCard({
       {done ? (
         <p className="success-box">
           {t(
-            "Dziękujemy! Zamówienie przyjęte – potwierdzenie wysłaliśmy mailem. Druk i wysyłka trwają zwykle 5–8 dni roboczych.",
-            "Thank you! Your order has been placed – we've sent a confirmation by e-mail. Printing and delivery usually take 5–8 working days.",
+            "Dziękujemy! Zamówienie przyjęte – potwierdzenie wysłaliśmy mailem. Czas realizacji: do 12 dni roboczych.",
+            "Thank you! Your order has been placed – we've sent a confirmation by e-mail. Lead time: up to 12 working days.",
           )}
         </p>
       ) : !printable ? (
@@ -209,6 +209,8 @@ export default function PrintOrderCard({
             <span>{money(price!.album * copies, lang)}</span>
             <span>{t("Wysyłka InPost", "InPost delivery")}</span>
             <span>{money(PRINT_SHIPPING, lang)}</span>
+            <span>{t("Czas realizacji", "Lead time")}</span>
+            <span>{t("do 12 dni roboczych", "up to 12 working days")}</span>
             <strong>{t("Razem", "Total")}</strong>
             <strong>{money(total, lang)}</strong>
           </div>
