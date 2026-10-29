@@ -5,6 +5,8 @@ import { getPlan, formatBytes } from "@/lib/plans";
 import ConfirmButton from "./ConfirmButton";
 import { listOrders } from "@/lib/p24";
 import { getReminders } from "@/lib/reminders";
+import { getAlbumSub, albumActive, ALBUM_PRICES } from "@/lib/albums";
+import { listTokens } from "@/lib/lr";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +46,16 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const paidOrders = orders.filter((o) => o.status === "paid").slice(0, 100);
   const pendingOrders = orders.filter((o) => o.status !== "paid" && Date.now() - new Date(o.createdAt).getTime() < 7 * 24 * 3600 * 1000);
   const users = usersRes.data?.users ?? [];
+  // Dodatki fotografów: Projektor albumów i wtyczka Lightroom
+  const addons = await Promise.all(
+    users.map(async (u) => {
+      const [sub, tokens] = await Promise.all([getAlbumSub(u.id).catch(() => ({})), listTokens(u.id).catch(() => [])]);
+      return { id: u.id, email: u.email ?? "", sub: sub as { paidUntil?: string; freeGallery?: string }, lr: tokens.length, lrLast: tokens[0]?.createdAt ?? null };
+    }),
+  );
+  const albumPaid = addons.filter((a) => albumActive(a.sub)).length;
+  const albumFree = addons.filter((a) => a.sub.freeGallery).length;
+  const lrUsers = addons.filter((a) => a.lr > 0).length;
   const galleries = (galleriesRes.data ?? []) as G[];
   const studios = new Map(((profilesRes.data ?? []) as { id: string; studio_name: string | null }[]).map((p) => [p.id, p.studio_name]));
   const emails = new Map(users.map((u) => [u.id, u.email ?? ""]));
@@ -319,6 +331,65 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </div>
           <button type="submit" className="btn">Dodaj gratis</button>
         </form>
+      </section>
+
+      <section className="settings-card" id="dodatki">
+        <h2>Projektor albumów i wtyczka Lightroom</h2>
+        <div className="stat-tiles">
+          <div className="stat-tile">
+            <p className="stat-value">{albumPaid}</p>
+            <p className="stat-label">Aktywne abonamenty projektora ({ALBUM_PRICES[1]} zł/mies., {ALBUM_PRICES[12]} zł/rok)</p>
+          </div>
+          <div className="stat-tile">
+            <p className="stat-value">{albumFree}</p>
+            <p className="stat-label">Wykorzystane darmowe albumy na próbę</p>
+          </div>
+          <div className="stat-tile">
+            <p className="stat-value">{lrUsers}</p>
+            <p className="stat-label">Fotografowie z wtyczką Lightroom</p>
+          </div>
+        </div>
+        {addons.some((a) => a.sub.paidUntil || a.sub.freeGallery || a.lr) ? (
+          <div className="table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Konto</th>
+                  <th>Projektor albumów</th>
+                  <th>Album na próbę</th>
+                  <th>Lightroom</th>
+                </tr>
+              </thead>
+              <tbody>
+                {addons
+                  .filter((a) => a.sub.paidUntil || a.sub.freeGallery || a.lr)
+                  .map((a) => (
+                    <tr key={a.id}>
+                      <td data-l="Konto">{a.email}</td>
+                      <td data-l="Projektor albumów" className={a.sub.paidUntil && !albumActive(a.sub) ? "is-expired" : undefined}>
+                        {a.sub.paidUntil ? `${albumActive(a.sub) ? "do" : "wygasł"} ${fmtDate(a.sub.paidUntil)}` : "–"}
+                      </td>
+                      <td data-l="Album na próbę">
+                        {a.sub.freeGallery ? (
+                          <a href={`/galeria/${a.sub.freeGallery}`} target="_blank" rel="noreferrer">
+                            {a.sub.freeGallery}
+                          </a>
+                        ) : (
+                          "–"
+                        )}
+                      </td>
+                      <td data-l="Lightroom">{a.lr ? `${a.lr} ${a.lr === 1 ? "komputer" : "komputery"} · od ${fmtDate(a.lrLast)}` : "–"}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="hint-inline">Nikt jeszcze nie kupił abonamentu projektora, nie pobrał albumu na próbę ani nie połączył Lightrooma.</p>
+        )}
+        <p className="hint-inline">
+          Zakupy abonamentu widać też w „Płatnościach” jako „projektor albumów”. Twoje konto admina pobiera albumy bez abonamentu, więc nie liczy się tutaj.
+        </p>
       </section>
 
       <section className="settings-card">
