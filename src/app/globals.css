@@ -2315,3 +2315,4 @@ main.pf { max-width: none; margin: 0; padding: 0; min-height: 100vh; }
   .alb-text { max-width: none; }
   .alb-plans { grid-template-columns: 1fr; }
 }
+.alb-field .plain-select.alb-pages { min-width: 200px; }

@@ -8,6 +8,8 @@ import {
   ALBUM_STYLES,
   BG_COLORS,
   emptyProject,
+  pageRange,
+  PAGE_OPTIONS,
   generateAlbum,
   layoutSpread,
   usedPhotos,
@@ -128,7 +130,8 @@ export default function AlbumTab({
     return { ...project.aspects, ...found };
   }
 
-  async function generate(newSeed: boolean) {
+  async function generate(newSeed: boolean, pagesOverride?: number | null) {
+    const pagesWanted = pagesOverride === undefined ? (project.pages ?? null) : pagesOverride;
     setError("");
     if (!source.length) {
       setError(t("Klient nie wybrał jeszcze zdjęć do albumu.", "Your client hasn't picked any photos for the album yet."));
@@ -139,7 +142,7 @@ export default function AlbumTab({
     const seed = newSeed || !project.spreads.length ? Math.floor(Math.random() * 1e9) : project.seed;
     setPick(null);
     setAddTo(null);
-    setProject((p) => ({ ...p, aspects, seed, spreads: generateAlbum(source, aspects, p.style, seed, p.titlePage) }));
+    setProject((p) => ({ ...p, aspects, seed, pages: pagesWanted, spreads: generateAlbum(source, aspects, p.style, seed, p.titlePage, pagesWanted) }));
   }
 
   // ===== Edycja =====
@@ -342,6 +345,26 @@ export default function AlbumTab({
             </div>
           </div>
 
+          <label className="alb-field">
+            <span>{t("Liczba stron", "Number of pages")}</span>
+            <select
+              className="plain-select alb-pages"
+              value={project.pages ?? ""}
+              onChange={(e) => {
+                const v = e.target.value ? Number(e.target.value) : null;
+                if (project.spreads.length) generate(false, v);
+                else update({ pages: v });
+              }}
+            >
+              <option value="">{t("Automatycznie", "Automatic")}</option>
+              {PAGE_OPTIONS.map((n) => (
+                <option key={n} value={n}>
+                  {n} {t("stron", "pages")} ({n / 2} {t("rozkł.", "spreads")})
+                </option>
+              ))}
+            </select>
+          </label>
+
           <div className="alb-field">
             <span>{t("Tło stron", "Page colour")}</span>
             <div className="alb-swatches">
@@ -407,6 +430,33 @@ export default function AlbumTab({
             </span>
           )}
         </div>
+        {project.pages && source.length > 0 && (() => {
+          const r = pageRange(source.length, project.titlePage);
+          const per = (source.length / Math.max(1, project.pages / 2 - (project.titlePage ? 1 : 0))).toFixed(1).replace(".", ",");
+          if (project.pages < r.min)
+            return (
+              <p className="warn-inline alb-tip">
+                {t(
+                  `${source.length} zdjęć nie zmieści się na ${project.pages} stronach (najwyżej 8 na rozkładówkę) – album będzie miał ${r.min} stron. Wybierz więcej stron albo mniej zdjęć.`,
+                  `${source.length} photos won't fit on ${project.pages} pages (max 8 per spread) – the album will have ${r.min} pages. Choose more pages or fewer photos.`,
+                )}
+              </p>
+            );
+          if (project.pages > r.max)
+            return (
+              <p className="warn-inline alb-tip">
+                {t(
+                  `Za mało zdjęć na ${project.pages} stron – każde zdjęcie dostanie własną rozkładówkę, a album będzie miał ${r.max} stron. Poproś klienta o wybranie większej liczby zdjęć.`,
+                  `Not enough photos for ${project.pages} pages – each photo gets its own spread and the album will have ${r.max} pages. Ask your client to pick more photos.`,
+                )}
+              </p>
+            );
+          return (
+            <p className="hint-inline alb-tip">
+              {t(`Średnio ${per} zdjęcia na rozkładówkę.`, `About ${per} photos per spread on average.`)}
+            </p>
+          );
+        })()}
         {project.spreads.length > 0 && (
           <p className="hint-inline alb-tip">
             {t(

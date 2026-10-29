@@ -24,6 +24,7 @@ export type AlbumProject = {
   subtitle: string;
   titlePage: boolean;
   bleed: boolean;
+  pages?: number | null; // docelowa liczba stron albumu (null = automatycznie)
   spreads: Spread[];
   aspects: Record<string, number>; // szerokość / wysokość zdjęć
   seed: number;
@@ -265,12 +266,68 @@ export function layoutSpread(photos: string[], aspects: Record<string, number>, 
   return { id: newId(), kind: "photos", slots: pick.slots, variant };
 }
 
-// Cały album z listy zdjęć (w kolejności wyboru klienta)
-export function generateAlbum(photos: string[], aspects: Record<string, number>, style: AlbumStyle, seed: number, titlePage: boolean): Spread[] {
+export const PAGE_OPTIONS = Array.from({ length: 21 }, (_, i) => 20 + i * 2); // 20, 22 … 60
+export const MAX_PER_SPREAD = 8;
+
+// Ile zdjęć na kolejnych rozkładówkach, żeby wszystkie zmieściły się dokładnie w `count` rozkładówkach.
+// Rytm stylu (np. 1–3–1–4) zostaje zachowany, tylko przeskalowany.
+function distribute(total: number, count: number, cfg: StyleCfg, rand: () => number): number[] {
+  const r0 = Math.floor(rand() * cfg.rhythm.length);
+  const w = Array.from({ length: count }, (_, i) => cfg.rhythm[(r0 + 2 * i) % cfg.rhythm.length] + cfg.rhythm[(r0 + 2 * i + 1) % cfg.rhythm.length]);
+  const sum = w.reduce((a, b) => a + b, 0);
+  const exact = w.map((x) => (x / sum) * total);
+  const n = exact.map((x) => Math.min(MAX_PER_SPREAD, Math.max(1, Math.floor(x))));
+  let left = total - n.reduce((a, b) => a + b, 0);
+  // reszta tam, gdzie zaokrąglenie zabrało najwięcej
+  const order = exact.map((x, i) => ({ i, f: x - Math.floor(x) })).sort((a, b) => b.f - a.f);
+  for (let k = 0; left > 0 && k < order.length * MAX_PER_SPREAD; k++) {
+    const i = order[k % order.length].i;
+    if (n[i] < MAX_PER_SPREAD) {
+      n[i]++;
+      left--;
+    }
+  }
+  for (let k = 0; left < 0 && k < order.length * MAX_PER_SPREAD; k++) {
+    const i = order[order.length - 1 - (k % order.length)].i;
+    if (n[i] > 1) {
+      n[i]--;
+      left++;
+    }
+  }
+  return n;
+}
+
+// Ile stron najmniej i najwięcej potrzeba na daną liczbę zdjęć (z tytułową lub bez)
+export function pageRange(photoCount: number, titlePage: boolean) {
+  const extra = titlePage ? 1 : 0;
+  return { min: (Math.ceil(photoCount / MAX_PER_SPREAD) + extra) * 2, max: (photoCount + extra) * 2 };
+}
+
+// Cały album z listy zdjęć (w kolejności wyboru klienta). pages – docelowa liczba stron (np. 20–60)
+export function generateAlbum(photos: string[], aspects: Record<string, number>, style: AlbumStyle, seed: number, titlePage: boolean, pages?: number | null): Spread[] {
   const cfg = STYLES[style];
   const rand = rng(seed);
   const spreads: Spread[] = [];
   if (titlePage) spreads.push({ id: newId(), kind: "title", slots: [], variant: 0 });
+
+  if (pages && photos.length) {
+    const want = Math.floor(pages / 2) - (titlePage ? 1 : 0);
+    // za mało stron na wszystkie zdjęcia (max 8 na rozkładówkę) – album wyjdzie dłuższy; za dużo – krótszy
+    const count = Math.max(Math.ceil(photos.length / MAX_PER_SPREAD), Math.min(photos.length, want), 1);
+    const sizes = distribute(photos.length, count, cfg, rand);
+    let i = 0;
+    let lastKey = "";
+    for (const n of sizes) {
+      const group = photos.slice(i, i + n);
+      i += n;
+      if (!group.length) continue;
+      const cands = spreadCandidates(group, aspects, style, rand);
+      const pick = cands.find((c) => c.key !== lastKey) ?? cands[0];
+      lastKey = pick.key;
+      spreads.push({ id: newId(), kind: "photos", slots: pick.slots, variant: cands.indexOf(pick) });
+    }
+    return spreads;
+  }
 
   let i = 0;
   let r = Math.floor(rand() * cfg.rhythm.length);

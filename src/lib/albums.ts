@@ -73,6 +73,7 @@ export async function saveAlbumProject(galleryId: string, raw: unknown): Promise
     subtitle: String(p.subtitle ?? "").slice(0, 120),
     titlePage: Boolean(p.titlePage),
     bleed: Boolean(p.bleed),
+    pages: num(p.pages) && p.pages! >= 2 && p.pages! <= 400 ? Math.round(p.pages!) : null,
     spreads: p.spreads.map((s) => ({
       id: String(s.id).slice(0, 40),
       kind: s.kind,
