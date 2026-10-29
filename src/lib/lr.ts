@@ -8,7 +8,7 @@ import { adminClient } from "@/lib/supabase/admin";
 export const LR_PLUGIN_VERSION = "1.0.2";
 
 // Testy: wtyczka dostępna tylko dla tych kont. Pusta lista = dla wszystkich.
-const LR_BETA = ["adamwojtczak7@gmail.com"];
+const LR_BETA: string[] = [];
 export function lrAllowed(email?: string | null) {
   if (!LR_BETA.length) return true;
   return Boolean(email && LR_BETA.includes(email.toLowerCase()));
