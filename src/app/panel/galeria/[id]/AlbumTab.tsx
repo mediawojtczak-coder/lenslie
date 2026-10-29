@@ -45,6 +45,7 @@ export default function AlbumTab({
   selections,
   initial,
   active,
+  freeTrial = false,
   paidUntil,
   balance,
   billing,
@@ -56,6 +57,7 @@ export default function AlbumTab({
   selections: Selection[];
   initial: AlbumProject | null;
   active: boolean;
+  freeTrial?: boolean;
   paidUntil: string | null;
   balance: number;
   billing: Billing;
@@ -661,6 +663,14 @@ export default function AlbumTab({
                   <button type="button" className="btn btn-dark" onClick={download}>
                     {t("Pobierz rozkładówki (ZIP)", "Download spreads (ZIP)")}
                   </button>
+                  {freeTrial && (
+                    <p className="hint-inline">
+                      {t(
+                        "Pierwszy album na próbę jest za darmo – możesz pobierać pliki z tej galerii bez abonamentu. Kolejne albumy wymagają abonamentu.",
+                        "Your first album is a free trial – download files from this gallery without a subscription. Further albums need a subscription.",
+                      )}
+                    </p>
+                  )}
                   {paidUntil && (
                     <p className="hint-inline">
                       {t("Abonament aktywny do", "Subscription active until")} {new Date(paidUntil).toLocaleDateString(lang === "en" ? "en-GB" : "pl-PL")}

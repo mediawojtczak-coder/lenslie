@@ -7,7 +7,7 @@ import { isAdminEmail } from "@/lib/supabase/admin";
 import { requireOwner } from "@/lib/owner";
 import { r2, BUCKET, galleryPrefix, baseName } from "@/lib/r2";
 import { listKeys } from "@/lib/photos";
-import { saveAlbumProject, getAlbumSub, albumActive, albumAllowed } from "@/lib/albums";
+import { saveAlbumProject, getAlbumSub, albumActive, albumAllowed, claimFreeAlbum } from "@/lib/albums";
 
 export const runtime = "nodejs";
 
@@ -26,7 +26,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   if (body?.action === "export") {
-    const active = isAdminEmail(user?.email) || albumActive(await getAlbumSub(user!.id));
+    // abonament, konto admina albo pierwszy album na próbę (jedna galeria na konto)
+    const active = isAdminEmail(user?.email) || albumActive(await getAlbumSub(user!.id)) || (await claimFreeAlbum(user!.id, id));
     if (!active) {
       return NextResponse.json({ error: await E("Pobieranie projektów wymaga abonamentu Projektora albumów."), code: "SUBSCRIPTION" }, { status: 402 });
     }

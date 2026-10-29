@@ -4,7 +4,7 @@ import type { AlbumProject } from "@/lib/album-layout";
 import { ALBUM_SIZES, ALBUM_STYLES, ALBUM_BGS, ALBUM_FRAMES } from "@/lib/album-layout";
 
 // Projektor albumów – abonament (miesiąc albo rok, z góry) i projekty zapisane przy galerii
-export const ALBUM_PRICES: Record<number, number> = { 1: 29, 12: 290 };
+export const ALBUM_PRICES: Record<number, number> = { 1: 39, 12: 290 };
 
 // Testy: Projektor albumów widoczny tylko dla tych kont. Pusta lista = dla wszystkich.
 const ALBUM_BETA = ["adamwojtczak7@gmail.com"];
@@ -28,8 +28,23 @@ const putJson = (key: string, v: unknown) =>
 const subKey = (uid: string) => `profiles/${uid}/albums.json`;
 const projectKey = (galleryId: string) => `${galleryPrefix(galleryId)}album.json`;
 
-export async function getAlbumSub(uid: string): Promise<{ paidUntil?: string }> {
-  return (await getJson<{ paidUntil?: string }>(subKey(uid))) ?? {};
+// freeGallery – galeria, w której fotograf wykorzystał darmowy album na próbę (jeden na konto)
+export type AlbumSub = { paidUntil?: string; freeGallery?: string };
+
+export async function getAlbumSub(uid: string): Promise<AlbumSub> {
+  return (await getJson<AlbumSub>(subKey(uid))) ?? {};
+}
+
+// Czy darmowy album na próbę obejmuje tę galerię (jeszcze niewykorzystany albo wykorzystany właśnie tutaj)
+export function freeAlbumFor(sub: AlbumSub, galleryId: string) {
+  return !sub.freeGallery || sub.freeGallery === galleryId;
+}
+
+export async function claimFreeAlbum(uid: string, galleryId: string) {
+  const sub = await getAlbumSub(uid);
+  if (sub.freeGallery) return sub.freeGallery === galleryId;
+  await putJson(subKey(uid), { ...sub, freeGallery: galleryId });
+  return true;
 }
 
 export function albumActive(sub: { paidUntil?: string } | null) {
@@ -40,7 +55,7 @@ export async function extendAlbumSub(uid: string, months: number) {
   const sub = await getAlbumSub(uid);
   const base = sub.paidUntil && new Date(sub.paidUntil) > new Date() ? new Date(sub.paidUntil) : new Date();
   base.setMonth(base.getMonth() + months);
-  await putJson(subKey(uid), { paidUntil: base.toISOString() });
+  await putJson(subKey(uid), { ...sub, paidUntil: base.toISOString() });
 }
 
 export async function getAlbumProject(galleryId: string) {

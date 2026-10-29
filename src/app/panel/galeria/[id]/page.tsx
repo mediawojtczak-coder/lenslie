@@ -34,7 +34,7 @@ import { FACES_PRICE } from "@/lib/faces";
 import { THEMES, getOwnedThemes } from "@/lib/themes";
 import { getPayout } from "@/lib/sales";
 import AlbumTab from "./AlbumTab";
-import { getAlbumProject, getAlbumSub, albumActive, albumAllowed } from "@/lib/albums";
+import { getAlbumProject, getAlbumSub, albumActive, albumAllowed, freeAlbumFor } from "@/lib/albums";
 import { isAdminEmail } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -202,7 +202,8 @@ export default async function ZarzadzanieGalerii({
                 photos={photos.map((p) => ({ name: p.name, url: p.webUrl }))}
                 selections={selections}
                 initial={project}
-                active={isAdminEmail(user?.email) || albumActive(sub)}
+                active={isAdminEmail(user?.email) || albumActive(sub) || freeAlbumFor(sub, id)}
+                freeTrial={!isAdminEmail(user?.email) && !albumActive(sub) && freeAlbumFor(sub, id)}
                 paidUntil={albumActive(sub) ? paidUntil : null}
                 balance={balance}
                 billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}

@@ -66,7 +66,7 @@ export default async function AlbumyPage() {
                 )}
               </p>
               <p className="lr-ver">
-                {money(ALBUM_PRICES[1], lang)} {t("miesięcznie", "per month")} · {money(ALBUM_PRICES[12], lang)} {t("rocznie", "per year")} · {t("bez limitu albumów", "unlimited albums")}
+                {money(ALBUM_PRICES[1], lang)} {t("miesięcznie", "per month")} · {money(ALBUM_PRICES[12], lang)} {t("rocznie", "per year")} · {t("bez limitu albumów", "unlimited albums")} · {t("pierwszy album gratis", "first album free")}
               </p>
             </div>
             <div className="alb-demo" aria-hidden="true">
