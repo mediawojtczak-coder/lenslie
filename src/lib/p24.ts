@@ -26,7 +26,8 @@ export type ProductAction =
   | { action: "product"; product: "theme"; uid: string; theme: import("@/lib/themes").ThemeId; galleryId?: string }
   | { action: "product"; product: "portfolio"; uid: string; months: number }
   | { action: "product"; product: "faces"; uid: string; galleryId: string }
-  | { action: "product"; product: "album"; uid: string; months: number };
+  | { action: "product"; product: "album"; uid: string; months: number }
+  | { action: "product"; product: "print"; uid: string; orderId: string };
 
 export type Order = {
   sessionId: string;

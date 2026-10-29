@@ -28,6 +28,7 @@ import {
 import AlbumSubCard from "@/app/panel/albumy/AlbumSubCard";
 import AlbumSpreadView from "./AlbumSpreadView";
 import SpreadEditor from "./SpreadEditor";
+import PrintOrderCard from "./PrintOrderCard";
 import type { Billing } from "@/lib/billing";
 
 type Photo = { name: string; url: string };
@@ -290,6 +291,18 @@ export default function AlbumTab({
     none: t("Bez ramki", "No border"),
   };
   const frameStyle = project.frame ?? "none";
+  // nowy format: te same zdjęcia na tych samych rozkładówkach, układy dopasowane do proporcji strony
+  function changeFormat(size: string) {
+    const r = pageRatio(size);
+    setProject((p) => ({
+      ...p,
+      size,
+      spreads: p.spreads.map((sp) =>
+        sp.kind === "title" ? sp : { ...layoutSpread(sp.slots.map((x) => x.photo), p.aspects, p.style, 0, p.seed, r), id: sp.id },
+      ),
+    }));
+  }
+
   function cycleBg(sp: Spread) {
     const names = sp.slots.map((x) => x.photo);
     if (!names.length) return;
@@ -335,18 +348,7 @@ export default function AlbumTab({
             <select
               className="plain-select alb-format"
               value={fmt.id}
-              onChange={(e) => {
-                const size = e.target.value;
-                const r = pageRatio(size);
-                // nowy format: te same zdjęcia na tych samych rozkładówkach, układy dopasowane do proporcji strony
-                setProject((p) => ({
-                  ...p,
-                  size,
-                  spreads: p.spreads.map((sp) =>
-                    sp.kind === "title" ? sp : { ...layoutSpread(sp.slots.map((x) => x.photo), p.aspects, p.style, 0, p.seed, r), id: sp.id },
-                  ),
-                }));
-              }}
+              onChange={(e) => changeFormat(e.target.value)}
             >
               {([
                 [t("Kwadratowe", "Square"), (f: { w: number; h: number }) => f.w === f.h],
@@ -682,6 +684,16 @@ export default function AlbumTab({
               <AlbumSubCard balance={balance} billing={billing} returnPath={`/panel/galeria/${id}`} compact />
             )}
           </section>
+
+          <PrintOrderCard
+            galleryId={id}
+            project={project}
+            photos={photos}
+            balance={balance}
+            billing={billing}
+            saving={saved === "saving"}
+            onFormat={changeFormat}
+          />
         </>
       )}
       {editing && (() => {

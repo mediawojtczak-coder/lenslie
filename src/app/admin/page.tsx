@@ -7,6 +7,7 @@ import { listOrders } from "@/lib/p24";
 import { getReminders } from "@/lib/reminders";
 import { getAlbumSub, albumActive, ALBUM_PRICES } from "@/lib/albums";
 import { listTokens } from "@/lib/lr";
+import { listPrintOrders, zipDownloadUrl } from "@/lib/print";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
       return { id: u.id, email: u.email ?? "", sub: sub as { paidUntil?: string; freeGallery?: string }, lr: tokens.length, lrLast: tokens[0]?.createdAt ?? null };
     }),
   );
+  const printOrders = await listPrintOrders().catch(() => []);
+  const printLinks = new Map(await Promise.all(printOrders.map(async (o) => [o.id, await zipDownloadUrl(o.id).catch(() => "")] as const)));
   const albumPaid = addons.filter((a) => albumActive(a.sub)).length;
   const albumFree = addons.filter((a) => a.sub.freeGallery).length;
   const lrUsers = addons.filter((a) => a.lr > 0).length;
@@ -331,6 +334,68 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </div>
           <button type="submit" className="btn">Dodaj gratis</button>
         </form>
+      </section>
+
+      <section className="settings-card" id="albumy">
+        <h2>Zamówienia wydruku albumów</h2>
+        {printOrders.length === 0 ? (
+          <p className="hint-inline">Brak zamówień. Fotografowie zamawiają druk w zakładce „Album” galerii (15×15, 20×20, 25×25 cm).</p>
+        ) : (
+          <div className="table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Album</th>
+                  <th>Kwota</th>
+                  <th>Wysyłka</th>
+                  <th>Pliki</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {printOrders.map((o) => (
+                  <tr key={o.id}>
+                    <td data-l="Data">{fmtDate(o.paidAt ?? o.createdAt)}</td>
+                    <td data-l="Album" className="wrap">
+                      {o.format} cm · {o.pages} str.{o.copies > 1 ? ` × ${o.copies}` : ""} · „{o.title}”
+                      <br />
+                      <small>{o.email}</small>
+                      {o.spreads * 2 < o.pages && (
+                        <>
+                          <br />
+                          <small>projekt: {o.spreads * 2} str. – dopełnij pustymi</small>
+                        </>
+                      )}
+                    </td>
+                    <td data-l="Kwota">{o.price.toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł</td>
+                    <td data-l="Wysyłka" className="wrap">
+                      Paczkomat {o.shipping.locker}
+                      <br />
+                      <small>
+                        {o.shipping.name}, {o.shipping.phone}, {o.shipping.email}
+                      </small>
+                    </td>
+                    <td data-l="Pliki">{printLinks.get(o.id) ? <a href={printLinks.get(o.id)}>Pobierz ZIP</a> : "–"}</td>
+                    <td data-l="Status" className="wrap">
+                      <form method="post" action="/api/admin/print" className="inv-cell">
+                        <input type="hidden" name="id" value={o.id} />
+                        <select name="status" defaultValue={o.status} className="plain-select" style={{ margin: 0 }}>
+                          <option value="paid">Opłacone – do zamówienia</option>
+                          <option value="ordered">Zamówione w drukarni</option>
+                          <option value="sent">Wysłane</option>
+                        </select>
+                        <input name="tracking" defaultValue={o.tracking ?? ""} placeholder="Nr przesyłki InPost" style={{ margin: 0 }} />
+                        <button type="submit" className="inv-btn">Zapisz</button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p className="hint-inline">Przy zmianie na „Wysłane” fotograf dostaje maila z numerem przesyłki. Link do plików jest ważny 7 dni od otwarcia tej strony.</p>
       </section>
 
       <section className="settings-card" id="dodatki">

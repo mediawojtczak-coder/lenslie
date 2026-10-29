@@ -3,6 +3,7 @@ import { addOwnedTheme } from "@/lib/themes";
 import { getMeta, saveMeta } from "@/lib/galleries";
 import { extendPortfolio } from "@/lib/portfolio";
 import { extendAlbumSub } from "@/lib/albums";
+import { printPaid } from "@/lib/print-fulfil";
 
 // Wykonanie opłaconego dodatku (po płatności z salda albo po potwierdzeniu z Przelewy24)
 export async function fulfillProduct(a: ProductAction) {
@@ -17,6 +18,8 @@ export async function fulfillProduct(a: ProductAction) {
     }
   } else if (a.product === "portfolio") {
     await extendPortfolio(a.uid, a.months);
+  } else if (a.product === "print") {
+    await printPaid(a.orderId);
   } else if (a.product === "album") {
     await extendAlbumSub(a.uid, a.months);
   } else if (a.product === "faces") {
