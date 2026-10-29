@@ -10,7 +10,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   return (
     <>
       <header className="top">
-        <Link href="/" className="wordmark">Lenslie</Link>
+        <Link href="/" className="wordmark">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icon-192.png" alt="" width={28} height={28} className="wordmark-ico" />
+          Lenslie
+        </Link>
         <nav>
           <Link href="/cennik">{t("Cennik", "Pricing")}</Link>
           <Link href="/logowanie">{t("Zaloguj", "Log in")}</Link>

@@ -27,7 +27,11 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   return (
     <div className="app">
       <header className="app-bar">
-        <Link href="/panel" className="wordmark">Lenslie</Link>
+        <Link href="/panel" className="wordmark">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icon-192.png" alt="" width={28} height={28} className="wordmark-ico" />
+          Lenslie
+        </Link>
 
         <form className="app-search" action="/panel" role="search">
           <label htmlFor="q" className="sr-only">{t("Szukaj galerii", "Search galleries")}</label>

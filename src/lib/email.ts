@@ -26,7 +26,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 export function emailLayout(title: string, paragraphs: string[], button?: { label: string; url: string }, lang: "pl" | "en" = "pl") {
   return `<!doctype html><html lang="${lang}"><body style="margin:0;background:#f8f4f1;font-family:Helvetica,Arial,sans-serif;color:#3b3633">
 <div style="max-width:560px;margin:0 auto;padding:40px 24px">
-<p style="font-family:Georgia,serif;font-size:24px;letter-spacing:.04em;margin:0 0 28px">Lenslie</p>
+<p style="font-family:Georgia,serif;font-size:24px;letter-spacing:.04em;margin:0 0 28px"><img src="${siteUrl()}/icon-192.png" alt="" width="30" height="30" style="vertical-align:-6px;margin-right:10px;border-radius:7px">Lenslie</p>
 <div style="background:#fff;border-radius:10px;padding:32px 28px">
 <h1 style="font-family:Georgia,serif;font-weight:400;font-size:24px;margin:0 0 18px">${esc(title)}</h1>
 ${paragraphs.map((p) => `<p style="font-size:15px;line-height:1.6;margin:0 0 14px">${esc(p)}</p>`).join("")}
