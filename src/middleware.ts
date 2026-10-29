@@ -1,7 +1,9 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { SRC_COOKIE, touchFrom } from "@/lib/source-touch";
 
 const MAIN_HOSTS = new Set(["lenslie.com", "www.lenslie.com", "lenslie.vercel.app", "localhost"]);
+const MARKETING = /^\/($|cennik|funkcje(\/|$)|rejestracja|logowanie|regulamin|polityka-prywatnosci)/;
 const SESSION_PATHS = ["/panel", "/admin", "/logowanie", "/api/upload-url", "/api/galleries", "/api/profile", "/api/domain", "/api/wallet", "/api/bookings", "/api/guest-events", "/api/portfolio"];
 
 export async function middleware(request: NextRequest) {
@@ -16,13 +18,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  if (!SESSION_PATHS.some((p) => path === p || path.startsWith(`${p}/`))) return NextResponse.next();
+  // Źródło wizyty na stronach Lenslie (nie w galeriach klientów): reklama, polecenie, wyszukiwarka – zapisywane przy rejestracji
+  const touch = MARKETING.test(path) ? touchFrom(request.nextUrl, request.headers.get("referer")) : null;
+  const withSrc = (res: NextResponse) => {
+    if (touch) res.cookies.set(SRC_COOKIE, encodeURIComponent(JSON.stringify(touch)), { path: "/", sameSite: "lax", httpOnly: true, secure: true });
+    return res;
+  };
+
+  if (!SESSION_PATHS.some((p) => path === p || path.startsWith(`${p}/`))) return withSrc(NextResponse.next());
 
   // Odświeża sesję zalogowanego fotografa
   let response = NextResponse.next({ request });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return response;
+  if (!url || !key) return withSrc(response);
 
   const supabase = createServerClient(url, key, {
     cookies: {
@@ -38,7 +47,7 @@ export async function middleware(request: NextRequest) {
   });
 
   await supabase.auth.getUser();
-  return response;
+  return withSrc(response);
 }
 
 export const config = {

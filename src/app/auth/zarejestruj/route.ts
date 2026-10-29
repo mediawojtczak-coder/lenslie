@@ -4,6 +4,8 @@ import { sendSignupMail } from "@/lib/auth-mail";
 import { getLang, setUserLang } from "@/lib/lang-server";
 import { recordReferral, cleanCode } from "@/lib/referrals";
 import { notifyAdmins } from "@/lib/email";
+import { cookies } from "next/headers";
+import { readTouch, saveSignupSource, sourceLabel, SRC_COOKIE } from "@/lib/signup-source";
 
 // Zakładanie konta fotografa. Supabase wysyła e-mail z linkiem potwierdzającym.
 export async function POST(req: Request) {
@@ -27,12 +29,17 @@ export async function POST(req: Request) {
   if (password.length < 8) return back("haslo");
   if (!terms) return back("regulamin");
 
+  const touch = readTouch((await cookies()).get(SRC_COOKIE)?.value);
+  const source = sourceLabel(touch, refCode);
+  const remember = (uid: string) => saveSignupSource(uid, touch, refCode).catch(() => undefined);
+
   // Powiadomienie dla administratora o nowym fotografie
   const announce = (lang: string) =>
     notifyAdmins(`Nowy fotograf: ${email}${studio ? ` (${studio})` : ""}`, "Nowe konto w Lenslie", [
       `E-mail: ${email}.`,
       `Studio: ${studio || "nie podano"}.`,
       `Język: ${lang === "en" ? "angielski" : "polski"}.${refCode ? ` Z polecenia (kod ${refCode}).` : ""}`,
+      `Skąd: ${source}${touch?.c ? ` (kampania ${touch.c})` : ""}.`,
       "Konto będzie aktywne po kliknięciu linku w mailu potwierdzającym.",
     ]).catch(() => undefined);
 
@@ -41,6 +48,7 @@ export async function POST(req: Request) {
     const result = await sendSignupMail(email, password, studio || null, new URL(req.url).origin, lang);
     if (result.userId) {
       await recordReferral(result.userId, email, refCode).catch(() => undefined);
+      await remember(result.userId);
       await setUserLang(result.userId, lang).catch(() => undefined);
     }
     if (result.status === "sent") {
@@ -66,6 +74,7 @@ export async function POST(req: Request) {
     }
     if (signed?.user?.id) {
       await recordReferral(signed.user.id, email, refCode).catch(() => undefined);
+      await remember(signed.user.id);
       await setUserLang(signed.user.id, lang).catch(() => undefined);
       await announce(lang);
     }

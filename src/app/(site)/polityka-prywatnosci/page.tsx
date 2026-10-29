@@ -84,7 +84,11 @@ function PolitykaPl() {
         <li>dostęp do galerii chronionej hasłem (30 dni),</li>
         <li>wybór ulubionych zdjęć Klienta,</li>
         <li>jednorazowe zliczenie otwarcia galerii w ramach wizyty,</li>
-        <li>wybrany język serwisu.</li>
+        <li>wybrany język serwisu,</li>
+        <li>
+          źródło wizyty na stronie Lenslie (np. reklama, wyszukiwarka, polecenie) – do zamknięcia przeglądarki; zapisujemy je
+          tylko wtedy, gdy założysz konto Fotografa, aby wiedzieć, skąd trafiają do nas nowi użytkownicy.
+        </li>
       </ul>
       <p>
         Na stronie Lenslie i w panelu Fotografa używamy też tagu Google Ads, aby mierzyć skuteczność naszych reklam (np. czy
@@ -167,7 +171,11 @@ function PrivacyEn() {
         <li>access to a password-protected gallery (30 days),</li>
         <li>the Client’s favourites selection,</li>
         <li>counting a gallery view once per visit,</li>
-        <li>the selected website language.</li>
+        <li>the selected website language,</li>
+        <li>
+          the source of your visit to the Lenslie website (e.g. an ad, a search engine, a referral) – until you close the
+          browser; we store it only if you create a Photographer account, to know where new users come from.
+        </li>
       </ul>
       <p>
         On the Lenslie website and in the Photographer’s dashboard we also use the Google Ads tag to measure how our ads perform

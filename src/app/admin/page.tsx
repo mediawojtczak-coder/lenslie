@@ -1,4 +1,5 @@
 import { adminClient } from "@/lib/supabase/admin";
+import { getSignupSource, sourceDetail, type SignupSource } from "@/lib/signup-source";
 import { listObjects } from "@/lib/photos";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
 import { getPlan, formatBytes } from "@/lib/plans";
@@ -54,6 +55,19 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
       return { id: u.id, email: u.email ?? "", sub: sub as { paidUntil?: string; freeGallery?: string }, lr: tokens.length, lrLast: tokens[0]?.createdAt ?? null };
     }),
   );
+  // Skąd przyszli fotografowie (zapisywane przy rejestracji od 29.10.2026)
+  const sources = new Map<string, SignupSource | null>(await Promise.all(users.map(async (u): Promise<[string, SignupSource | null]> => [u.id, await getSignupSource(u.id)])));
+  const recent = Date.now() - 30 * 24 * 3600 * 1000;
+  const sourceStats = new Map<string, { all: number; month: number }>();
+  for (const u of users) {
+    const s = sources.get(u.id);
+    if (!s) continue;
+    const row = sourceStats.get(s.label) ?? { all: 0, month: 0 };
+    row.all += 1;
+    if (new Date(u.created_at).getTime() >= recent) row.month += 1;
+    sourceStats.set(s.label, row);
+  }
+  const sourceRows = [...sourceStats.entries()].sort((a, b) => b[1].all - a[1].all);
   const printOrders = await listPrintOrders().catch(() => []);
   const printLinks = new Map(await Promise.all(printOrders.map(async (o) => [o.id, await zipDownloadUrl(o.id).catch(() => "")] as const)));
   const albumPaid = addons.filter((a) => albumActive(a.sub)).length;
@@ -457,6 +471,34 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         </p>
       </section>
 
+      <section className="settings-card" id="zrodla">
+        <h2>Skąd przychodzą fotografowie</h2>
+        {sourceRows.length ? (
+          <div className="table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Źródło</th>
+                  <th>Ostatnie 30 dni</th>
+                  <th>Razem</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sourceRows.map(([label, n]) => (
+                  <tr key={label}>
+                    <td data-l="Źródło">{label}</td>
+                    <td data-l="Ostatnie 30 dni">{n.month}</td>
+                    <td data-l="Razem">{n.all}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="hint-inline">Źródła zapisujemy od 29 października 2026 – pojawią się tu przy kolejnych rejestracjach.</p>
+        )}
+      </section>
+
       <section className="settings-card">
         <h2>Fotografowie</h2>
         <div className="table-wrap">
@@ -467,6 +509,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                 <th>Studio</th>
                 <th>Galerie</th>
                 <th>Miejsce</th>
+                <th>Źródło</th>
                 <th>Konto od</th>
                 <th>Ostatnie logowanie</th>
               </tr>
@@ -484,6 +527,10 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                     <td data-l="Studio">{studios.get(u.id) ?? "–"}</td>
                     <td data-l="Galerie">{own.length}</td>
                     <td data-l="Miejsce">{formatBytes(bytes)}</td>
+                    <td data-l="Źródło">
+                      {sources.get(u.id)?.label ?? "–"}
+                      {sourceDetail(sources.get(u.id) ?? null) && <small className="src-detail">{sourceDetail(sources.get(u.id) ?? null)}</small>}
+                    </td>
                     <td data-l="Konto od">{fmtDate(u.created_at)}</td>
                     <td data-l="Ostatnie logowanie">{fmtDate(u.last_sign_in_at)}</td>
                   </tr>
