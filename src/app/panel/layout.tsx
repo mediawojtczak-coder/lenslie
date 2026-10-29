@@ -4,7 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/supabase/admin";
 import { lrAllowed } from "@/lib/lr";
 import { albumAllowed } from "@/lib/albums";
-import { getWallet } from "@/lib/wallet";
+import { getWallet, grantWelcome } from "@/lib/wallet";
 import { getLang } from "@/lib/lang-server";
 import { tr, money } from "@/lib/lang";
 import LangSwitch from "@/components/LangSwitch";
@@ -17,7 +17,9 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   if (!user) redirect("/logowanie");
 
   const initial = (user.email ?? "?").charAt(0).toUpperCase();
-  const wallet = await getWallet(user.id).catch(() => ({ balance: 0, history: [] }));
+  // nowe konto: 20 zł na start (raz; przy pierwszym wejściu do panelu, czyli po potwierdzeniu e-maila)
+  const welcomed = await grantWelcome(user.id, user.created_at).catch(() => null);
+  const wallet = welcomed ?? (await getWallet(user.id).catch(() => ({ balance: 0, history: [] })));
   const lang = await getLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
 

@@ -77,3 +77,14 @@ export function spend(uid: string, amount: number, description: string, ref: str
 
 export const zlFromGr = (gr: number) =>
   `${(gr / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`;
+
+// Prezent na start: 20 zł na saldzie dla każdego nowego konta (założonego od dnia wprowadzenia)
+export const WELCOME_BONUS = 2000; // grosze
+const WELCOME_FROM = "2026-10-29T00:00:00Z";
+
+export async function grantWelcome(uid: string, createdAt?: string) {
+  if (!createdAt || createdAt < WELCOME_FROM) return null;
+  const w = await getWallet(uid);
+  if (w.history.some((h) => h.ref === `welcome-${uid}`)) return null;
+  return addEntries(uid, [{ type: "bonus", amount: WELCOME_BONUS, description: "Prezent na start od Lenslie", ref: `welcome-${uid}` }]);
+}

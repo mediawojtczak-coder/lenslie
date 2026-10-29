@@ -97,6 +97,11 @@ export default async function Rejestracja({
           <>
             <h1>{t.title}</h1>
             <p className="lead">{t.lead}</p>
+            <p className="ref-banner">
+              {lang === "en"
+                ? "Sign up and get PLN 20 on your balance to start – enough for your first gallery."
+                : "Załóż konto i odbierz 20 zł na start – wystarczy na pierwszą galerię."}
+            </p>
             {refCode && <p className="ref-banner">{t.ref(REWARD, THRESHOLD)}</p>}
             <form method="post" action="/auth/zarejestruj">
               {refCode && <input type="hidden" name="ref" value={refCode} />}
