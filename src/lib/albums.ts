@@ -51,7 +51,8 @@ export async function getAlbumProject(galleryId: string) {
 export async function saveAlbumProject(galleryId: string, raw: unknown): Promise<boolean> {
   const p = raw as AlbumProject;
   if (!p || typeof p !== "object") return false;
-  if (!ALBUM_SIZES.includes(p.size) || !ALBUM_STYLES.includes(p.style) || !["white", "ivory", "black"].includes(p.bg)) return false;
+  const size = typeof p.size === "number" ? `${p.size}x${p.size}` : p.size;
+  if (!ALBUM_SIZES.includes(size) || !ALBUM_STYLES.includes(p.style) || !["white", "ivory", "black"].includes(p.bg)) return false;
   if (!Array.isArray(p.spreads) || p.spreads.length > 200) return false;
   const num = (n: unknown) => typeof n === "number" && Number.isFinite(n);
   for (const s of p.spreads) {
@@ -65,7 +66,7 @@ export async function saveAlbumProject(galleryId: string, raw: unknown): Promise
   const aspects: Record<string, number> = {};
   for (const [k, v] of Object.entries(p.aspects ?? {}).slice(0, 3000)) if (num(v)) aspects[k.slice(0, 200)] = v as number;
   const clean: AlbumProject = {
-    size: p.size,
+    size,
     style: p.style,
     bg: p.bg,
     source: String(p.source ?? "all").slice(0, 80),

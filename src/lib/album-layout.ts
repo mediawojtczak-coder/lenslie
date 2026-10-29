@@ -1,7 +1,9 @@
 // Projektor albumów: automatyczny układ rozkładówek (wspólny dla panelu i generowania plików).
 // Współrzędne rozkładówki: szerokość 2 (dwie kwadratowe strony), wysokość 1. Lewa strona x 0–1, prawa 1–2.
 
-export type AlbumSize = 15 | 20 | 25;
+// Format albumu: szerokość × wysokość jednej strony w cm (rozkładówka = 2 × szerokość)
+export type AlbumSize = string; // np. "20x20", "30x20"
+export type AlbumFormat = { id: AlbumSize; w: number; h: number; labs: string };
 export type AlbumStyle = "minimal" | "editorial" | "classic";
 export type AlbumBg = "white" | "ivory" | "black";
 
@@ -31,7 +33,35 @@ export type AlbumProject = {
   updatedAt?: string;
 };
 
-export const ALBUM_SIZES: AlbumSize[] = [15, 20, 25];
+// Formaty popularnych drukarni (Uwolnij Kolory – fotoalbum i fotoksiążka, nPhoto – albumy)
+export const ALBUM_FORMATS: AlbumFormat[] = [
+  { id: "15x15", w: 15, h: 15, labs: "Uwolnij Kolory, nPhoto" },
+  { id: "20x20", w: 20, h: 20, labs: "Uwolnij Kolory, nPhoto" },
+  { id: "24x24", w: 24, h: 24, labs: "Uwolnij Kolory" },
+  { id: "25x25", w: 25, h: 25, labs: "Uwolnij Kolory, nPhoto" },
+  { id: "30x30", w: 30, h: 30, labs: "Uwolnij Kolory, nPhoto" },
+  { id: "20x15", w: 20, h: 15, labs: "nPhoto" },
+  { id: "30x20", w: 30, h: 20, labs: "nPhoto" },
+  { id: "30x21", w: 30, h: 21, labs: "Uwolnij Kolory (A4)" },
+  { id: "36x28", w: 36, h: 28, labs: "nPhoto" },
+  { id: "40x30", w: 40, h: 30, labs: "nPhoto" },
+  { id: "42x30", w: 42, h: 30, labs: "Uwolnij Kolory (A3)" },
+  { id: "45x30", w: 45, h: 30, labs: "nPhoto" },
+  { id: "15x20", w: 15, h: 20, labs: "nPhoto" },
+  { id: "21x30", w: 21, h: 30, labs: "Uwolnij Kolory (A4)" },
+  { id: "20x30", w: 20, h: 30, labs: "nPhoto" },
+];
+export const ALBUM_SIZES = ALBUM_FORMATS.map((f) => f.id);
+
+// Format z projektu (starsze projekty miały liczbę, np. 20 = 20×20)
+export function albumFormat(size: unknown): AlbumFormat {
+  const id = typeof size === "number" ? `${size}x${size}` : String(size);
+  return ALBUM_FORMATS.find((f) => f.id === id) ?? ALBUM_FORMATS[1];
+}
+export const pageRatio = (size: unknown) => {
+  const f = albumFormat(size);
+  return f.w / f.h;
+};
 export const ALBUM_STYLES: AlbumStyle[] = ["minimal", "editorial", "classic"];
 
 export const BG_COLORS: Record<AlbumBg, { bg: string; ink: string; muted: string }> = {
@@ -57,108 +87,116 @@ const STYLES: Record<AlbumStyle, StyleCfg> = {
   classic: { m: 0.075, g: 0.03, bleed: 0.2, pano: 6, rhythm: [2, 1, 2, 3, 1, 2, 4, 1] },
 };
 
-// ===== Szablony stron (kwadrat 1×1) =====
+// ===== Szablony stron =====
+// Liczone w rzeczywistych proporcjach strony (szerokość r, wysokość 1), a potem
+// przeliczane na współrzędne strony (0–1 w poziomie), żeby marginesy były równe także na stronach niekwadratowych.
 
 type PageTpl = { name: string; frames: Frame[]; bleed?: boolean; asym?: boolean };
 
-function pageTemplates(style: AlbumStyle): PageTpl[] {
-  const { m, g } = STYLES[style];
-  const inner = 1 - 2 * m;
+function pageTemplates(style: AlbumStyle, r: number): PageTpl[] {
+  const cfg = STYLES[style];
+  const W = r;
+  const H = 1;
+  const base = Math.min(W, H);
+  const m = cfg.m * base;
+  const g = cfg.g * base;
+  const iw = W - 2 * m;
+  const ih = H - 2 * m;
   const t: PageTpl[] = [];
-  const c = (w: number, h: number): Frame => ({ x: (1 - w) / 2, y: (1 - h) / 2, w, h });
+  const add = (name: string, frames: Frame[], extra: Partial<PageTpl> = {}) =>
+    t.push({ name, frames: frames.map((f) => ({ x: f.x / W, y: f.y, w: f.w / W, h: f.h })), ...extra });
+  const c = (w: number, h: number): Frame => ({ x: (W - w) / 2, y: (H - h) / 2, w, h });
+  const fit = (aspect: number, maxW: number, maxH: number) => {
+    const w = Math.min(maxW, maxH * aspect);
+    return { w, h: w / aspect };
+  };
 
   // 1 zdjęcie
-  t.push({ name: "full", frames: [{ x: 0, y: 0, w: 1, h: 1 }], bleed: true });
-  t.push({ name: "land", frames: [c(inner, inner / 1.5)] });
-  t.push({ name: "port", frames: [c(inner / 1.5, inner)] });
-  t.push({ name: "square", frames: [c(inner * 0.78, inner * 0.78)] });
-  t.push({ name: "port-small", frames: [{ x: m * 1.4, y: m * 1.6, w: inner * 0.5, h: inner * 0.75 }], asym: true });
-  t.push({ name: "land-low", frames: [{ x: m, y: 1 - m * 1.3 - inner * 0.55, w: inner * 0.82, h: inner * 0.55 }], asym: true });
+  add("full", [{ x: 0, y: 0, w: W, h: H }], { bleed: true });
+  {
+    const f = fit(1.5, iw, ih);
+    add("land", [c(f.w, f.h)]);
+  }
+  {
+    const f = fit(2 / 3, iw, ih);
+    add("port", [c(f.w, f.h)]);
+  }
+  {
+    const s0 = Math.min(iw, ih) * 0.78;
+    add("square", [c(s0, s0)]);
+  }
+  {
+    const f = fit(2 / 3, iw * 0.6, ih * 0.75);
+    add("port-small", [{ x: m * 1.4, y: m * 1.6, w: f.w, h: f.h }], { asym: true });
+  }
+  {
+    const f = fit(1.5, iw * 0.82, ih * 0.6);
+    add("land-low", [{ x: m, y: H - m * 1.3 - f.h, w: f.w, h: f.h }], { asym: true });
+  }
 
   // 2 zdjęcia
   {
-    const w = (inner - g) / 2;
-    const h = Math.min(inner, w * 1.5);
-    t.push({ name: "two-port", frames: [{ x: m, y: (1 - h) / 2, w, h }, { x: m + w + g, y: (1 - h) / 2, w, h }] });
+    const w = (iw - g) / 2;
+    const h = Math.min(ih, w * 1.5);
+    add("two-port", [{ x: m, y: (H - h) / 2, w, h }, { x: m + w + g, y: (H - h) / 2, w, h }]);
   }
   {
-    const h = (inner - g) / 2;
-    const w = Math.min(inner, h * 1.5);
-    t.push({ name: "two-land", frames: [{ x: (1 - w) / 2, y: m, w, h }, { x: (1 - w) / 2, y: m + h + g, w, h }] });
+    const h = (ih - g) / 2;
+    const w = Math.min(iw, h * 1.5);
+    add("two-land", [{ x: (W - w) / 2, y: m, w, h }, { x: (W - w) / 2, y: m + h + g, w, h }]);
   }
   {
-    // duże pionowe + małe kwadratowe (asymetria)
-    const bw = inner * 0.6;
-    const sw = inner - bw - g;
-    t.push({
-      name: "two-mixed",
-      frames: [
-        { x: m, y: m, w: bw, h: inner },
-        { x: m + bw + g, y: m + inner - sw * 1.25, w: sw, h: sw * 1.25 },
-      ],
-      asym: true,
-    });
+    // duże + małe (asymetria)
+    const bw = iw * 0.6;
+    const sw = iw - bw - g;
+    const sh = Math.min(ih, sw * 1.25);
+    add("two-mixed", [{ x: m, y: m, w: bw, h: ih }, { x: m + bw + g, y: m + ih - sh, w: sw, h: sh }], { asym: true });
   }
-  // dwa na spad (pionowe połówki)
-  t.push({ name: "two-bleed", frames: [{ x: 0, y: 0, w: 0.5 - g / 2, h: 1 }, { x: 0.5 + g / 2, y: 0, w: 0.5 - g / 2, h: 1 }], bleed: true });
+  add("two-bleed", [{ x: 0, y: 0, w: W / 2 - g / 2, h: H }, { x: W / 2 + g / 2, y: 0, w: W / 2 - g / 2, h: H }], { bleed: true });
 
   // 3 zdjęcia
   {
-    const lw = (inner - g) * 0.5;
-    const rw = inner - g - lw;
-    const rh = (inner - g) / 2;
-    t.push({
-      name: "three-left",
-      frames: [
-        { x: m, y: m, w: lw, h: inner },
-        { x: m + lw + g, y: m, w: rw, h: rh },
-        { x: m + lw + g, y: m + rh + g, w: rw, h: rh },
-      ],
-    });
+    const lw = (iw - g) * 0.5;
+    const rw = iw - g - lw;
+    const rh = (ih - g) / 2;
+    add("three-left", [
+      { x: m, y: m, w: lw, h: ih },
+      { x: m + lw + g, y: m, w: rw, h: rh },
+      { x: m + lw + g, y: m + rh + g, w: rw, h: rh },
+    ]);
   }
   {
-    const th = (inner - g) * 0.55;
-    const bw = (inner - g) / 2;
-    const bh = inner - g - th;
-    t.push({
-      name: "three-top",
-      frames: [
-        { x: m, y: m, w: inner, h: th },
-        { x: m, y: m + th + g, w: bw, h: bh },
-        { x: m + bw + g, y: m + th + g, w: bw, h: bh },
-      ],
-    });
+    const th = (ih - g) * 0.55;
+    const bw = (iw - g) / 2;
+    const bh = ih - g - th;
+    add("three-top", [
+      { x: m, y: m, w: iw, h: th },
+      { x: m, y: m + th + g, w: bw, h: bh },
+      { x: m + bw + g, y: m + th + g, w: bw, h: bh },
+    ]);
   }
   {
-    const w = (inner - 2 * g) / 3;
-    const h = Math.min(inner, w * 1.5);
-    t.push({
-      name: "three-row",
-      frames: [0, 1, 2].map((i) => ({ x: m + i * (w + g), y: (1 - h) / 2, w, h })),
-    });
+    const w = (iw - 2 * g) / 3;
+    const h = Math.min(ih, w * 1.5);
+    add("three-row", [0, 1, 2].map((i) => ({ x: m + i * (w + g), y: (H - h) / 2, w, h })));
   }
 
   // 4 zdjęcia
   {
-    const s = (inner - g) / 2;
-    t.push({
-      name: "four",
-      frames: [
-        { x: m, y: m, w: s, h: s },
-        { x: m + s + g, y: m, w: s, h: s },
-        { x: m, y: m + s + g, w: s, h: s },
-        { x: m + s + g, y: m + s + g, w: s, h: s },
-      ],
-    });
+    const w = (iw - g) / 2;
+    const h = (ih - g) / 2;
+    add("four", [
+      { x: m, y: m, w, h },
+      { x: m + w + g, y: m, w, h },
+      { x: m, y: m + h + g, w, h },
+      { x: m + w + g, y: m + h + g, w, h },
+    ]);
   }
   {
-    const bh = (inner - g) * 0.62;
-    const sw = (inner - 2 * g) / 3;
-    const sh = inner - g - bh;
-    t.push({
-      name: "four-strip",
-      frames: [{ x: m, y: m, w: inner, h: bh }, ...[0, 1, 2].map((i) => ({ x: m + i * (sw + g), y: m + bh + g, w: sw, h: sh }))],
-    });
+    const bh = (ih - g) * 0.62;
+    const sw = (iw - 2 * g) / 3;
+    const sh = ih - g - bh;
+    add("four-strip", [{ x: m, y: m, w: iw, h: bh }, ...[0, 1, 2].map((i) => ({ x: m + i * (sw + g), y: m + bh + g, w: sw, h: sh }))]);
   }
   return t;
 }
@@ -175,8 +213,8 @@ export function rng(seed: number) {
   };
 }
 
-const aspectOf = (f: Frame) => f.w / f.h;
-const cropCost = (frame: Frame, photoAspect: number) => Math.abs(Math.log(aspectOf(frame) / photoAspect));
+// Ile trzeba przyciąć zdjęcie, żeby wypełniło ramkę (r – proporcje strony)
+const cropCost = (frame: Frame, photoAspect: number, r: number) => Math.abs(Math.log((frame.w * r) / frame.h / photoAspect));
 
 function permutations<T>(arr: T[]): T[][] {
   if (arr.length <= 1) return [arr];
@@ -190,12 +228,12 @@ function permutations<T>(arr: T[]): T[][] {
 type Candidate = { slots: Slot[]; cost: number; key: string };
 
 // Najlepsze przypisanie zdjęć do ramek strony (z przesunięciem x dla prawej strony)
-function fitPage(tpl: PageTpl, photos: string[], aspects: Record<string, number>, dx: number): { slots: Slot[]; cost: number } {
+function fitPage(tpl: PageTpl, photos: string[], aspects: Record<string, number>, dx: number, r: number): { slots: Slot[]; cost: number } {
   let best: { slots: Slot[]; cost: number } | null = null;
   for (const perm of permutations(photos)) {
     let cost = 0;
     const slots = tpl.frames.map((f, i) => {
-      cost += cropCost(f, aspects[perm[i]] ?? 1.5);
+      cost += cropCost(f, aspects[perm[i]] ?? 1.5, r);
       return { photo: perm[i], frame: { ...f, x: f.x + dx } };
     });
     // lekka preferencja zachowania kolejności
@@ -206,9 +244,9 @@ function fitPage(tpl: PageTpl, photos: string[], aspects: Record<string, number>
 }
 
 // Wszystkie sensowne układy rozkładówki dla danych zdjęć, od najlepszego
-export function spreadCandidates(photos: string[], aspects: Record<string, number>, style: AlbumStyle, rand: () => number = () => 0.5): Candidate[] {
+export function spreadCandidates(photos: string[], aspects: Record<string, number>, style: AlbumStyle, rand: () => number = () => 0.5, r = 1): Candidate[] {
   const cfg = STYLES[style];
-  const tpls = pageTemplates(style);
+  const tpls = pageTemplates(style, r);
   const out: Candidate[] = [];
   const n = photos.length;
   // Zdjęcia na spad: w stylu „Magazyn” chętnie (mimo przycięcia), w minimalistycznym rzadko
@@ -216,16 +254,18 @@ export function spreadCandidates(photos: string[], aspects: Record<string, numbe
 
   if (n === 1) {
     const a = aspects[photos[0]] ?? 1.5;
-    const { m } = cfg;
+    const m = cfg.m * Math.min(r, 1);
     if (a > 1.1 && cfg.pano) {
-      out.push({ key: "pano", cost: cropCost({ x: 0, y: 0, w: 2, h: 1 }, a) * 0.6 - 0.05, slots: [{ photo: photos[0], frame: { x: 0, y: 0, w: 2, h: 1 } }] });
+      out.push({ key: "pano", cost: cropCost({ x: 0, y: 0, w: 2, h: 1 }, a, r) * 0.6 - 0.05, slots: [{ photo: photos[0], frame: { x: 0, y: 0, w: 2, h: 1 } }] });
+      // panorama z marginesem (w jednostkach fizycznych: rozkładówka 2r × 1)
       const h = 1 - 2 * m;
-      const w = Math.min(2 - 2 * m, h * 1.85);
-      out.push({ key: "pano-inset", cost: cropCost({ x: 0, y: 0, w, h }, a) * 0.6, slots: [{ photo: photos[0], frame: { x: (2 - w) / 2, y: m, w, h } }] });
+      const wPhys = Math.min(2 * r - 2 * m, h * 1.85);
+      const w = wPhys / r;
+      out.push({ key: "pano-inset", cost: cropCost({ x: 0, y: 0, w, h }, a, r) * 0.6, slots: [{ photo: photos[0], frame: { x: (2 - w) / 2, y: m, w, h } }] });
     }
     // jedno zdjęcie na prawej stronie, lewa pusta (elegancki oddech)
     for (const tpl of tpls.filter((t) => t.frames.length === 1)) {
-      const p = fitPage(tpl, photos, aspects, 1);
+      const p = fitPage(tpl, photos, aspects, 1, r);
       out.push({ key: `R:${tpl.name}`, cost: p.cost + bias(tpl) + 0.1, slots: p.slots });
     }
   } else {
@@ -238,8 +278,8 @@ export function spreadCandidates(photos: string[], aspects: Record<string, numbe
       const rt = tpls.filter((t) => t.frames.length === right);
       for (const a of lt) {
         for (const b of rt) {
-          const L = fitPage(a, lp, aspects, 0);
-          const R = fitPage(b, rp, aspects, 1);
+          const L = fitPage(a, lp, aspects, 0, r);
+          const R = fitPage(b, rp, aspects, 1, r);
           // różne układy po obu stronach wyglądają ciekawiej; nierówny podział lekko karany
           const cost =
             L.cost + R.cost + bias(a) + bias(b) +
@@ -260,8 +300,8 @@ let uid = 0;
 const newId = () => `s${Date.now().toString(36)}${(uid++).toString(36)}`;
 
 // Układ jednej rozkładówki (variant = numer kolejnej propozycji)
-export function layoutSpread(photos: string[], aspects: Record<string, number>, style: AlbumStyle, variant = 0, seed = 1): Spread {
-  const cands = spreadCandidates(photos, aspects, style, rng(seed));
+export function layoutSpread(photos: string[], aspects: Record<string, number>, style: AlbumStyle, variant = 0, seed = 1, r = 1): Spread {
+  const cands = spreadCandidates(photos, aspects, style, rng(seed), r);
   const pick = cands[((variant % cands.length) + cands.length) % cands.length];
   return { id: newId(), kind: "photos", slots: pick.slots, variant };
 }
@@ -304,7 +344,7 @@ export function pageRange(photoCount: number, titlePage: boolean) {
 }
 
 // Cały album z listy zdjęć (w kolejności wyboru klienta). pages – docelowa liczba stron (np. 20–60)
-export function generateAlbum(photos: string[], aspects: Record<string, number>, style: AlbumStyle, seed: number, titlePage: boolean, pages?: number | null): Spread[] {
+export function generateAlbum(photos: string[], aspects: Record<string, number>, style: AlbumStyle, seed: number, titlePage: boolean, pages?: number | null, r = 1): Spread[] {
   const cfg = STYLES[style];
   const rand = rng(seed);
   const spreads: Spread[] = [];
@@ -321,7 +361,7 @@ export function generateAlbum(photos: string[], aspects: Record<string, number>,
       const group = photos.slice(i, i + n);
       i += n;
       if (!group.length) continue;
-      const cands = spreadCandidates(group, aspects, style, rand);
+      const cands = spreadCandidates(group, aspects, style, rand, r);
       const pick = cands.find((c) => c.key !== lastKey) ?? cands[0];
       lastKey = pick.key;
       spreads.push({ id: newId(), kind: "photos", slots: pick.slots, variant: cands.indexOf(pick) });
@@ -330,25 +370,25 @@ export function generateAlbum(photos: string[], aspects: Record<string, number>,
   }
 
   let i = 0;
-  let r = Math.floor(rand() * cfg.rhythm.length);
+  let rh = Math.floor(rand() * cfg.rhythm.length);
   let lastKey = "";
   while (i < photos.length) {
     const left = photos.length - i;
     // panorama co kilka rozkładówek, gdy następne zdjęcie jest poziome
     const a = aspects[photos[i]] ?? 1.5;
     if (cfg.pano && spreads.length > 0 && spreads.length % cfg.pano === 1 && a > 1.25 && rand() < 0.8) {
-      const s = layoutSpread([photos[i]], aspects, style, 0, seed + i);
+      const s = layoutSpread([photos[i]], aspects, style, 0, seed + i, r);
       spreads.push(s);
       i += 1;
       continue;
     }
-    let n = cfg.rhythm[r % cfg.rhythm.length] + cfg.rhythm[(r + 1) % cfg.rhythm.length];
-    r += 2;
+    let n = cfg.rhythm[rh % cfg.rhythm.length] + cfg.rhythm[(rh + 1) % cfg.rhythm.length];
+    rh += 2;
     n = Math.min(n, left);
     // nie zostawiamy na koniec pojedynczej sieroty, jeśli da się ją dołączyć
     if (left - n === 1 && n < 8) n += 1;
     const group = photos.slice(i, i + n);
-    const cands = spreadCandidates(group, aspects, style, rand);
+    const cands = spreadCandidates(group, aspects, style, rand, r);
     // unikamy powtórzenia tego samego układu pod rząd
     const pick = cands.find((c) => c.key !== lastKey) ?? cands[0];
     lastKey = pick.key;
@@ -370,7 +410,7 @@ export function touches(f: Frame) {
 
 export function emptyProject(source: string, title: string, subtitle: string): AlbumProject {
   return {
-    size: 20,
+    size: "20x20",
     style: "editorial",
     bg: "ivory",
     source,

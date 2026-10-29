@@ -4,7 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/components/LangProvider";
 import { tr } from "@/lib/lang";
 import {
-  ALBUM_SIZES,
+  ALBUM_FORMATS,
+  albumFormat,
+  pageRatio,
   ALBUM_STYLES,
   BG_COLORS,
   emptyProject,
@@ -62,8 +64,13 @@ export default function AlbumTab({
   }, [photos, selections]);
 
   const [project, setProject] = useState<AlbumProject>(
-    () => initial ?? emptyProject(selections.length === 1 ? selections[0].id : "all", galleryTitle, subtitle),
+    () => {
+      const p = initial ?? emptyProject(selections.length === 1 ? selections[0].id : "all", galleryTitle, subtitle);
+      return { ...p, size: albumFormat(p.size).id }; // starsze projekty: 20 -> "20x20"
+    },
   );
+  const fmt = albumFormat(project.size);
+  const ratio = fmt.w / fmt.h;
   const [pick, setPick] = useState<Pick>(null);
   const [addTo, setAddTo] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState<{ done: number; total: number } | null>(null);
@@ -142,13 +149,13 @@ export default function AlbumTab({
     const seed = newSeed || !project.spreads.length ? Math.floor(Math.random() * 1e9) : project.seed;
     setPick(null);
     setAddTo(null);
-    setProject((p) => ({ ...p, aspects, seed, pages: pagesWanted, spreads: generateAlbum(source, aspects, p.style, seed, p.titlePage, pagesWanted) }));
+    setProject((p) => ({ ...p, aspects, seed, pages: pagesWanted, spreads: generateAlbum(source, aspects, p.style, seed, p.titlePage, pagesWanted, pageRatio(p.size)) }));
   }
 
   // ===== Edycja =====
 
   const relayout = (s: Spread, names: string[], variant = 0): Spread | null =>
-    names.length ? { ...layoutSpread(names, project.aspects, project.style, variant, project.seed), id: s.id } : null;
+    names.length ? { ...layoutSpread(names, project.aspects, project.style, variant, project.seed, ratio), id: s.id } : null;
 
   const setSpreads = (fn: (list: Spread[]) => Spread[]) => setProject((p) => ({ ...p, spreads: fn(p.spreads) }));
 
@@ -224,7 +231,7 @@ export default function AlbumTab({
     const aspects = await ensureAspects([name]);
     if (aspects !== project.aspects) update({ aspects });
     const asp = { ...project.aspects, ...aspects };
-    const lay = (names: string[], s: Spread) => ({ ...layoutSpread(names, asp, project.style, 0, project.seed), id: s.id });
+    const lay = (names: string[], s: Spread) => ({ ...layoutSpread(names, asp, project.style, 0, project.seed, ratio), id: s.id });
     if (pick) {
       // zamiana wybranego zdjęcia na nieużyte
       setSpreads((list) => list.map((x) => (x.id !== pick.spread ? x : lay(x.slots.map((s, i) => (i === pick.slot ? name : s.photo)), x))));
@@ -236,7 +243,7 @@ export default function AlbumTab({
       return;
     }
     // bez zaznaczenia: nowa rozkładówka na końcu
-    setSpreads((list) => [...list, layoutSpread([name], asp, project.style, 0, project.seed)]);
+    setSpreads((list) => [...list, layoutSpread([name], asp, project.style, 0, project.seed, ratio)]);
   }
 
   async function download() {
@@ -257,7 +264,7 @@ export default function AlbumTab({
       const zip = await exportAlbum(project, data.urls ?? {}, fallback, (done, total) => setExporting({ done, total }), slug);
       const a = document.createElement("a");
       a.href = URL.createObjectURL(zip);
-      a.download = `${slug}-album-${project.size}x${project.size}.zip`;
+      a.download = `${slug}-album-${fmt.id}.zip`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -309,16 +316,39 @@ export default function AlbumTab({
             </select>
           </label>
 
-          <div className="alb-field">
-            <span>{t("Format", "Size")}</span>
-            <div className="seg">
-              {ALBUM_SIZES.map((s) => (
-                <button key={s} type="button" className={project.size === s ? "on" : ""} onClick={() => update({ size: s })}>
-                  {s}×{s} cm
-                </button>
+          <label className="alb-field">
+            <span>{t("Format (strona)", "Size (page)")}</span>
+            <select
+              className="plain-select alb-format"
+              value={fmt.id}
+              onChange={(e) => {
+                const size = e.target.value;
+                const r = pageRatio(size);
+                // nowy format: te same zdjęcia na tych samych rozkładówkach, układy dopasowane do proporcji strony
+                setProject((p) => ({
+                  ...p,
+                  size,
+                  spreads: p.spreads.map((sp) =>
+                    sp.kind === "title" ? sp : { ...layoutSpread(sp.slots.map((x) => x.photo), p.aspects, p.style, 0, p.seed, r), id: sp.id },
+                  ),
+                }));
+              }}
+            >
+              {([
+                [t("Kwadratowe", "Square"), (f: { w: number; h: number }) => f.w === f.h],
+                [t("Poziome", "Landscape"), (f: { w: number; h: number }) => f.w > f.h],
+                [t("Pionowe", "Portrait"), (f: { w: number; h: number }) => f.w < f.h],
+              ] as const).map(([label, test]) => (
+                <optgroup key={label} label={label}>
+                  {ALBUM_FORMATS.filter(test).map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.w}×{f.h} cm · {f.labs}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
-            </div>
-          </div>
+            </select>
+          </label>
 
           <div className="alb-field">
             <span>{t("Styl", "Style")}</span>
@@ -334,7 +364,7 @@ export default function AlbumTab({
                       ...p,
                       style: s,
                       spreads: p.spreads.map((sp) =>
-                        sp.kind === "title" ? sp : { ...layoutSpread(sp.slots.map((x) => x.photo), p.aspects, s, 0, p.seed), id: sp.id },
+                        sp.kind === "title" ? sp : { ...layoutSpread(sp.slots.map((x) => x.photo), p.aspects, s, 0, p.seed, pageRatio(p.size)), id: sp.id },
                       ),
                     }))
                   }
@@ -511,7 +541,7 @@ export default function AlbumTab({
           <div className="alb-spreads">
             {project.spreads.map((s, i) => (
               <figure key={s.id} className={addTo === s.id ? "alb-spread adding" : "alb-spread"}>
-                <div className="alb-canvas" style={{ background: colors.bg }}>
+                <div className="alb-canvas" style={{ background: colors.bg, aspectRatio: `${2 * ratio}` }}>
                   {s.kind === "title" ? (
                     <div className="alb-title" style={{ color: colors.ink }}>
                       <strong>{project.title}</strong>
@@ -596,8 +626,8 @@ export default function AlbumTab({
             <h2>{t("Pliki do drukarni", "Print files")}</h2>
             <p className="hint-inline">
               {t(
-                `Każda rozkładówka jako osobny plik JPEG ${project.size * 2}×${project.size} cm, 300 dpi, sRGB${project.bleed ? ", ze spadem 3 mm" : ""} – z oryginałów zdjęć, w jednym pliku ZIP.`,
-                `Each spread as a separate ${project.size * 2}×${project.size} cm JPEG, 300 dpi, sRGB${project.bleed ? ", with 3 mm bleed" : ""} – from the original photos, in one ZIP file.`,
+                `Każda rozkładówka jako osobny plik JPEG ${fmt.w * 2}×${fmt.h} cm, 300 dpi, sRGB${project.bleed ? ", ze spadem 3 mm" : ""} – z oryginałów zdjęć, w jednym pliku ZIP.`,
+                `Each spread as a separate ${fmt.w * 2}×${fmt.h} cm JPEG, 300 dpi, sRGB${project.bleed ? ", with 3 mm bleed" : ""} – from the original photos, in one ZIP file.`,
               )}
             </p>
             {active ? (

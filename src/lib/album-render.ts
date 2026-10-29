@@ -1,5 +1,5 @@
 // Projektor albumów: rozkładówki do druku (JPEG 300 dpi, sRGB, opcjonalnie 3 mm spadu) – generowane w przeglądarce fotografa
-import { BG_COLORS, touches, type AlbumProject, type Spread } from "@/lib/album-layout";
+import { BG_COLORS, touches, albumFormat, type AlbumProject, type Spread } from "@/lib/album-layout";
 
 export const DPI = 300;
 export const BLEED_CM = 0.3;
@@ -8,10 +8,12 @@ const pxPerCm = DPI / 2.54;
 
 export function spreadPixels(p: Pick<AlbumProject, "size" | "bleed">) {
   const b = p.bleed ? BLEED_CM : 0;
+  const f = albumFormat(p.size);
   return {
-    width: Math.round((p.size * 2 + b * 2) * pxPerCm),
-    height: Math.round((p.size + b * 2) * pxPerCm),
-    unit: p.size * pxPerCm, // piksele na 1 jednostkę (= bok strony)
+    width: Math.round((f.w * 2 + b * 2) * pxPerCm),
+    height: Math.round((f.h + b * 2) * pxPerCm),
+    ux: f.w * pxPerCm, // piksele na 1 jednostkę w poziomie (= szerokość strony)
+    uy: f.h * pxPerCm, // piksele na 1 jednostkę w pionie (= wysokość strony)
     bleed: Math.round(b * pxPerCm),
   };
 }
@@ -39,10 +41,11 @@ function displayFont() {
 }
 
 // Strona tytułowa: lewa strona pusta, na prawej imiona i data
-function drawTitle(ctx: CanvasRenderingContext2D, p: AlbumProject, unit: number, off: number, font: string) {
+function drawTitle(ctx: CanvasRenderingContext2D, p: AlbumProject, ux: number, uy: number, off: number, font: string) {
   const c = BG_COLORS[p.bg];
-  const cx = off + unit * 1.5;
-  const cy = off + unit * 0.5;
+  const cx = off + ux * 1.5;
+  const cy = off + uy * 0.5;
+  const unit = Math.min(ux, uy);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = c.ink;
@@ -84,19 +87,20 @@ export async function drawSpread(
   ctx.fillStyle = colors.bg;
   ctx.fillRect(0, 0, dims.width, dims.height);
   const off = dims.bleed;
-  const u = dims.unit;
+  const ux = dims.ux;
+  const uy = dims.uy;
 
   if (spread.kind === "title") {
-    drawTitle(ctx, p, u, off, displayFont());
+    drawTitle(ctx, p, ux, uy, off, displayFont());
     return;
   }
   for (const s of spread.slots) {
     const t = touches(s.frame);
     // zdjęcia przy krawędzi wychodzą na spad
-    const x0 = off + s.frame.x * u - (t.left ? off : 0);
-    const y0 = off + s.frame.y * u - (t.top ? off : 0);
-    const x1 = off + (s.frame.x + s.frame.w) * u + (t.right ? off : 0);
-    const y1 = off + (s.frame.y + s.frame.h) * u + (t.bottom ? off : 0);
+    const x0 = off + s.frame.x * ux - (t.left ? off : 0);
+    const y0 = off + s.frame.y * uy - (t.top ? off : 0);
+    const x1 = off + (s.frame.x + s.frame.w) * ux + (t.right ? off : 0);
+    const y1 = off + (s.frame.y + s.frame.h) * uy + (t.bottom ? off : 0);
     const img = await getImage(s.photo);
     if (img) drawCover(ctx, img, Math.round(x0), Math.round(y0), Math.round(x1 - x0), Math.round(y1 - y0), s.fx ?? 0.5, s.fy ?? 0.45);
     else {
@@ -145,6 +149,7 @@ export async function exportAlbum(
   const { downloadZip } = await import("client-zip");
   const canvas = document.createElement("canvas");
   const dims = spreadPixels(p);
+  const fmt = albumFormat(p.size);
   const files: { name: string; input: Blob }[] = [];
   const total = p.spreads.length;
   for (let i = 0; i < total; i++) {
@@ -165,13 +170,13 @@ export async function exportAlbum(
       dims,
     );
     cache.forEach((b) => b.close());
-    files.push({ name: `${name}-${p.size}x${p.size}-${pad(i + 1)}.jpg`, input: await withDpi(await toJpeg(canvas)) });
+    files.push({ name: `${name}-${fmt.id}-${pad(i + 1)}.jpg`, input: await withDpi(await toJpeg(canvas)) });
     onProgress(i + 1, total);
   }
   const b = p.bleed ? `, ze spadem ${BLEED_CM * 10} mm z każdej strony` : ", bez spadu";
   const info = [
-    `Album ${p.size}×${p.size} cm – ${total} rozkładówek (${total * 2} stron).`,
-    `Każdy plik to rozkładówka ${p.size * 2}×${p.size} cm${b}: ${dims.width}×${dims.height} px, ${DPI} dpi, sRGB, JPEG.`,
+    `Album ${fmt.w}×${fmt.h} cm – ${total} rozkładówek (${total * 2} stron).`,
+    `Każdy plik to rozkładówka ${fmt.w * 2}×${fmt.h} cm${b}: ${dims.width}×${dims.height} px, ${DPI} dpi, sRGB, JPEG.`,
     p.bleed ? "Spad zostanie obcięty w drukarni – nie umieszczaj ważnych elementów przy samej krawędzi." : "",
     "Przygotowano w Lenslie – www.lenslie.com",
   ]
