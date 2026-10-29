@@ -374,7 +374,7 @@ export default function AlbumTab({
                 <optgroup key={label} label={label}>
                   {ALBUM_FORMATS.filter(test).map((f) => (
                     <option key={f.id} value={f.id}>
-                      {f.w}×{f.h} cm · {f.labs}
+                      {f.w}×{f.h} cm{/\((A\d)\)/.exec(f.labs)?.[1] ? ` (${/\((A\d)\)/.exec(f.labs)![1]})` : ""}
                     </option>
                   ))}
                 </optgroup>
