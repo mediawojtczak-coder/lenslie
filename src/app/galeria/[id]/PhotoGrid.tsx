@@ -275,6 +275,74 @@ export default function PhotoGrid({
     setOpen(all.indexOf(photo));
   };
 
+  // Liczba kolumn mozaiki zależnie od szerokości ekranu (jak w CSS: 4 / 3 / 2)
+  const [cols, setCols] = useState<number | null>(null);
+  useEffect(() => {
+    const calc = () => setCols(window.innerWidth <= 760 ? 2 : window.innerWidth <= 1100 ? 3 : 4);
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, []);
+
+  const renderPhoto = (p: (typeof shownGroups)[number]["photos"][number]) => (
+    <figure key={p.name} className="photo">
+      <button type="button" className="photo-open" onClick={() => openAt(p)} aria-label={`${t.openPhoto} ${p.fileName}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={p.webUrl}
+          alt={p.name}
+          loading="lazy"
+          draggable={downloads !== "none" || p.unlocked}
+          onContextMenu={downloads === "none" && !p.unlocked ? (e) => e.preventDefault() : undefined}
+        />
+      </button>
+      {p.wmPending && watermark && (
+        <span className="wm-overlay" aria-hidden="true">
+          {Array.from({ length: 24 }, () => watermark).join("   ·   ")}
+        </span>
+      )}
+      {favorites && favs.has(p.name) &&
+        (locked ? (
+          <span className={sale ? "fav-mark pick" : "fav-mark"} aria-label={L.name}>
+            <Mark on size={18} />
+          </span>
+        ) : (
+          <button type="button" className={sale ? "fav-mark pick" : "fav-mark"} onClick={() => toggleFav(p.name)} aria-label={`${L.remove}: ${p.fileName}`}>
+            <Mark on size={18} />
+          </button>
+        ))}
+      <div className="photo-actions">
+        {favorites && !locked && (
+          <button
+            type="button"
+            className={favs.has(p.name) ? "pa-btn fav on" : "pa-btn fav"}
+            onClick={() => toggleFav(p.name)}
+            aria-pressed={favs.has(p.name)}
+            aria-label={`${favs.has(p.name) ? L.remove : L.add}: ${p.fileName}`}
+          >
+            <Mark on={favs.has(p.name)} size={22} />
+            <span>{sale ? (favs.has(p.name) ? t.picked : t.pick) : t.favorites}</span>
+          </button>
+        )}
+        {(downloads !== "none" || p.unlocked) && p.webDownloadUrl && (
+          <DownloadMenu
+            lang={lang}
+            fullUrl={downloads === "all" || p.unlocked ? p.downloadUrl : undefined}
+            webUrl={p.webDownloadUrl}
+            fileName={p.fileName}
+          />
+        )}
+        <button type="button" className="pa-btn" onClick={() => openAt(p)} aria-label={`${t.enlarge} ${p.fileName}`}>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M8.5 11h5M11 8.5v5M20 20l-4.5-4.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <span>{t.enlarge}</span>
+        </button>
+      </div>
+    </figure>
+  );
+
   return (
     <>
       {named.length > 1 && (
@@ -362,66 +430,18 @@ export default function PhotoGrid({
                 )}
               </div>
             )}
-            <div className={layout === "siatka" ? "client-grid even" : "client-grid"}>
-              {g.photos.map((p) => (
-                <figure key={p.name} className="photo">
-                  <button type="button" className="photo-open" onClick={() => openAt(p)} aria-label={`${t.openPhoto} ${p.fileName}`}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={p.webUrl}
-                      alt={p.name}
-                      loading="lazy"
-                      draggable={downloads !== "none" || p.unlocked}
-                      onContextMenu={downloads === "none" && !p.unlocked ? (e) => e.preventDefault() : undefined}
-                    />
-                  </button>
-                  {p.wmPending && watermark && (
-                    <span className="wm-overlay" aria-hidden="true">
-                      {Array.from({ length: 24 }, () => watermark).join("   ·   ")}
-                    </span>
-                  )}
-                  {favorites && favs.has(p.name) &&
-                    (locked ? (
-                      <span className={sale ? "fav-mark pick" : "fav-mark"} aria-label={L.name}>
-                        <Mark on size={18} />
-                      </span>
-                    ) : (
-                      <button type="button" className={sale ? "fav-mark pick" : "fav-mark"} onClick={() => toggleFav(p.name)} aria-label={`${L.remove}: ${p.fileName}`}>
-                        <Mark on size={18} />
-                      </button>
-                    ))}
-                  <div className="photo-actions">
-                    {favorites && !locked && (
-                      <button
-                        type="button"
-                        className={favs.has(p.name) ? "pa-btn fav on" : "pa-btn fav"}
-                        onClick={() => toggleFav(p.name)}
-                        aria-pressed={favs.has(p.name)}
-                        aria-label={`${favs.has(p.name) ? L.remove : L.add}: ${p.fileName}`}
-                      >
-                        <Mark on={favs.has(p.name)} size={22} />
-                        <span>{sale ? (favs.has(p.name) ? t.picked : t.pick) : t.favorites}</span>
-                      </button>
-                    )}
-                    {(downloads !== "none" || p.unlocked) && p.webDownloadUrl && (
-                      <DownloadMenu
-                        lang={lang}
-                        fullUrl={downloads === "all" || p.unlocked ? p.downloadUrl : undefined}
-                        webUrl={p.webDownloadUrl}
-                        fileName={p.fileName}
-                      />
-                    )}
-                    <button type="button" className="pa-btn" onClick={() => openAt(p)} aria-label={`${t.enlarge} ${p.fileName}`}>
-                      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                        <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M8.5 11h5M11 8.5v5M20 20l-4.5-4.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                      <span>{t.enlarge}</span>
-                    </button>
+            {layout !== "siatka" && cols ? (
+              // mozaika: zdjęcia rozkładane wierszami (1 lewa, 2 prawa…) – kolejność jak w panelu
+              <div className="client-grid cols">
+                {Array.from({ length: cols }, (_, c) => (
+                  <div key={c} className="grid-col">
+                    {g.photos.filter((_, i) => i % cols === c).map(renderPhoto)}
                   </div>
-                </figure>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className={layout === "siatka" ? "client-grid even" : "client-grid"}>{g.photos.map(renderPhoto)}</div>
+            )}
           </section>
         ))}
 

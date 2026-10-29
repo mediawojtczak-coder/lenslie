@@ -2650,3 +2650,9 @@ button.install-app { background: none; border: 0; font: inherit; color: inherit;
 .yt-row { display: flex; gap: 10px; align-items: center; }
 .yt-row input { flex: 1; min-width: 0; }
 .yt-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+/* mozaika wierszami: kolumny jako osobne bloki */
+.client-grid.cols { columns: auto; display: flex; gap: 8px; align-items: flex-start; }
+.client-grid.cols .grid-col { flex: 1; min-width: 0; }
+.gtheme-noir .client-grid.cols { gap: 14px; }
+.gtheme-minimal .client-grid.cols { gap: 4px; }
+@media (max-width: 760px) { .client-grid.cols { gap: 4px; } }
