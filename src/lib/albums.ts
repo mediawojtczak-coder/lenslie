@@ -71,6 +71,7 @@ export async function saveAlbumProject(galleryId: string, raw: unknown): Promise
     style: p.style,
     bg: p.bg,
     frame: ALBUM_FRAMES.includes(p.frame as never) ? p.frame : "none",
+    blur: num(p.blur) ? Math.min(1, Math.max(0, p.blur!)) : 0.5,
     source: String(p.source ?? "all").slice(0, 80),
     title: String(p.title ?? "").slice(0, 120),
     subtitle: String(p.subtitle ?? "").slice(0, 120),

@@ -105,11 +105,20 @@ function drawTitle(ctx: CanvasRenderingContext2D, p: AlbumProject, ux: number, u
 
 // Rozmyte, rozjaśnione (albo przyciemnione) zdjęcie na całe tło rozkładówki.
 // Rozmycie przez zmniejszenie i powiększenie – działa w każdej przeglądarce.
-function drawBlurBackground(ctx: CanvasRenderingContext2D, img: Img, W: number, H: number, wash: string) {
+// blur 0–1: promień rozmycia = blur × 4,4% szerokości rozkładówki (tak samo jak w podglądzie)
+export const blurRadius = (blur: number) => Math.max(0, Math.min(1, blur)) * 0.044;
+
+function drawBlurBackground(ctx: CanvasRenderingContext2D, img: Img, W: number, H: number, wash: string, blur: number) {
+  const r = blurRadius(blur);
+  if (r < 0.002) {
+    drawCover(ctx, img, 0, 0, W, H, 0.5, 0.5);
+    ctx.fillStyle = wash;
+    ctx.fillRect(0, 0, W, H);
+    return;
+  }
   const small = document.createElement("canvas");
-  const k = 40 / Math.max(W, H);
-  small.width = Math.max(4, Math.round(W * k));
-  small.height = Math.max(4, Math.round(H * k));
+  small.width = Math.max(4, Math.round(1 / (1.4 * r)));
+  small.height = Math.max(4, Math.round((small.width * H) / W));
   const sctx = small.getContext("2d")!;
   sctx.imageSmoothingQuality = "high";
   drawCover(sctx, img, 0, 0, small.width, small.height, 0.5, 0.5);
@@ -145,7 +154,7 @@ export async function drawSpread(
   if (isBlurBg(p.bg) && colors.wash) {
     const bgName = backgroundPhoto(spread, p.spreads);
     const img = bgName ? await getImage(bgName) : null;
-    if (img) drawBlurBackground(ctx, img, dims.width, dims.height, colors.wash);
+    if (img) drawBlurBackground(ctx, img, dims.width, dims.height, colors.wash, p.blur ?? 0.5);
   }
 
   if (spread.kind === "title") {

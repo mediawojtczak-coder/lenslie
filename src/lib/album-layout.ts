@@ -28,6 +28,7 @@ export type AlbumProject = {
   style: AlbumStyle;
   bg: AlbumBg;
   frame?: AlbumFrame;
+  blur?: number; // siła rozmycia tła ze zdjęcia, 0–1 (domyślnie 0.5)
   source: string; // id wyboru klienta albo "all"
   title: string;
   subtitle: string;

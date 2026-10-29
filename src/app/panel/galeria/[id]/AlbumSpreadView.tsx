@@ -49,7 +49,14 @@ export default function AlbumSpreadView({
         <>
           {bgPh && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="alb-bgimg" src={bgPh.url} alt="" loading="lazy" draggable={false} />
+            <img
+              className="alb-bgimg"
+              src={bgPh.url}
+              alt=""
+              loading="lazy"
+              draggable={false}
+              style={{ filter: `blur(${(Math.max(0, Math.min(1, project.blur ?? 0.5)) * 4.4).toFixed(2)}cqw)` }}
+            />
           )}
           <span className="alb-wash" style={{ background: colors.wash }} />
         </>

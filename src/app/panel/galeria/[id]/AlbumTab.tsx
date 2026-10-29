@@ -426,6 +426,22 @@ export default function AlbumTab({
             </div>
           </div>
 
+          {isBlurBg(project.bg) && (
+            <label className="alb-field alb-blur">
+              <span>
+                {t("Rozmycie tła", "Background blur")} · {Math.round((project.blur ?? 0.5) * 100)}%
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={project.blur ?? 0.5}
+                onChange={(e) => update({ blur: Number(e.target.value) })}
+              />
+            </label>
+          )}
+
           <div className="alb-field">
             <span>{t("Wykończenie zdjęć", "Photo finish")}</span>
             <div className="seg">
