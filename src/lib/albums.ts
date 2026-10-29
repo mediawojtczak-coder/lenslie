@@ -7,7 +7,7 @@ import { ALBUM_SIZES, ALBUM_STYLES, ALBUM_BGS, ALBUM_FRAMES } from "@/lib/album-
 export const ALBUM_PRICES: Record<number, number> = { 1: 39, 12: 290 };
 
 // Testy: Projektor albumów widoczny tylko dla tych kont. Pusta lista = dla wszystkich.
-const ALBUM_BETA = ["adamwojtczak7@gmail.com"];
+const ALBUM_BETA: string[] = [];
 export function albumAllowed(email?: string | null) {
   if (!ALBUM_BETA.length) return true;
   return Boolean(email && ALBUM_BETA.includes(email.toLowerCase()));
