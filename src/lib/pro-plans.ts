@@ -6,10 +6,11 @@ export type ProTier = { id: ProTierId; gb: number; monthly: number; yearly: numb
 export type ProMonths = 1 | 12;
 
 export const PRO_TIERS: ProTier[] = [
-  { id: "pro500", gb: 500, monthly: 59, yearly: 590 },
-  { id: "pro700", gb: 700, monthly: 79, yearly: 790, featured: true },
-  { id: "pro1000", gb: 1000, monthly: 99, yearly: 990 },
-  { id: "pro2000", gb: 2000, monthly: 189, yearly: 1890 },
+  // rok = 12 × cena miesięczna (bez rabatu)
+  { id: "pro500", gb: 500, monthly: 59, yearly: 708 },
+  { id: "pro700", gb: 700, monthly: 79, yearly: 948, featured: true },
+  { id: "pro1000", gb: 1000, monthly: 99, yearly: 1188 },
+  { id: "pro2000", gb: 2000, monthly: 189, yearly: 2268 },
 ];
 
 // Galerie działają jeszcze tyle dni po końcu abonamentu (czas na odnowienie)
@@ -29,7 +30,7 @@ export const proHardLimit = (t: ProTier) => Math.floor(proBytes(t) * (1 + PRO_TO
 export const proPrice = (t: ProTier, months: ProMonths) => (months === 12 ? t.yearly : t.monthly);
 
 // Dopłata za przejście na większy abonament w trakcie okresu: różnica ceny × pozostałe dni
-// (przy abonamencie rocznym – według cen rocznych, czyli z rabatem)
+// (przy abonamencie rocznym – według cen rocznych)
 export function proUpgradeCost(from: ProTier, to: ProTier, paidUntil: string, months: ProMonths = 1) {
   const days = Math.max(0, (new Date(paidUntil).getTime() - Date.now()) / DAY);
   const perDay = months === 12 ? (to.yearly - from.yearly) / 365 : (to.monthly - from.monthly) / 30;

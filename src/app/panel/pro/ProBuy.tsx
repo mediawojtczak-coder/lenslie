@@ -102,7 +102,6 @@ export default function ProBuy({
                   {money(months === 12 ? x.yearly : x.monthly, lang)} <small>{months === 12 ? t("/ rok", "/ year") : t("/ mies.", "/ mo.")}</small>
                 </em>
               )}
-              {months === 12 && mode === "buy" && <small>{t(`${money(x.yearly / 12, lang)} miesięcznie`, `${money(x.yearly / 12, lang)} a month`)}</small>}
             </button>
           );
         })}
@@ -113,7 +112,7 @@ export default function ProBuy({
           {([12, 1] as const).map((m) => (
             <button key={m} type="button" className={months === m ? "period active" : "period"} onClick={() => setMonths(m)}>
               {m === 12 ? t("Rok", "Year") : t("Miesiąc", "Month")}
-              <small className="period-sub">{m === 12 ? t("2 miesiące gratis", "2 months free") : t("bez zobowiązań", "no commitment")}</small>
+              <small className="period-sub">{m === 12 ? t("12 miesięcy z góry", "12 months in advance") : t("bez zobowiązań", "no commitment")}</small>
             </button>
           ))}
         </div>

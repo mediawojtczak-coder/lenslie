@@ -39,7 +39,7 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
               <span className="per">{t("miesięcznie", "a month")}</span>
             </p>
             <p className="plan-month">
-              {t("albo", "or")} <strong>{money(x.yearly, lang)}</strong> {t("za rok – 2 miesiące gratis", "a year – 2 months free")}
+              {t("albo", "or")} <strong>{money(x.yearly, lang)}</strong> {t("za rok z góry", "paid yearly in advance")}
             </p>
             <ul className="plan-facts">
               <li>

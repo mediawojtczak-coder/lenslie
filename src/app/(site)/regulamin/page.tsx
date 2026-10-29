@@ -171,7 +171,7 @@ function RegulaminPl() {
       <ol>
         <li>
           Abonament Pro daje miejsce na wszystkie Galerie i filmy Konta: 500 GB za 59 zł, 700 GB za 79 zł, 1000 GB za 99 zł albo
-          2000 GB za 189 zł brutto miesięcznie; przy płatności za 12 miesięcy z góry – 590 zł, 790 zł, 990 zł albo 1890 zł brutto.
+          2000 GB za 189 zł brutto miesięcznie; przy płatności za 12 miesięcy z góry – 708 zł, 948 zł, 1188 zł albo 2268 zł brutto.
         </li>
         <li>
           Abonament opłaca się z góry za miesiąc albo rok. Nie odnawia się automatycznie – 7 dni przed końcem okresu wysyłamy
@@ -358,7 +358,7 @@ function TermsEn() {
 
       <h2>§ 6e. Pro subscription</h2>
       <ol>
-        <li>The Pro subscription provides storage for all Galleries and videos of the Account: 500 GB for PLN 59, 700 GB for PLN 79, 1000 GB for PLN 99 or 2000 GB for PLN 189 gross per month; paid 12 months in advance – PLN 590, 790, 990 or 1890 gross.</li>
+        <li>The Pro subscription provides storage for all Galleries and videos of the Account: 500 GB for PLN 59, 700 GB for PLN 79, 1000 GB for PLN 99 or 2000 GB for PLN 189 gross per month; paid 12 months in advance – PLN 708, 948, 1188 or 2268 gross.</li>
         <li>The subscription is paid in advance for a month or a year. It does not renew automatically – we send an e-mail reminder 7 days before the period ends. A new period is added to the current one.</li>
         <li>During the subscription the Photographer publishes Galleries without Plan fees, and Galleries are available to Clients until the end of the paid period and for 30 days after it. The subscription can be renewed during that time; if it is not, the Galleries expire and 30 days later we delete them together with their photos and videos.</li>
         <li>Photos, videos and draft Galleries in the subscription share one storage pool. Once it is full, no files can be added until the subscription is upgraded or some Galleries are deleted. Upgrading during a period requires paying the difference in the monthly price for the remaining days; a smaller plan can be chosen after the period ends.</li>
