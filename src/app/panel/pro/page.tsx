@@ -38,7 +38,9 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
   const included = [
     t("Galerie bez opłat za publikację – ile chcesz, w ramach miejsca", "Publish as many galleries as you like within your storage"),
     t("Galerie nie wygasają, dopóki trwa abonament", "Galleries don't expire while the subscription lasts"),
-    t(`Filmy w galerii bez dopłat – do ${tier?.videoHours ?? 10} godzin (liczą się do miejsca)`, `Videos in galleries at no extra cost – up to ${tier?.videoHours ?? 10} hours (count towards storage)`),
+    tier
+      ? t(`Filmy w galerii bez dopłat – do ${tier.videoHours} godzin (liczą się do miejsca)`, `Videos in galleries at no extra cost – up to ${tier.videoHours} hours (count towards storage)`)
+      : t("Filmy w galerii bez dopłat – limit godzin zależy od pakietu", "Videos in galleries at no extra cost – hour limit depends on the plan"),
     t("Wszystkie motywy galerii", "All gallery themes"),
     t("Moja strona – portfolio z formularzem i rezerwacjami", "My website – portfolio with contact form and bookings"),
     t("Własna domena galerii", "Custom gallery domain"),
