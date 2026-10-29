@@ -47,6 +47,8 @@ export type GalleryMeta = {
   pickLimit?: { max: number; label: string };
   // Filmy (oryginały w videos/<id>/, podgląd w Cloudflare Stream) – wyświetlane na górze galerii
   videos?: Video[];
+  // Filmy z YouTube (linki) wyświetlane na górze galerii – włącznik i lista
+  youtube?: { enabled: boolean; links: import("@/lib/youtube").YtLink[] };
   // Motyw galerii klienta (premium kupowane raz na konto)
   theme?: ThemeId;
   // „Znajdź siebie na zdjęciach”: opłacone, włączone, zgoda fotografa, liczba zindeksowanych zdjęć

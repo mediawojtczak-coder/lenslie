@@ -37,6 +37,8 @@ import AlbumTab from "./AlbumTab";
 import { getAlbumProject, getAlbumSub, albumActive, albumAllowed, freeAlbumFor } from "@/lib/albums";
 import { isAdminEmail } from "@/lib/supabase/admin";
 import ProGalleryBar from "./ProGalleryBar";
+import YouTubeCard from "./YouTubeCard";
+import { ytAllowed } from "@/lib/youtube";
 import { getProSub, proActive, proTier, proName, proBytes, proUsage } from "@/lib/pro";
 import type { PlanId } from "@/lib/plans";
 
@@ -286,6 +288,9 @@ export default async function ZarzadzanieGalerii({
             />
             <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} />
             <PickLimitCard id={id} limit={meta?.pickLimit ?? null} selling={Boolean(meta?.sale?.enabled)} />
+            {ytAllowed(user?.email) && (
+              <YouTubeCard id={id} enabled={Boolean(meta?.youtube?.enabled)} links={(meta?.youtube?.links ?? []).map((l) => l.url)} />
+            )}
             {meta?.plan !== "pro" && <ClientExtendCard id={id} on={meta?.clientExtend !== false} />}
             <GuestCard id={id} guest={meta?.guest ?? null} sections={meta?.sections ?? []} />
           </SettingsForm>

@@ -2646,3 +2646,7 @@ button.install-app { background: none; border: 0; font: inherit; color: inherit;
 .fv-small .fv-dock i { width: 26px; height: 26px; }
 .fv-small .fv-dock img { width: 32px; height: 32px; }
 .usd-note { text-align: center; max-width: 640px; margin: 32px auto 0; }
+.yt-links { display: grid; gap: 8px; margin: 14px 0 12px; }
+.yt-row { display: flex; gap: 10px; align-items: center; }
+.yt-row input { flex: 1; min-width: 0; }
+.yt-actions { display: flex; flex-wrap: wrap; gap: 10px; }

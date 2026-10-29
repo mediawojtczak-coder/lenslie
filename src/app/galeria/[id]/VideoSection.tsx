@@ -1,6 +1,6 @@
 import { T, type Lang } from "@/lib/i18n";
 
-export type ClientVideo = { id: string; name: string; iframe?: string; src: string; poster?: string; download?: string; size: number };
+export type ClientVideo = { id: string; name: string; iframe?: string; src: string; poster?: string; download?: string; size: number; youtube?: boolean };
 
 const fmtSize = (b: number) => (b >= 1024 ** 3 ? `${(b / 1024 ** 3).toFixed(1).replace(".", ",")} GB` : `${Math.max(1, Math.round(b / 1024 ** 2))} MB`);
 
@@ -13,7 +13,14 @@ export default function VideoSection({ videos, lang }: { videos: ClientVideo[]; 
         <figure key={v.id} className="g-video">
           <div className="g-video-frame">
             {v.iframe ? (
-              <iframe src={`${v.iframe}?preload=metadata&primaryColor=%23f4e8e3`} title={v.name} allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen loading="lazy" />
+              <iframe
+                src={v.youtube ? v.iframe : `${v.iframe}?preload=metadata&primaryColor=%23f4e8e3`}
+                title={v.name}
+                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy={v.youtube ? "strict-origin-when-cross-origin" : undefined}
+              />
             ) : (
               <video src={v.src} poster={v.poster} controls preload="metadata" playsInline />
             )}

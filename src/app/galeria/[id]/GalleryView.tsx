@@ -23,6 +23,7 @@ import FaceSearch from "./FaceSearch";
 import ExtendAccess from "./ExtendAccess";
 import { clientExtendOffer } from "@/lib/client-extend";
 import { refreshVideos, signedVideoUrl, iframeUrl } from "@/lib/videos";
+import { ytEmbed } from "@/lib/youtube";
 import { saveMeta } from "@/lib/galleries";
 
 const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
@@ -163,6 +164,10 @@ export default async function GalleryView({
         download: videoDownload ? await signedVideoUrl(v.key, v.name) : undefined,
       })),
   );
+  // Filmy z YouTube (linki dodane przez fotografa) – po filmach wgranych
+  if (meta?.youtube?.enabled) {
+    for (const l of meta.youtube.links ?? []) clientVideos.push({ id: `yt-${l.id}`, name: "YouTube", iframe: ytEmbed(l.id), src: "", size: 0, youtube: true });
+  }
   const musicUrl = meta?.music ? await getMusicUrl(id).catch(() => null) : null;
   const cover = pickCover(shown, meta?.cover) ?? pickCover(photos, meta?.cover);
 
