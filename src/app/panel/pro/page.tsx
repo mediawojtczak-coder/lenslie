@@ -7,7 +7,7 @@ import { getBilling } from "@/lib/billing";
 import { getWallet } from "@/lib/wallet";
 import { getOrder } from "@/lib/p24";
 import { formatBytes } from "@/lib/plans";
-import { getProSub, proActive, proInGrace, proGraceEnd, proTier, proName, proBytes, proUsage, proUpgradeCost, PRO_TIERS, type ProTierId } from "@/lib/pro";
+import { fmtDuration, proVideoSeconds, getProSub, proActive, proInGrace, proGraceEnd, proTier, proName, proBytes, proUsage, proUpgradeCost, PRO_TIERS, type ProTierId } from "@/lib/pro";
 import RefreshSoon from "../galeria/[id]/RefreshSoon";
 import ProBuy from "./ProBuy";
 
@@ -24,13 +24,14 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
     getProSub(user!.id),
     getBilling(user!.id),
     getWallet(user!.id),
-    proUsage(user!.id).catch(() => ({ bytes: 0, galleries: 0 })),
+    proUsage(user!.id).catch(() => ({ bytes: 0, galleries: 0, videoSeconds: 0 })),
     platnosc ? getOrder(platnosc).catch(() => null) : Promise.resolve(null),
   ]);
   const active = proActive(sub);
   const grace = proInGrace(sub);
   const tier = sub ? proTier(sub.tier) : undefined;
   const share = tier ? Math.min(1, usage.bytes / proBytes(tier)) : 0;
+  const vShare = tier ? Math.min(1, usage.videoSeconds / proVideoSeconds(tier)) : 0;
   const order_ = PRO_TIERS.map((x) => x.id);
   const upgrade: Partial<Record<ProTierId, number>> = {};
   if (active && tier) for (const x of PRO_TIERS) if (order_.indexOf(x.id) > order_.indexOf(tier.id)) upgrade[x.id] = proUpgradeCost(tier, x, sub!.paidUntil, sub!.months === 12 ? 12 : 1);
@@ -38,7 +39,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
   const included = [
     t("Galerie bez opłat za publikację – ile chcesz, w ramach miejsca", "Publish as many galleries as you like within your storage"),
     t("Galerie nie wygasają, dopóki trwa abonament", "Galleries don't expire while the subscription lasts"),
-    t("Filmy w galerii bez dopłat (liczą się do miejsca)", "Videos in galleries at no extra cost (count towards storage)"),
+    t(`Filmy w galerii bez dopłat – do ${tier?.videoHours ?? 10} godzin (liczą się do miejsca)`, `Videos in galleries at no extra cost – up to ${tier?.videoHours ?? 10} hours (count towards storage)`),
     t("Wszystkie motywy galerii", "All gallery themes"),
     t("Moja strona – portfolio z formularzem i rezerwacjami", "My website – portfolio with contact form and bookings"),
     t("Własna domena galerii", "Custom gallery domain"),
@@ -101,13 +102,21 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
                 {formatBytes(usage.bytes)} {t("z", "of")} {formatBytes(proBytes(tier))} · {t("zdjęcia, filmy i wersje robocze galerii", "photos, videos and draft galleries")}
               </p>
             </div>
+            <div className={vShare >= 1 ? "usage full" : vShare > 0.85 ? "usage warn" : "usage"}>
+              <div className="usage-bar">
+                <span style={{ width: `${Math.max(2, vShare * 100)}%` }} />
+              </div>
+              <p>
+                {t("Filmy", "Videos")}: {fmtDuration(usage.videoSeconds, lang)} {t("z", "of")} {tier.videoHours} h
+              </p>
+            </div>
           </section>
         )}
 
         <div className="pro-grid">
           <section className="settings-card">
             <h2>{active ? t("Przedłuż albo zmień pakiet", "Extend or upgrade") : grace ? t("Odnów abonament", "Renew") : t("Wybierz pakiet", "Choose a plan")}</h2>
-            <ProBuy current={sub?.tier ?? null} active={active} usedBytes={usage.bytes} upgrade={upgrade} balance={wallet.balance} billing={billing} />
+            <ProBuy current={sub?.tier ?? null} active={active} usedBytes={usage.bytes} videoSeconds={usage.videoSeconds} upgrade={upgrade} balance={wallet.balance} billing={billing} />
             <p className="hint-inline">
               {t(
                 "Abonament nie odnawia się sam – przypomnimy mailem 7 dni przed końcem. Po końcu galerie działają jeszcze 30 dni.",

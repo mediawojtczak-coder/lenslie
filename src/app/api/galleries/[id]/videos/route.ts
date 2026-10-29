@@ -19,7 +19,7 @@ import { spend, getWallet, zlFromGr } from "@/lib/wallet";
 import { notifyAdmins } from "@/lib/email";
 import { p24Enabled, newSessionId, saveOrder, registerTransaction } from "@/lib/p24";
 import { videoPrefix, videoPrice, monthsLeft, startVideos, deleteVideo, type Video } from "@/lib/videos";
-import { activePro, galleryOwnerId, proFits, proName, proBytes } from "@/lib/pro";
+import { activePro, galleryOwnerId, proFits, proName, proBytes, proUsage, proVideoSeconds, fmtDuration } from "@/lib/pro";
 import { formatBytes } from "@/lib/plans";
 import { getLang } from "@/lib/lang-server";
 
@@ -51,7 +51,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         const owner = await galleryOwnerId(id);
         const sub = owner ? await activePro(owner) : null;
         if (!sub) return NextResponse.json({ error: await E("Abonament Pro się skończył – odnów go, aby dodawać filmy.") }, { status: 402 });
-        const fit = await proFits(owner!, sub, size);
+        const fit = await proFits(owner!, sub, size, false);
+        // limit długości filmów w pakiecie
+        const duration = Math.max(1, Math.round(Number(body.duration) || 60));
+        const { videoSeconds } = await proUsage(owner!);
+        if (videoSeconds + duration > proVideoSeconds(fit.tier)) {
+          const en = (await getLang()) === "en";
+          const left = fmtDuration(Math.max(0, proVideoSeconds(fit.tier) - videoSeconds), en ? "en" : "pl");
+          return NextResponse.json(
+            {
+              error: en
+                ? `${proName(fit.tier)} includes up to ${fit.tier.videoHours} h of video. Left: ${left}. Upgrade your subscription or delete older videos.`
+                : `Abonament ${proName(fit.tier)} obejmuje filmy do ${fit.tier.videoHours} godzin. Zostało: ${left}. Zmień abonament na większy albo usuń starsze filmy.`,
+            },
+            { status: 402 },
+          );
+        }
         if (!fit.ok) {
           const en = (await getLang()) === "en";
           const free = formatBytes(Math.max(0, proBytes(fit.tier) - fit.used));

@@ -2,15 +2,16 @@
 // Plik bez zależności serwerowych – używany też w cenniku i panelu.
 
 export type ProTierId = "pro500" | "pro700" | "pro1000" | "pro2000";
-export type ProTier = { id: ProTierId; gb: number; monthly: number; yearly: number; featured?: boolean };
+// videoHours – limit długości filmów w galeriach (podgląd w Cloudflare Stream kosztuje za każdą minutę)
+export type ProTier = { id: ProTierId; gb: number; videoHours: number; monthly: number; yearly: number; featured?: boolean };
 export type ProMonths = 1 | 12;
 
 export const PRO_TIERS: ProTier[] = [
   // rok = 12 × cena miesięczna (bez rabatu)
-  { id: "pro500", gb: 500, monthly: 59, yearly: 708 },
-  { id: "pro700", gb: 700, monthly: 79, yearly: 948, featured: true },
-  { id: "pro1000", gb: 1000, monthly: 99, yearly: 1188 },
-  { id: "pro2000", gb: 2000, monthly: 189, yearly: 2268 },
+  { id: "pro500", gb: 500, videoHours: 10, monthly: 59, yearly: 708 },
+  { id: "pro700", gb: 700, videoHours: 15, monthly: 79, yearly: 948, featured: true },
+  { id: "pro1000", gb: 1000, videoHours: 20, monthly: 99, yearly: 1188 },
+  { id: "pro2000", gb: 2000, videoHours: 40, monthly: 189, yearly: 2268 },
 ];
 
 // Galerie działają jeszcze tyle dni po końcu abonamentu (czas na odnowienie)
@@ -27,6 +28,16 @@ export function proTier(id: unknown): ProTier | undefined {
 export const proName = (t: ProTier) => `Pro ${t.gb >= 1000 ? `${t.gb / 1000} TB` : `${t.gb} GB`}`;
 export const proBytes = (t: ProTier) => t.gb * GB;
 export const proHardLimit = (t: ProTier) => Math.floor(proBytes(t) * (1 + PRO_TOLERANCE));
+export const proVideoSeconds = (t: ProTier) => t.videoHours * 3600;
+
+// „2 h 15 min” / „45 min”
+export function fmtDuration(sec: number, lang: "pl" | "en" = "pl") {
+  const m = Math.round(sec / 60);
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return h ? (r ? `${h} h ${r} min` : `${h} h`) : `${r} min`;
+}
+
 export const proPrice = (t: ProTier, months: ProMonths) => (months === 12 ? t.yearly : t.monthly);
 
 // Dopłata za przejście na większy abonament w trakcie okresu: różnica ceny × pozostałe dni

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { E } from "@/lib/api-lang";
 import { getUser } from "@/lib/supabase/server";
 import { purchase } from "@/lib/purchase";
-import { getProSub, proActive, proUsage, proTier, proName, proPrice, proHardLimit, proUpgradeCost, PRO_TIERS } from "@/lib/pro";
+import { fmtDuration, proVideoSeconds, getProSub, proActive, proUsage, proTier, proName, proPrice, proHardLimit, proUpgradeCost, PRO_TIERS } from "@/lib/pro";
 import { formatBytes } from "@/lib/plans";
 import { getLang } from "@/lib/lang-server";
 
@@ -49,7 +49,18 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  const { bytes } = await proUsage(user.id);
+  const { bytes, videoSeconds } = await proUsage(user.id);
+  if (videoSeconds > proVideoSeconds(tier)) {
+    const en = (await getLang()) === "en";
+    return NextResponse.json(
+      {
+        error: en
+          ? `Your galleries have ${fmtDuration(videoSeconds, "en")} of video, and ${proName(tier)} includes up to ${tier.videoHours} h – choose a bigger plan or delete some videos.`
+          : `Filmy w Twoich galeriach trwają ${fmtDuration(videoSeconds)}, a ${proName(tier)} obejmuje do ${tier.videoHours} h – wybierz większy pakiet albo usuń część filmów.`,
+      },
+      { status: 400 },
+    );
+  }
   if (bytes > proHardLimit(tier)) {
     const en = (await getLang()) === "en";
     return NextResponse.json(

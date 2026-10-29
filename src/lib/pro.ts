@@ -133,9 +133,10 @@ export async function syncPro(uid: string, sub: ProSub) {
 }
 
 // Zajęte miejsce z puli: galerie w abonamencie i wersje robocze (zdjęcia + filmy)
-export async function proUsage(uid: string): Promise<{ bytes: number; galleries: number }> {
+export async function proUsage(uid: string): Promise<{ bytes: number; galleries: number; videoSeconds: number }> {
   let bytes = 0;
   let galleries = 0;
+  let videoSeconds = 0;
   const ids = await ownedGalleryIds(uid);
   await Promise.all(
     ids.map(async (id) => {
@@ -143,10 +144,12 @@ export async function proUsage(uid: string): Promise<{ bytes: number; galleries:
       if (!meta || (meta.plan && meta.plan !== "pro")) return;
       galleries += meta.plan === "pro" ? 1 : 0;
       bytes += await getGalleryUsage(id).catch(() => 0);
-      bytes += (meta.videos ?? []).filter((v) => v.status !== "error").reduce((s, v) => s + (v.size || 0), 0);
+      const vids = (meta.videos ?? []).filter((v) => v.status !== "error");
+      bytes += vids.reduce((s, v) => s + (v.size || 0), 0);
+      videoSeconds += vids.reduce((s, v) => s + (v.duration || 0), 0);
     }),
   );
-  return { bytes, galleries };
+  return { bytes, galleries, videoSeconds };
 }
 
 // Zajęte miejsce zapamiętane na 10 minut (liczenie przegląda wszystkie galerie) – przy wgrywaniu doliczamy nowe pliki

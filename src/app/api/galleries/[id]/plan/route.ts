@@ -9,7 +9,7 @@ import { cleanBilling, saveBilling } from "@/lib/billing";
 import { spend, getWallet, zlFromGr } from "@/lib/wallet";
 import { notifyAdmins } from "@/lib/email";
 import { getLang } from "@/lib/lang-server";
-import { activePro, proFits, proGraceEnd, proName } from "@/lib/pro";
+import { activePro, proFits, proGraceEnd, proName, proUsage, proVideoSeconds } from "@/lib/pro";
 import { getGalleryUsage } from "@/lib/photos";
 import { formatBytes } from "@/lib/plans";
 
@@ -36,7 +36,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (meta.plan === "pro") return NextResponse.json({ ok: true });
     // wersja robocza jest już liczona do puli; opłaconą galerię doliczamy
     const extra = meta.plan ? (await getGalleryUsage(id)) + (meta.videos ?? []).reduce((s, v) => s + (v.size || 0), 0) : 0;
-    const fit = await proFits(user.id, sub, extra);
+    const fit = await proFits(user.id, sub, extra, false);
+    const vSec = meta.plan ? (meta.videos ?? []).filter((v) => v.status !== "error").reduce((s, v) => s + (v.duration || 0), 0) : 0;
+    if (vSec > 0 && (await proUsage(user.id)).videoSeconds + vSec > proVideoSeconds(fit.tier)) {
+      const en = (await getLang()) === "en";
+      return NextResponse.json(
+        {
+          error: en
+            ? `The videos in this gallery exceed the ${fit.tier.videoHours} h video limit of ${proName(fit.tier)}. Upgrade your subscription or delete some videos.`
+            : `Filmy w tej galerii przekroczą limit ${fit.tier.videoHours} godzin filmów w abonamencie ${proName(fit.tier)}. Zmień abonament na większy albo usuń część filmów.`,
+        },
+        { status: 402 },
+      );
+    }
     if (!fit.ok) {
       const en = (await getLang()) === "en";
       return NextResponse.json(

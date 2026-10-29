@@ -141,8 +141,8 @@ export default function VideoManager({
       <p className="hint-inline">
         {published && pro
           ? t(
-              "Film w oryginalnej jakości do pobrania i lekki podgląd do oglądania – na samej górze galerii. W abonamencie Pro filmy są w cenie, a ich rozmiar wlicza się do miejsca na Twoje galerie.",
-              "The original-quality video for download plus a light preview for watching – at the very top of the gallery. With Pro, videos are included and their size counts towards your storage.",
+              "Film w oryginalnej jakości do pobrania i lekki podgląd do oglądania – na samej górze galerii. W abonamencie Pro filmy są w cenie do limitu godzin pakietu, a ich rozmiar wlicza się do miejsca na Twoje galerie.",
+              "The original-quality video for download plus a light preview for watching – at the very top of the gallery. With Pro, videos are included up to your plan's hour limit and their size counts towards your storage.",
             )
           : published
           ? t(

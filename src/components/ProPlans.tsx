@@ -9,7 +9,6 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
   const included = [
     t("Galerie bez opłat za publikację", "Publish galleries at no extra cost"),
     t("Galerie nie wygasają, dopóki trwa abonament", "Galleries don't expire while you're subscribed"),
-    t("Filmy w galerii bez dopłat", "Videos at no extra cost"),
     t("Wszystkie płatne dodatki w cenie", "All paid add-ons included"),
   ];
 
@@ -44,6 +43,9 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
             <ul className="plan-facts">
               <li>
                 <strong>{x.gb >= 1000 ? `${x.gb / 1000} TB` : `${x.gb} GB`}</strong> {t("na wszystkie galerie i filmy", "for all galleries and videos")}
+              </li>
+              <li>
+                {t("Filmy w galerii bez dopłat – do", "Videos at no extra cost – up to")} <strong>{x.videoHours} h</strong>
               </li>
               {included.map((i) => (
                 <li key={i}>{i}</li>
@@ -119,8 +121,8 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
         </div>
         <p className="hint-inline">
           {t(
-            "Filmy w galeriach Pro są w cenie i liczą się do miejsca. Abonament nie odnawia się sam; po jego końcu galerie działają jeszcze 30 dni. Wydruk albumów zamawiasz osobno.",
-            "Videos in Pro galleries are included and count towards storage. The subscription doesn't renew automatically; after it ends galleries keep working for 30 days. Printed albums are ordered separately.",
+            "Filmy w galeriach Pro są w cenie do limitu godzin pakietu i liczą się do miejsca. Abonament nie odnawia się sam; po jego końcu galerie działają jeszcze 30 dni. Wydruk albumów zamawiasz osobno.",
+            "Videos in Pro galleries are included up to the plan's hour limit and count towards storage. The subscription doesn't renew automatically; after it ends galleries keep working for 30 days. Printed albums are ordered separately.",
           )}
         </p>
       </div>

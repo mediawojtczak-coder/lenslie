@@ -6,13 +6,14 @@ import { tr, money } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
 import InvoiceFields from "@/components/InvoiceFields";
 import type { Billing } from "@/lib/billing";
-import { PRO_TIERS, proName, proPrice, proHardLimit, type ProTierId, type ProMonths } from "@/lib/pro-plans";
+import { PRO_TIERS, proName, proPrice, proHardLimit, proVideoSeconds, type ProTierId, type ProMonths } from "@/lib/pro-plans";
 
 // Zakup / przedłużenie abonamentu Pro albo zmiana na większy pakiet
 export default function ProBuy({
   current,
   active,
   usedBytes,
+  videoSeconds = 0,
   upgrade,
   balance,
   billing,
@@ -20,6 +21,7 @@ export default function ProBuy({
   current: ProTierId | null; // aktualny (lub ostatni) pakiet
   active: boolean;
   usedBytes: number;
+  videoSeconds?: number; // łączna długość filmów w galeriach
   upgrade: Partial<Record<ProTierId, number>>; // dopłaty za zmianę na większy (zł)
   balance: number;
   billing: Billing;
@@ -79,7 +81,7 @@ export default function ProBuy({
 
       <div className="pro-tiers">
         {PRO_TIERS.map((x) => {
-          const tooSmall = usedBytes > proHardLimit(x);
+          const tooSmall = usedBytes > proHardLimit(x) || videoSeconds > proVideoSeconds(x);
           const hidden = (lockedTier && x.id !== current) || (mode === "upgrade" && !bigger.some((b) => b.id === x.id));
           if (hidden) return null;
           return (
@@ -89,10 +91,11 @@ export default function ProBuy({
               className={tier === x.id ? "pro-tier on" : "pro-tier"}
               disabled={tooSmall}
               onClick={() => setTier(x.id)}
-              title={tooSmall ? t("Twoje galerie zajmują więcej miejsca", "Your galleries use more space") : undefined}
+              title={tooSmall ? t("Twoje galerie zajmują więcej miejsca albo mają dłuższe filmy", "Your galleries use more space or longer videos") : undefined}
             >
               {x.featured && !active && <span className="pub-badge">{t("Najczęściej wybierany", "Most popular")}</span>}
               <strong>{proName(x)}</strong>
+              <small>{t(`filmy do ${x.videoHours} h`, `videos up to ${x.videoHours} h`)}</small>
               {mode === "upgrade" ? (
                 <em>
                   +{money(upgrade[x.id] ?? 0, lang)} <small>{t("do końca okresu", "until period end")}</small>
