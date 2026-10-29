@@ -35,12 +35,14 @@ export default function VideoManager({
   published,
   balance,
   billing,
+  pro = false,
 }: {
   id: string;
   videos: VideoRow[];
   published: boolean;
   balance: number;
   billing: Billing;
+  pro?: boolean; // galeria w abonamencie Pro: filmy bez opłat (liczone do puli miejsca)
 }) {
   const lang = useLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
@@ -137,7 +139,12 @@ export default function VideoManager({
         )}
       </div>
       <p className="hint-inline">
-        {published
+        {published && pro
+          ? t(
+              "Film w oryginalnej jakości do pobrania i lekki podgląd do oglądania – na samej górze galerii. W abonamencie Pro filmy są w cenie, a ich rozmiar wlicza się do miejsca na Twoje galerie.",
+              "The original-quality video for download plus a light preview for watching – at the very top of the gallery. With Pro, videos are included and their size counts towards your storage.",
+            )
+          : published
           ? t(
               "Film w oryginalnej jakości do pobrania i lekki podgląd do oglądania – na samej górze galerii. Cenę liczymy po wgraniu: zależy od wielkości i długości filmu oraz czasu do końca dostępu do galerii.",
               "The original-quality video for download plus a light preview for watching – at the very top of the gallery. We price it after upload, based on file size, length and the time left on the gallery.",

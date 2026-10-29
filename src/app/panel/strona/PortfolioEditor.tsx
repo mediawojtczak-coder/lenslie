@@ -55,6 +55,7 @@ export default function PortfolioEditor({
   logo,
   events,
   prices,
+  pro = null,
   balance,
   billing,
 }: {
@@ -66,6 +67,7 @@ export default function PortfolioEditor({
   logo: string | null;
   events: { id: string; title: string; price: string; free: number }[];
   prices: Record<number, number>;
+  pro?: string | null; // nazwa aktywnego abonamentu Pro – strona w cenie
   balance: number;
   billing: Billing;
 }) {
@@ -324,6 +326,22 @@ export default function PortfolioEditor({
         {note("photos")}
       </section>
 
+      {pro ? (
+      <section className="settings-card">
+        <h2>{active ? t("Strona w abonamencie Pro", "Website included in Pro") : t("Włącz stronę", "Turn on your website")}</h2>
+        <p>
+          {active
+            ? t(`Strona działa w ramach abonamentu ${pro} – bez dodatkowych opłat, dopóki trwa abonament.`, `Your website runs as part of ${pro} – no extra charge while the subscription lasts.`)
+            : t(`W abonamencie ${pro} strona jest w cenie. Zapisz jej adres, a włączymy ją automatycznie.`, `With ${pro} the website is included. Save its address and we'll turn it on automatically.`)}
+        </p>
+        {!active && s.slug && (
+          <button type="button" className="btn btn-dark" disabled={busy === "pay"} onClick={() => run("pay", { action: "pay", months: 1, pay: "wallet" })}>
+            {t("Włącz stronę", "Turn on the website")}
+          </button>
+        )}
+        {note("pay")}
+      </section>
+      ) : (
       <section className="settings-card">
         <h2>{active ? t("Przedłuż abonament", "Extend subscription") : t("Włącz stronę", "Turn on your website")}</h2>
         <p>
@@ -355,6 +373,7 @@ export default function PortfolioEditor({
         />
         {!s.slug && <p className="hint-inline">{t("Najpierw zapisz adres strony.", "Save the page address first.")}</p>}
       </section>
+      )}
     </div>
 
     <aside className="pf-preview" aria-label={t("Podgląd strony", "Website preview")}>

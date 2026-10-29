@@ -4,6 +4,7 @@ import { r2, BUCKET, safeFileName, baseName, galleryPrefix } from "@/lib/r2";
 import { getMeta, isExpired, watermarkOn } from "@/lib/galleries";
 import { getGalleryUsage, listKeys } from "@/lib/photos";
 import { getPlan, hardLimitBytes, formatBytes, planBytes, MAX_PLAN } from "@/lib/plans";
+import { activePro, galleryOwnerId, proFits, proName, proBytes } from "@/lib/pro";
 
 export type FileInfo = { name: string; type?: string; size?: number };
 export type PreparedUpload = { name: string; file: string; type: string; originalUrl: string; webUrl: string; wmUrl?: string };
@@ -32,9 +33,37 @@ export async function prepareUploads(gallery: string, files: FileInfo[], lang: "
       error: en ? "Access to this gallery has expired. Extend it to add photos." : "Dostęp do tej galerii wygasł. Przedłuż go, aby dodać zdjęcia.",
     };
   }
-  const used = await getGalleryUsage(gallery);
   const wm = watermarkOn(meta);
   const incoming = files.reduce((sum, f) => sum + Math.max(0, Number(f.size) || 0), 0) * (1 + WEB_SHARE * (wm ? 2 : 1));
+
+  // Abonament Pro: galerie w abonamencie i wersje robocze korzystają ze wspólnej puli konta
+  const owner = !meta?.plan || meta.plan === "pro" ? await galleryOwnerId(gallery).catch(() => null) : null;
+  const sub = owner ? await activePro(owner) : null;
+  if (meta?.plan === "pro" && !sub) {
+    return {
+      ok: false,
+      status: 402,
+      code: "PRO_ENDED",
+      error: en
+        ? "Your Pro subscription has ended. Renew it to add photos – the gallery stays visible to your client for now."
+        : "Abonament Pro się skończył. Odnów go, aby dodawać zdjęcia – klient na razie nadal widzi galerię.",
+    };
+  }
+  if (sub) {
+    const fit = await proFits(owner!, sub, incoming);
+    if (fit.ok) return { ok: true, uploads: await sign(), watermark: wm ? (meta?.watermark?.text ?? null) : null };
+    const free = Math.max(0, proBytes(fit.tier) - fit.used);
+    return {
+      ok: false,
+      status: 402,
+      code: "PRO_LIMIT",
+      error: en
+        ? `These photos will not fit in ${proName(fit.tier)}. Free space: ${formatBytes(free)}. Upgrade your subscription or delete old galleries.`
+        : `Te zdjęcia nie zmieszczą się w abonamencie ${proName(fit.tier)}. Wolne miejsce: ${formatBytes(free)}. Zmień abonament na większy albo usuń stare galerie.`,
+    };
+  }
+
+  const used = await getGalleryUsage(gallery);
   if (used + incoming > hardLimitBytes(plan)) {
     const free = Math.max(0, planBytes(plan) - used);
     return {
@@ -51,10 +80,14 @@ export async function prepareUploads(gallery: string, files: FileInfo[], lang: "
     };
   }
 
+  return { ok: true, uploads: await sign(), watermark: wm ? (meta?.watermark?.text ?? null) : null };
+
+  // Podpisane linki do wgrania oryginału, wersji do oglądania i (opcjonalnie) ze znakiem wodnym
+  async function sign() {
   const prefix = galleryPrefix(gallery);
-  const sign = (Key: string, ContentType: string) =>
+  const signUrl = (Key: string, ContentType: string) =>
     getSignedUrl(r2, new PutObjectCommand({ Bucket: BUCKET, Key, ContentType }), { expiresIn: 3600 });
-  const uploads = await Promise.all(
+  return Promise.all(
     files.map(async (f) => {
       const type = f.type && ALLOWED.includes(f.type) ? f.type : "image/jpeg";
       const file = safeFileName(String(f.name ?? "zdjecie.jpg"));
@@ -63,13 +96,13 @@ export async function prepareUploads(gallery: string, files: FileInfo[], lang: "
         name: f.name,
         file,
         type,
-        originalUrl: await sign(`${prefix}original/${file}`, type),
-        webUrl: await sign(`${prefix}web/${webName}`, "image/jpeg"),
-        wmUrl: wm && withWm ? await sign(`${prefix}wm/${webName}`, "image/jpeg") : undefined,
+        originalUrl: await signUrl(`${prefix}original/${file}`, type),
+        webUrl: await signUrl(`${prefix}web/${webName}`, "image/jpeg"),
+        wmUrl: wm && withWm ? await signUrl(`${prefix}wm/${webName}`, "image/jpeg") : undefined,
       };
     }),
   );
-  return { ok: true, uploads, watermark: wm ? (meta?.watermark?.text ?? null) : null };
+  }
 }
 
 // Usuwa zdjęcia (oryginał, wersję do oglądania i ze znakiem wodnym) po nazwach bez rozszerzenia

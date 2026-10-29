@@ -7,7 +7,8 @@ import { siteUrl } from "@/lib/email";
 import { getBilling } from "@/lib/billing";
 import { getWallet } from "@/lib/wallet";
 import { getOrder } from "@/lib/p24";
-import { getSite, emptySite, photoUrls, portfolioActive, PORTFOLIO_PRICES } from "@/lib/portfolio";
+import { getSite, saveSite, emptySite, photoUrls, portfolioActive, PORTFOLIO_PRICES } from "@/lib/portfolio";
+import { activePro, proGraceEnd, proTier, proName } from "@/lib/pro";
 import RefreshSoon from "../galeria/[id]/RefreshSoon";
 import PortfolioEditor from "./PortfolioEditor";
 import { Great_Vibes } from "next/font/google";
@@ -32,7 +33,14 @@ export default async function Strona({ searchParams }: { searchParams: Promise<{
     getWallet(user!.id),
     platnosc ? getOrder(platnosc) : Promise.resolve(null),
   ]);
+  // Abonament Pro: strona w cenie – włączamy ją, gdy ma już adres
+  const pro = await activePro(user!.id);
+  if (pro && site.slug && !portfolioActive(site)) {
+    site.paidUntil = proGraceEnd(pro).toISOString();
+    await saveSite(site).catch(() => undefined);
+  }
   const active = portfolioActive(site);
+  const proT = pro ? proTier(pro.tier) : undefined;
   const brand = await getUserBrand(user!.id).catch(() => null);
   const events = (
     await Promise.all(
@@ -84,6 +92,7 @@ export default async function Strona({ searchParams }: { searchParams: Promise<{
           logo={brand?.logoUrl ?? null}
           events={events}
           prices={PORTFOLIO_PRICES}
+          pro={proT ? proName(proT) : null}
           balance={wallet.balance}
           billing={billing}
         />

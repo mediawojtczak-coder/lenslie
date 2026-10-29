@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { activePro, proGraceEnd } from "@/lib/pro";
 import { E } from "@/lib/api-lang";
 import { getUser } from "@/lib/supabase/server";
 import { spend, getWallet, zlFromGr, addEntries } from "@/lib/wallet";
@@ -44,8 +45,9 @@ export async function POST(req: Request) {
     if (taken && taken.uid !== user.id) return NextResponse.json({ error: await E("Ta domena jest już przypisana do innego konta.") }, { status: 409 });
     if (current?.host === host) return NextResponse.json({ ok: true });
 
-    // Zakup: pobieramy opłatę z salda; zmiana adresu w trakcie opłaconego okresu jest bezpłatna
-    const paidActive = domainActive(current);
+    // Zakup: pobieramy opłatę z salda; zmiana adresu w trakcie opłaconego okresu jest bezpłatna; w abonamencie Pro – w cenie
+    const pro = await activePro(user.id);
+    const paidActive = domainActive(current) || Boolean(pro);
     if (!paidActive) {
       const ok = await spend(user.id, price, `Własna domena ${host} – 12 mies.`, `domain-${host}-${Date.now()}`);
       if (!ok) return NextResponse.json({ error: await E("Za mało środków na saldzie."), code: "FUNDS" }, { status: 402 });
@@ -65,9 +67,13 @@ export async function POST(req: Request) {
       host,
       uid: user.id,
       addedAt: new Date().toISOString(),
-      paidUntil: paidActive ? current!.paidUntil : addMonths(new Date(), 12).toISOString(),
+      paidUntil: pro
+        ? new Date(Math.max(proGraceEnd(pro).getTime(), domainActive(current) ? new Date(current!.paidUntil).getTime() : 0)).toISOString()
+        : paidActive
+          ? current!.paidUntil
+          : addMonths(new Date(), 12).toISOString(),
     });
-    if (!paidActive) {
+    if (!paidActive && !pro) {
       await notifyAdmins(`Zakup domeny: ${DOMAIN_PRICE} zł – ${user.email}`, "Nowy zakup: własna domena", [
         `Domena: ${host} (12 mies., z salda).`,
         `Konto: ${user.email}. Pozostało na saldzie: ${zlFromGr((await getWallet(user.id)).balance)}.`,
@@ -78,6 +84,12 @@ export async function POST(req: Request) {
 
   if (body.action === "renew") {
     if (!current) return NextResponse.json({ error: await E("Brak domeny.") }, { status: 404 });
+    const pro = await activePro(user.id);
+    if (pro) {
+      await saveDomain({ ...current, paidUntil: proGraceEnd(pro).toISOString(), reminded: false, detached: false });
+      if (!domainActive(current)) await vercelAddDomain(current.host);
+      return NextResponse.json({ ok: true, free: true });
+    }
     const ok = await spend(user.id, price, `Przedłużenie domeny ${current.host} – 12 mies.`, `domain-renew-${Date.now()}`);
     if (!ok) return NextResponse.json({ error: await E("Za mało środków na saldzie."), code: "FUNDS" }, { status: 402 });
     const base = domainActive(current) ? new Date(current.paidUntil) : new Date();

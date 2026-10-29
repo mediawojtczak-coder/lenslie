@@ -19,7 +19,8 @@ export type GalleryMeta = {
   createdAt: string;
   layout?: "mozaika" | "siatka";
   // Pakiet: rozmiar, okres publikacji i data wygaśnięcia dostępu dla klienta
-  plan?: PlanId;
+  // "pro" – galeria w abonamencie Pro (dostęp do końca abonamentu + 30 dni, miejsce z puli konta)
+  plan?: PlanId | "pro";
   period?: Period;
   expiresAt?: string;
   // Zdjęcie główne (okładka) – nazwa zdjęcia bez rozszerzenia; brak = pierwsze zdjęcie

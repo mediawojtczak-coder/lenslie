@@ -30,13 +30,14 @@ export function clientExtendPrice(meta: GalleryMeta, period: Period): { amount: 
 }
 
 export function clientExtendOn(meta: GalleryMeta | null) {
-  if (!meta?.plan || !meta.expiresAt || meta.clientExtend === false) return false;
+  // galerie w abonamencie Pro trwają razem z abonamentem fotografa – klient ich nie przedłuża
+  if (!meta?.plan || meta.plan === "pro" || !meta.expiresAt || meta.clientExtend === false) return false;
   return Date.now() <= new Date(meta.expiresAt).getTime() + CLIENT_GRACE_DAYS * DAY;
 }
 
 // Czy klient może sam przedłużyć galerię i za ile
 export async function clientExtendOffer(_id: string, meta: GalleryMeta | null): Promise<ExtendOffer | null> {
-  if (!meta?.plan || !meta.expiresAt) return null;
+  if (!meta?.plan || meta.plan === "pro" || !meta.expiresAt) return null;
   const exp = new Date(meta.expiresAt).getTime();
   const canExtend = clientExtendOn(meta);
   if (!canExtend && isExpired(meta)) return null;

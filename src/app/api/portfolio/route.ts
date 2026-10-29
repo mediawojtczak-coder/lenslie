@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { activePro, proGraceEnd } from "@/lib/pro";
 import { randomBytes } from "crypto";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -88,6 +89,13 @@ export async function POST(req: Request) {
     case "pay": {
       const months = Number(body.months) === 12 ? 12 : 1;
       if (!site.slug) return NextResponse.json({ error: await E("Najpierw zapisz adres strony.") }, { status: 400 });
+      // abonament Pro: strona działa razem z abonamentem
+      const pro = await activePro(user.id);
+      if (pro) {
+        const until = proGraceEnd(pro).toISOString();
+        if (!site.paidUntil || site.paidUntil < until) await saveSite({ ...site, paidUntil: until });
+        return NextResponse.json({ ok: true, free: true });
+      }
       return purchase({
         req,
         user,

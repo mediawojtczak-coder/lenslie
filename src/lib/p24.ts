@@ -27,7 +27,8 @@ export type ProductAction =
   | { action: "product"; product: "portfolio"; uid: string; months: number }
   | { action: "product"; product: "faces"; uid: string; galleryId: string }
   | { action: "product"; product: "album"; uid: string; months: number }
-  | { action: "product"; product: "print"; uid: string; orderId: string };
+  | { action: "product"; product: "print"; uid: string; orderId: string }
+  | { action: "product"; product: "pro"; uid: string; tier: import("@/lib/pro-plans").ProTierId; months: number; upgrade?: boolean };
 
 export type Order = {
   sessionId: string;

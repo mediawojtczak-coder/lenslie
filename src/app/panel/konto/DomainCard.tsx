@@ -82,7 +82,14 @@ export default function DomainCard({
       <p>
         {t("Galerie pod Twoim adresem, np.", "Galleries at your own address, e.g.")}{" "}
         <strong>{t("galerie.twojastrona.pl/anna-i-marek", "photos.yourwebsite.com/anna-and-mark")}</strong> {t("zamiast lenslie.com. Koszt:", "instead of lenslie.com. Cost:")}{" "}
-        <strong>{z(price)} {t("za rok", "per year")}</strong>{t(", płatne z salda.", ", paid from your balance.")}
+        {price > 0 ? (
+          <>
+            <strong>{z(price)} {t("za rok", "per year")}</strong>
+            {t(", płatne z salda.", ", paid from your balance.")}
+          </>
+        ) : (
+          <strong>{t("w cenie abonamentu Pro.", "included in your Pro subscription.")}</strong>
+        )}
       </p>
       <p className="dom-need">
         <strong>{t("Potrzebujesz własnej domeny", "You need your own domain")}</strong>{" "}
@@ -217,9 +224,11 @@ export default function DomainCard({
             )
           )}
           <div className="domain-actions">
-            <button type="button" className="btn btn-ghost btn-small" disabled={busy} onClick={() => run({ action: "renew" })}>
-              {t("Przedłuż o rok", "Renew for a year")} ({z(price)})
-            </button>
+            {(price > 0 || !active) && (
+              <button type="button" className="btn btn-ghost btn-small" disabled={busy} onClick={() => run({ action: "renew" })}>
+                {price > 0 ? `${t("Przedłuż o rok", "Renew for a year")} (${z(price)})` : t("Włącz ponownie", "Turn on again")}
+              </button>
+            )}
             <button
               type="button"
               className="as-link danger"
@@ -246,7 +255,7 @@ export default function DomainCard({
           </p>
         )}
         <button type="submit" className="btn" disabled={busy || !host.trim()}>
-          {busy ? t("Podłączam…", "Connecting…") : rec && active ? t("Zmień adres", "Change address") : `${t("Kup i podłącz za", "Buy and connect for")} ${z(price)}`}
+          {busy ? t("Podłączam…", "Connecting…") : rec && active ? t("Zmień adres", "Change address") : price > 0 ? `${t("Kup i podłącz za", "Buy and connect for")} ${z(price)}` : t("Podłącz domenę", "Connect domain")}
         </button>
         {!(rec && active) && (
           <p className="test-note left">{t("Stan salda", "Balance")}: {money(balance / 100, lang, true)}</p>

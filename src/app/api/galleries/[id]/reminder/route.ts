@@ -15,7 +15,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const err = (pl: string, eng: string, status = 400) => NextResponse.json({ error: en ? eng : pl }, { status });
   if (!isValidGalleryId(id)) return err("Nie znaleziono galerii.", "Gallery not found.", 404);
   const meta = await getMeta(id).catch(() => null);
-  if (!meta?.plan || !meta.expiresAt || isExpired(meta)) return err("Tej galerii nie można ustawić przypomnienia.", "Reminders aren't available for this gallery.");
+  if (!meta?.plan || meta.plan === "pro" || !meta.expiresAt || isExpired(meta)) return err("Tej galerii nie można ustawić przypomnienia.", "Reminders aren't available for this gallery.");
   const store = await cookies();
   if (!hasAccess(id, meta, store.get(accessCookieName(id))?.value)) return err("Otwórz galerię, aby ustawić przypomnienie.", "Open the gallery to set a reminder.", 403);
   const email = String(body.email ?? "").trim().toLowerCase();

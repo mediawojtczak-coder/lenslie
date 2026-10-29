@@ -125,10 +125,15 @@ export default function GuestEditor({
         <section className="settings-card">
           <h2>{t("Aktywuj galerię gości", "Activate the guest gallery")}</h2>
           <p>
-            {t(
-              `Jednorazowo ${money(price, lang)}: goście dodają i oglądają zdjęcia przez rok, do ${limitGb} GB. Po roku masz jeszcze 30 dni na pobranie wszystkiego.`,
-              `One-off ${money(price, lang)}: guests upload and view photos for a year, up to ${limitGb} GB. After a year you have 30 more days to download everything.`,
-            )}
+            {price > 0
+              ? t(
+                  `Jednorazowo ${money(price, lang)}: goście dodają i oglądają zdjęcia przez rok, do ${limitGb} GB. Po roku masz jeszcze 30 dni na pobranie wszystkiego.`,
+                  `One-off ${money(price, lang)}: guests upload and view photos for a year, up to ${limitGb} GB. After a year you have 30 more days to download everything.`,
+                )
+              : t(
+                  `W cenie abonamentu Pro: goście dodają i oglądają zdjęcia przez rok, do ${limitGb} GB. Po roku masz jeszcze 30 dni na pobranie wszystkiego.`,
+                  `Included in your Pro subscription: guests upload and view photos for a year, up to ${limitGb} GB. After a year you have 30 more days to download everything.`,
+                )}
           </p>
           <InvoiceFields value={invoice} onChange={setInvoice} />
           {note("pay")}

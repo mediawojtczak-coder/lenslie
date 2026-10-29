@@ -13,6 +13,7 @@ import { getReminders, lastReminderMail, markReminderMail } from "@/lib/reminder
 import { listObjects } from "@/lib/photos";
 import { getDomainByHost, saveDomain, vercelRemoveDomain, DOMAIN_PRICE } from "@/lib/domains";
 import { getGuestEvent, saveGuestEvent, deleteGuestEvent, GUEST_DELETE_AFTER } from "@/lib/guest-events";
+import { getProSub, listProSubs, saveProSub, proGraceEnd, proTier, proName, type ProSub } from "@/lib/pro";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -198,8 +199,11 @@ export async function GET(req: Request) {
       }
     }
 
+    // Galerie w abonamencie Pro: zamiast maili o każdej galerii – przypomnienia o abonamencie (niżej)
+    const pro = meta.plan === "pro";
+
     // 1. Przypomnienie: galeria wkrótce wygaśnie
-    if (daysLeft > 0 && daysLeft <= REMIND_BEFORE && !notices.expiring) {
+    if (!pro && daysLeft > 0 && daysLeft <= REMIND_BEFORE && !notices.expiring) {
       log.push(`${id}: przypomnienie o wygaśnięciu`);
       if (!dry) {
         const owner = await getOwnerContact(id);
@@ -235,7 +239,7 @@ export async function GET(req: Request) {
       const deleteOn = new Date(expires + DELETE_AFTER * DAY);
 
       // 2. Ostrzeżenie: zdjęcia zostaną wkrótce usunięte
-      if (daysSince >= DELETE_AFTER - WARN_BEFORE_DELETE && daysSince < DELETE_AFTER && !notices.deleting) {
+      if (!pro && daysSince >= DELETE_AFTER - WARN_BEFORE_DELETE && daysSince < DELETE_AFTER && !notices.deleting) {
         log.push(`${id}: ostrzeżenie przed usunięciem`);
         if (!dry) {
           const owner = await getOwnerContact(id);
@@ -280,6 +284,52 @@ export async function GET(req: Request) {
       meta.notices = notices;
       await saveMeta(id, meta);
     }
+  }
+
+  // Abonamenty Pro: 7 dni przed końcem, w dniu końca (galerie działają jeszcze 30 dni) i 7 dni przed wyłączeniem galerii
+  for (const sub of await listProSubs().catch(() => [])) {
+    const end = new Date(sub.paidUntil).getTime();
+    const graceEnd = proGraceEnd(sub).getTime();
+    const n = sub.notices ?? {};
+    const sentFor = (k: keyof NonNullable<ProSub["notices"]>) => n[k] === sub.paidUntil;
+    let kind: "before" | "ended" | "grace" | null = null;
+    if (now < end && end - now <= 7 * DAY && !sentFor("before")) kind = "before";
+    else if (now >= end && now < graceEnd && graceEnd - now > 7 * DAY && !sentFor("ended")) kind = "ended";
+    else if (now < graceEnd && graceEnd - now <= 7 * DAY && now >= end && !sentFor("grace")) kind = "grace";
+    if (!kind) continue;
+    log.push(`pro ${sub.uid}: przypomnienie (${kind})`);
+    if (dry || !db) continue;
+    const to = (await db.auth.admin.getUserById(sub.uid)).data?.user?.email;
+    if (!to) continue;
+    const lang = await getUserLang(sub.uid);
+    const df = dateIn(lang);
+    const tier = proTier(sub.tier);
+    const name = tier ? proName(tier) : "Pro";
+    const en = lang === "en";
+    const subject =
+      kind === "before"
+        ? en ? `Your ${name} subscription ends on ${df.format(new Date(end))}` : `Abonament ${name} kończy się ${df.format(new Date(end))}`
+        : kind === "ended"
+          ? en ? `Your ${name} subscription has ended – galleries work until ${df.format(new Date(graceEnd))}` : `Abonament ${name} się skończył – galerie działają do ${df.format(new Date(graceEnd))}`
+          : en ? `Your galleries will be switched off on ${df.format(new Date(graceEnd))}` : `${df.format(new Date(graceEnd))} galerie przestaną działać`;
+    const lines =
+      kind === "before"
+        ? en
+          ? [`Your ${name} subscription is paid until ${df.format(new Date(end))}.`, "Renew it to keep all galleries, videos and add-ons running without interruption."]
+          : [`Abonament ${name} jest opłacony do ${df.format(new Date(end))}.`, "Odnów go, aby wszystkie galerie, filmy i dodatki działały bez przerwy."]
+        : kind === "ended"
+          ? en
+            ? [`Your ${name} subscription ended on ${df.format(new Date(end))}.`, `Your clients can still open their galleries until ${df.format(new Date(graceEnd))}. You can't add new photos until you renew.`]
+            : [`Abonament ${name} skończył się ${df.format(new Date(end))}.`, `Klienci mogą jeszcze otwierać galerie do ${df.format(new Date(graceEnd))}. Do czasu odnowienia nie dodasz nowych zdjęć.`]
+          : en
+            ? [`On ${df.format(new Date(graceEnd))} your Pro galleries will stop working for clients, and ${DELETE_AFTER} days later we will delete them.`, "Renew the subscription to keep them."]
+            : [`${df.format(new Date(graceEnd))} galerie w abonamencie przestaną działać dla klientów, a ${DELETE_AFTER} dni później je usuniemy.`, "Odnów abonament, aby je zachować."];
+    const ok = await sendEmail({
+      to,
+      subject,
+      html: emailLayout(en ? "Lenslie Pro" : "Abonament Lenslie Pro", lines, { label: en ? "Renew subscription" : "Odnów abonament", url: `${siteUrl()}/panel/pro` }, lang),
+    }).catch(() => false);
+    if (ok) await saveProSub({ ...sub, notices: { ...n, [kind]: sub.paidUntil } });
   }
 
   // Zdjęcia od gości: ostrzeżenie 7 dni przed usunięciem, usunięcie 30 dni po wygaśnięciu
@@ -341,7 +391,8 @@ export async function GET(req: Request) {
         await vercelRemoveDomain(rec.host);
         await saveDomain({ ...rec, detached: true });
       }
-    } else if (left > 0 && left <= 7 && !rec.reminded) {
+    } else if (left > 0 && left <= 7 && !rec.reminded && !(await getProSub(rec.uid).catch(() => null))) {
+      // (przy abonamencie Pro domena trwa razem z nim – przypomina mail o abonamencie)
       log.push(`domena ${rec.host}: przypomnienie`);
       if (!dry && db) {
         const to = (await db.auth.admin.getUserById(rec.uid)).data?.user?.email;

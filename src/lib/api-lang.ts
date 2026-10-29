@@ -2,6 +2,12 @@ import { getLang } from "@/lib/lang-server";
 
 // Komunikaty błędów API po angielsku – dla fotografów, którzy mają serwis w wersji angielskiej
 const EN: Record<string, string> = {
+  "Wybierz pakiet.": "Choose a plan.",
+  "Abonament nie jest aktywny – wybierz pakiet i okres.": "Your subscription isn't active – choose a plan and period.",
+  "Masz aktywny abonament – użyj „Zmień na większy”, a potem przedłuż.": "You have an active subscription – use “Upgrade” first, then extend.",
+  "Mniejszy pakiet wybierzesz po końcu obecnego okresu.": "You can choose a smaller plan after the current period ends.",
+  "Abonament Pro nie jest aktywny.": "Your Pro subscription isn't active.",
+  "Abonament Pro się skończył – odnów go, aby dodawać filmy.": "Your Pro subscription has ended – renew it to add videos.",
   "Zaloguj się ponownie.": "Please sign in again.",
   "Nieprawidłowe dane.": "Invalid data.",
   "Nieprawidłowa galeria.": "Invalid gallery.",

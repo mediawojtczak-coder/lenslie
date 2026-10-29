@@ -24,6 +24,15 @@ export default function PayButtons({
   const fmt = (gr: number) => money(gr / 100, lang, true);
   const priceGr = Math.round(price * 100);
   const enough = balance >= priceGr;
+  if (priceGr <= 0) {
+    return (
+      <div className="pay-box">
+        <button type="button" className="btn btn-wide btn-dark" disabled={busy || disabled} onClick={() => onPay("wallet")}>
+          {busy ? t("Chwileczkę…", "One moment…") : t("Włącz – w cenie abonamentu Pro", "Turn on – included in Pro")}
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="pay-box">
       {enough ? (

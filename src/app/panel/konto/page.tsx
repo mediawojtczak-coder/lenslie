@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { activePro } from "@/lib/pro";
 import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
 import { logoUrl } from "@/lib/profiles";
@@ -80,7 +81,7 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
           {tab === "domena" && (vercelEnabled() ? <DomainCard
             rec={domainRec ? { host: domainRec.host, paidUntil: domainRec.paidUntil } : null}
             active={domainActive(domainRec)}
-            price={DOMAIN_PRICE}
+            price={(await activePro(user!.id).catch(() => null)) ? 0 : DOMAIN_PRICE}
             balance={wallet.balance}
             enabled={vercelEnabled()}
           /> : <p className="hint-inline">{t("Własne domeny nie są jeszcze włączone.", "Custom domains are not enabled yet.")}</p>)}

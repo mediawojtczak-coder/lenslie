@@ -34,5 +34,8 @@ export async function addOwnedTheme(uid: string, id: ThemeId) {
 }
 
 export async function ownsTheme(uid: string, id: ThemeId) {
-  return getTheme(id).price === 0 || (await getOwnedThemes(uid)).includes(id);
+  if (getTheme(id).price === 0 || (await getOwnedThemes(uid)).includes(id)) return true;
+  // abonament Pro: wszystkie motywy w cenie
+  const { activePro } = await import("@/lib/pro");
+  return Boolean(await activePro(uid));
 }

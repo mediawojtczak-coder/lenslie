@@ -25,6 +25,12 @@ export async function purchase(opts: {
   if (opts.invoice) await saveBilling(user.id, inv.billing).catch(() => undefined);
   const gr = Math.round(amount * 100);
 
+  // Bez opłaty (np. w abonamencie Pro)
+  if (gr <= 0) {
+    await fulfillProduct(action);
+    return NextResponse.json({ ok: true, free: true });
+  }
+
   if (opts.pay === "wallet") {
     const ok = await spend(user.id, gr, label, `${action.product}-${Date.now()}`);
     if (!ok) return NextResponse.json({ error: await E("Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem.") }, { status: 402 });

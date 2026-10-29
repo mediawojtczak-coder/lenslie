@@ -4,6 +4,7 @@ import { getMeta, saveMeta } from "@/lib/galleries";
 import { extendPortfolio } from "@/lib/portfolio";
 import { extendAlbumSub } from "@/lib/albums";
 import { printPaid } from "@/lib/print-fulfil";
+import { applyPro } from "@/lib/pro";
 
 // Wykonanie opłaconego dodatku (po płatności z salda albo po potwierdzeniu z Przelewy24)
 export async function fulfillProduct(a: ProductAction) {
@@ -20,6 +21,8 @@ export async function fulfillProduct(a: ProductAction) {
     await extendPortfolio(a.uid, a.months);
   } else if (a.product === "print") {
     await printPaid(a.orderId);
+  } else if (a.product === "pro") {
+    await applyPro(a.uid, a.tier, a.months, a.upgrade);
   } else if (a.product === "album") {
     await extendAlbumSub(a.uid, a.months);
   } else if (a.product === "faces") {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { activePro } from "@/lib/pro";
 import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/supabase/admin";
@@ -25,8 +26,10 @@ export default async function AlbumyPage() {
     user ? getBilling(user.id) : Promise.resolve(null),
     user ? getWallet(user.id) : Promise.resolve({ balance: 0 }),
   ]);
-  const paidUntil = (sub as { paidUntil?: string }).paidUntil;
-  const active = albumActive(sub);
+  // abonament Pro: projektor albumów w cenie
+  const pro = user ? await activePro(user.id).catch(() => null) : null;
+  const paidUntil = pro ? pro.paidUntil : (sub as { paidUntil?: string }).paidUntil;
+  const active = Boolean(pro) || albumActive(sub);
   const admin = isAdminEmail(user?.email);
 
   const { data } = await supabase.from("galleries").select("id, title, created_at").order("created_at", { ascending: false });
@@ -153,8 +156,9 @@ export default async function AlbumyPage() {
                       ? t("Konto administratora – pobieranie bez abonamentu.", "Admin account – downloads without a subscription.")
                       : `${t("Aktywny do", "Active until")} ${fmt.format(new Date(paidUntil!))}`}
                   </p>
-                  {active && <p className="hint-inline">{t("Możesz przedłużyć abonament – nowy okres doliczy się do obecnego.", "You can extend – the new period is added to the current one.")}</p>}
-                  {active && <AlbumSubCard balance={wallet.balance} billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }} returnPath="/panel/albumy" compact />}
+                  {pro && <p className="hint-inline">{t("Projektor albumów jest w cenie Twojego abonamentu Pro.", "The album designer is included in your Pro subscription.")}</p>}
+                  {active && !pro && <p className="hint-inline">{t("Możesz przedłużyć abonament – nowy okres doliczy się do obecnego.", "You can extend – the new period is added to the current one.")}</p>}
+                  {active && !pro && <AlbumSubCard balance={wallet.balance} billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }} returnPath="/panel/albumy" compact />}
                 </>
               ) : (
                 <AlbumSubCard balance={wallet.balance} billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }} returnPath="/panel/albumy" />

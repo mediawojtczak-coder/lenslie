@@ -167,6 +167,33 @@ function RegulaminPl() {
         </li>
       </ol>
 
+      <h2>§ 6e. Abonament Pro</h2>
+      <ol>
+        <li>
+          Abonament Pro daje miejsce na wszystkie Galerie i filmy Konta: 500 GB za 59 zł, 700 GB za 79 zł, 1000 GB za 99 zł albo
+          2000 GB za 189 zł brutto miesięcznie; przy płatności za 12 miesięcy z góry – 590 zł, 790 zł, 990 zł albo 1890 zł brutto.
+        </li>
+        <li>
+          Abonament opłaca się z góry za miesiąc albo rok. Nie odnawia się automatycznie – 7 dni przed końcem okresu wysyłamy
+          przypomnienie e-mailem. Kolejny okres dolicza się do bieżącego.
+        </li>
+        <li>
+          W trakcie abonamentu Fotograf publikuje Galerie bez opłat za Pakiety, a Galerie są dostępne dla Klientów do końca
+          opłaconego okresu i jeszcze 30 dni po nim. W tym czasie można odnowić abonament; jeśli nie zostanie odnowiony, Galerie
+          wygasają, a 30 dni później usuwamy je razem ze zdjęciami i filmami.
+        </li>
+        <li>
+          Zdjęcia, filmy i wersje robocze Galerii w abonamencie zajmują wspólne miejsce. Po jego wykorzystaniu nie można dodawać
+          plików do czasu zmiany abonamentu na większy albo usunięcia części Galerii. Zmiana na większy pakiet w trakcie okresu
+          wymaga dopłaty różnicy ceny miesięcznej za pozostałe dni; mniejszy pakiet można wybrać po końcu okresu.
+        </li>
+        <li>
+          W cenie abonamentu są dodatki z § 5a, § 6c i § 6d, Projektor albumów i własna domena – na czas trwania abonamentu i 30
+          dni po nim. Wydruk albumów jest płatny osobno. Galerie opłacone wcześniej w Pakietach działają do swojej daty, chyba że
+          Fotograf przeniesie je do abonamentu.
+        </li>
+      </ol>
+
       <h2>§ 7. Treści i prawa autorskie</h2>
       <ol>
         <li>
@@ -327,6 +354,15 @@ function TermsEn() {
         <li>Premium gallery themes cost PLN 19 gross per theme, paid once; a purchased theme can be used in all Galleries of the Account.</li>
         <li>The portfolio website costs PLN 24 gross per month or PLN 240 gross for 12 months, paid in advance. When the paid period ends, the website is no longer visible. The Photographer is responsible for the content and photos on the website, including the consent of the people in them.</li>
         <li>“Find yourself in the photos” costs PLN 49 gross per Gallery, paid once. By turning it on, the Photographer confirms they have a legal basis to process biometric data of the people in the photos (e.g. their consent) and that they have been informed. See the Privacy policy for details.</li>
+      </ol>
+
+      <h2>§ 6e. Pro subscription</h2>
+      <ol>
+        <li>The Pro subscription provides storage for all Galleries and videos of the Account: 500 GB for PLN 59, 700 GB for PLN 79, 1000 GB for PLN 99 or 2000 GB for PLN 189 gross per month; paid 12 months in advance – PLN 590, 790, 990 or 1890 gross.</li>
+        <li>The subscription is paid in advance for a month or a year. It does not renew automatically – we send an e-mail reminder 7 days before the period ends. A new period is added to the current one.</li>
+        <li>During the subscription the Photographer publishes Galleries without Plan fees, and Galleries are available to Clients until the end of the paid period and for 30 days after it. The subscription can be renewed during that time; if it is not, the Galleries expire and 30 days later we delete them together with their photos and videos.</li>
+        <li>Photos, videos and draft Galleries in the subscription share one storage pool. Once it is full, no files can be added until the subscription is upgraded or some Galleries are deleted. Upgrading during a period requires paying the difference in the monthly price for the remaining days; a smaller plan can be chosen after the period ends.</li>
+        <li>The add-ons in § 5a, § 6c and § 6d, the Album designer and the custom domain are included for the duration of the subscription and 30 days after it. Printed albums are paid separately. Galleries paid earlier under Plans keep their own dates unless the Photographer moves them into the subscription.</li>
       </ol>
 
       <h2>§ 7. Content and copyright</h2>

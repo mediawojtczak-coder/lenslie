@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getProSub, proActive } from "@/lib/pro";
 import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
 import { lrAllowed } from "@/lib/lr";
@@ -60,6 +61,8 @@ export default async function Panel({
   const { supabase, user: me } = await getUser();
   const showLr = lrAllowed(me?.email);
   const showAlbum = albumAllowed(me?.email);
+  const proSub = me ? await getProSub(me.id).catch(() => null) : null;
+  const proOn = proActive(proSub);
 
   const { data } = await supabase
     .from("galleries")
@@ -81,7 +84,7 @@ export default async function Panel({
         ...g,
         ...summary,
         protected: Boolean(meta?.passwordHash),
-        planName: (() => { const p = getPlan(meta?.plan); return p ? planName(p, lang) : null; })(),
+        planName: meta?.plan === "pro" ? "Pro" : (() => { const p = getPlan(meta?.plan); return p ? planName(p, lang) : null; })(),
         expiresAt: meta?.expiresAt ?? null,
         expired: isExpired(meta),
         views: viewsErr ? null : (views ?? 0),
@@ -131,6 +134,10 @@ export default async function Panel({
           ))}
         </nav>
         <nav aria-label={t("Narzędzia", "Tools")} className="side-tools">
+          <Link href="/panel/pro" className="side-link">
+            <span>Lenslie Pro</span>
+            <span className="side-count">{proOn ? t("aktywny", "active") : t("od 59 zł", "from PLN 59")}</span>
+          </Link>
           <Link href="/panel/strona" className="side-link">
             <span>{t("Moja strona", "My website")}</span>
           </Link>

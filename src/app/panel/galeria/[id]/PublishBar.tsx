@@ -27,6 +27,7 @@ export default function PublishBar({
   deleteOn,
   billing,
   balance,
+  pro = null,
 }: {
   id: string;
   title: string;
@@ -35,6 +36,8 @@ export default function PublishBar({
   deleteOn?: string | null;
   billing: Billing;
   balance: number;
+  // aktywny abonament Pro: publikacja bez opłaty
+  pro?: { name: string; usedBytes: number; limitBytes: number } | null;
 }) {
   const [invoice, setInvoice] = useState<Billing>(billing);
   const lang = useLang();
@@ -57,6 +60,22 @@ export default function PublishBar({
     setPeriod(DEFAULT_PERIOD);
     setError("");
     dialogRef.current?.showModal();
+  }
+
+  async function publishPro() {
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/galleries/${id}/plan`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "pro" }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? t("Nie udało się opublikować galerii.", "Could not publish the gallery."));
+      dialogRef.current?.close();
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("Nie udało się opublikować galerii.", "Could not publish the gallery."));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function publish(pay: "wallet" | "p24") {
@@ -138,7 +157,28 @@ export default function PublishBar({
             </div>
           </div>
 
-          {!fit ? (
+          {pro ? (
+            <div className="pub-pro">
+              <p>
+                <span className="pro-chip">Pro</span>
+                {t(`Publikujesz w abonamencie ${pro.name} – bez dodatkowej opłaty.`, `You're publishing with your ${pro.name} subscription – no extra charge.`)}
+              </p>
+              <p className="hint-inline">
+                {t(
+                  `Galeria będzie dostępna dla klienta, dopóki trwa abonament. Wszystkie galerie zajmują ${formatBytes(pro.usedBytes)} z ${formatBytes(pro.limitBytes)}.`,
+                  `Your client can open the gallery while the subscription lasts. All galleries use ${formatBytes(pro.usedBytes)} of ${formatBytes(pro.limitBytes)}.`,
+                )}
+              </p>
+              {error && (
+                <p className="error" role="alert">
+                  {error}
+                </p>
+              )}
+              <button type="button" className="btn btn-dark" onClick={publishPro} disabled={busy}>
+                {busy ? t("Publikuję…", "Publishing…") : t("Opublikuj galerię", "Publish gallery")}
+              </button>
+            </div>
+          ) : !fit ? (
             <p className="error">
               {t("Galeria zajmuje", "The gallery takes up")} {formatBytes(usedBytes)}{" "}
               {t("i nie mieści się w największym pakiecie", "and does not fit the largest plan")} ({PLANS[PLANS.length - 1].limitGb} GB).{" "}
@@ -204,13 +244,13 @@ export default function PublishBar({
             </>
           )}
 
-          {error && (
+          {!pro && error && (
             <p className="error" role="alert">
               {error}
             </p>
           )}
 
-          <PayButtons price={price} balance={balance} busy={busy} disabled={!plan} label={t("i opublikuj", "and publish")} onPay={publish} />
+          {!pro && <PayButtons price={price} balance={balance} busy={busy} disabled={!plan} label={t("i opublikuj", "and publish")} onPay={publish} />}
         </div>
       </dialog>
     </section>

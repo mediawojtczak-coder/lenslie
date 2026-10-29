@@ -19,6 +19,9 @@ import { spend, getWallet, zlFromGr } from "@/lib/wallet";
 import { notifyAdmins } from "@/lib/email";
 import { p24Enabled, newSessionId, saveOrder, registerTransaction } from "@/lib/p24";
 import { videoPrefix, videoPrice, monthsLeft, startVideos, deleteVideo, type Video } from "@/lib/videos";
+import { activePro, galleryOwnerId, proFits, proName, proBytes } from "@/lib/pro";
+import { formatBytes } from "@/lib/plans";
+import { getLang } from "@/lib/lang-server";
 
 export const runtime = "nodejs";
 
@@ -43,6 +46,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       if (!meta.plan || isExpired(meta)) return NextResponse.json({ error: await E("Film można dodać do opublikowanej galerii.") }, { status: 400 });
       const size = Number(body.size) || 0;
       if (size <= 0 || size > MAX_SIZE) return NextResponse.json({ error: await E("Film może mieć najwyżej 30 GB.") }, { status: 400 });
+      // Abonament Pro: film bez opłaty, ale liczony do puli miejsca
+      if (meta.plan === "pro") {
+        const owner = await galleryOwnerId(id);
+        const sub = owner ? await activePro(owner) : null;
+        if (!sub) return NextResponse.json({ error: await E("Abonament Pro się skończył – odnów go, aby dodawać filmy.") }, { status: 402 });
+        const fit = await proFits(owner!, sub, size);
+        if (!fit.ok) {
+          const en = (await getLang()) === "en";
+          const free = formatBytes(Math.max(0, proBytes(fit.tier) - fit.used));
+          return NextResponse.json(
+            {
+              error: en
+                ? `This film won't fit in ${proName(fit.tier)}. Free space: ${free}. Upgrade your subscription or delete old galleries.`
+                : `Film nie zmieści się w abonamencie ${proName(fit.tier)}. Wolne miejsce: ${free}. Zmień abonament na większy albo usuń stare galerie.`,
+            },
+            { status: 402 },
+          );
+        }
+      }
       const name = safeFileName(String(body.name ?? "film.mp4"));
       const vid = randomBytes(5).toString("hex");
       const key = `${videoPrefix(id)}${vid}/${name}`;
@@ -91,6 +113,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       video.size = Number(head.ContentLength ?? video.size);
       video.uploadId = undefined;
       video.status = "unpaid";
+      if (meta.plan === "pro") {
+        // w abonamencie Pro film nie wymaga opłaty – od razu przygotowujemy podgląd
+        video.price = 0;
+        video.months = undefined;
+        await startVideos(videos, [video.id]);
+        await saveMeta(id, meta);
+        return NextResponse.json({ ok: true, video });
+      }
       video.months = monthsLeft(meta.expiresAt);
       video.price = videoPrice(video.size, video.duration, video.months);
       await saveMeta(id, meta);

@@ -6,6 +6,7 @@ import { requireOwner } from "@/lib/owner";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, saveMeta, hasAccess, accessCookieName, isExpired } from "@/lib/galleries";
 import { purchase } from "@/lib/purchase";
+import { activePro } from "@/lib/pro";
 import { FACES_PRICE, indexGetUrl, indexPutUrl, deleteIndex, searchFaces } from "@/lib/faces";
 
 export const runtime = "nodejs";
@@ -48,7 +49,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return purchase({
         req,
         user,
-        amount: FACES_PRICE,
+        amount: (await activePro(user.id)) ? 0 : FACES_PRICE,
         label: `Znajdź siebie na zdjęciach – ${meta.title}`,
         pay: body.pay,
         invoice: body.invoice,

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { activePro } from "@/lib/pro";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { E } from "@/lib/api-lang";
@@ -27,7 +28,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   if (body?.action === "export") {
     // abonament, konto admina albo pierwszy album na próbę (jedna galeria na konto)
-    const active = isAdminEmail(user?.email) || albumActive(await getAlbumSub(user!.id)) || (await claimFreeAlbum(user!.id, id));
+    const active = isAdminEmail(user?.email) || albumActive(await getAlbumSub(user!.id)) || Boolean(await activePro(user!.id)) || (await claimFreeAlbum(user!.id, id));
     if (!active) {
       return NextResponse.json({ error: await E("Pobieranie projektów wymaga abonamentu Projektora albumów."), code: "SUBSCRIPTION" }, { status: 402 });
     }

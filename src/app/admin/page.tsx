@@ -1,4 +1,5 @@
 import { adminClient } from "@/lib/supabase/admin";
+import { listProSubs, proActive, proInGrace, proGraceEnd, proTier, proName } from "@/lib/pro";
 import { getSignupSource, sourceDetail, type SignupSource } from "@/lib/signup-source";
 import { listObjects } from "@/lib/photos";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
@@ -69,6 +70,13 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   }
   const sourceRows = [...sourceStats.entries()].sort((a, b) => b[1].all - a[1].all);
   const printOrders = await listPrintOrders().catch(() => []);
+  // Abonamenty Pro
+  const proSubs = (await listProSubs().catch(() => [])).sort((a, b) => b.paidUntil.localeCompare(a.paidUntil));
+  const proActiveSubs = proSubs.filter((s) => proActive(s));
+  const proMrr = proActiveSubs.reduce((sum, s) => {
+    const tier = proTier(s.tier);
+    return sum + (tier ? (s.months === 12 ? tier.yearly / 12 : tier.monthly) : 0);
+  }, 0);
   const printLinks = new Map(await Promise.all(printOrders.map(async (o) => [o.id, await zipDownloadUrl(o.id).catch(() => "")] as const)));
   const albumPaid = addons.filter((a) => albumActive(a.sub)).length;
   const albumFree = addons.filter((a) => a.sub.freeGallery).length;
@@ -412,6 +420,48 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         <p className="hint-inline">Przy zmianie na „Wysłane” fotograf dostaje maila z numerem przesyłki. Link do plików jest ważny 7 dni od otwarcia tej strony.</p>
       </section>
 
+      <section className="settings-card" id="pro">
+        <h2>Abonamenty Pro</h2>
+        <p className="hint-inline">
+          Aktywne: {proActiveSubs.length} · miesięcznie ok. {proMrr.toLocaleString("pl-PL", { maximumFractionDigits: 0 })} zł brutto · w okresie łaski:{" "}
+          {proSubs.filter((s) => proInGrace(s)).length}
+        </p>
+        {proSubs.length ? (
+          <div className="table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Fotograf</th>
+                  <th>Pakiet</th>
+                  <th>Okres</th>
+                  <th>Opłacony do</th>
+                  <th>Od</th>
+                </tr>
+              </thead>
+              <tbody>
+                {proSubs.map((s) => {
+                  const tier = proTier(s.tier);
+                  return (
+                    <tr key={s.uid}>
+                      <td data-l="Fotograf">{emails.get(s.uid) ?? s.uid}</td>
+                      <td data-l="Pakiet">{tier ? proName(tier) : s.tier}</td>
+                      <td data-l="Okres">{s.months === 12 ? "rok" : "miesiąc"}</td>
+                      <td data-l="Opłacony do" className={proActive(s) ? undefined : "is-expired"}>
+                        {fmtDate(s.paidUntil)}
+                        {proInGrace(s) && <span className="badge-soft">łaska do {fmtDate(proGraceEnd(s).toISOString())}</span>}
+                      </td>
+                      <td data-l="Od">{fmtDate(s.since)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="hint-inline">Nikt jeszcze nie kupił abonamentu Pro.</p>
+        )}
+      </section>
+
       <section className="settings-card" id="dodatki">
         <h2>Projektor albumów i wtyczka Lightroom</h2>
         <div className="stat-tiles">
@@ -566,7 +616,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                       </a>
                     </td>
                     <td data-l="Fotograf">{g.owner_id ? (emails.get(g.owner_id) ?? "–") : "brak właściciela"}</td>
-                    <td data-l="Pakiet">{plan ? `${plan.name} · ${m?.period} mies.` : "–"}</td>
+                    <td data-l="Pakiet">{m?.plan === "pro" ? "Abonament Pro" : plan ? `${plan.name} · ${m?.period} mies.` : "–"}</td>
                     <td data-l="Dostęp do" className={isExpired(m) ? "is-expired" : undefined}>{fmtDate(m?.expiresAt)}</td>
                     <td data-l="Miejsce">{formatBytes(usage.get(g.id) ?? 0)}</td>
                   </tr>

@@ -36,6 +36,9 @@ import { getPayout } from "@/lib/sales";
 import AlbumTab from "./AlbumTab";
 import { getAlbumProject, getAlbumSub, albumActive, albumAllowed, freeAlbumFor } from "@/lib/albums";
 import { isAdminEmail } from "@/lib/supabase/admin";
+import ProGalleryBar from "./ProGalleryBar";
+import { getProSub, proActive, proTier, proName, proBytes, proUsage } from "@/lib/pro";
+import type { PlanId } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +70,11 @@ export default async function ZarzadzanieGalerii({
       domain = domainRec!.host;
     }
   }
-  const ownedThemes = user ? await getOwnedThemes(user.id).catch(() => []) : [];
+  // Abonament Pro: galerie bez opłat, wspólna pula miejsca, dodatki w cenie
+  const proSub = user ? await getProSub(user.id).catch(() => null) : null;
+  const proOn = proActive(proSub);
+  const proT = proSub ? proTier(proSub.tier) : undefined;
+  const ownedThemes = proOn ? THEMES.map((th) => th.id) : user ? await getOwnedThemes(user.id).catch(() => []) : [];
   const hasPayout = user ? Boolean(await getPayout(user.id).catch(() => null)) : false;
   const { data } = await supabase.from("galleries").select("id, title, created_at").eq("id", id).maybeSingle();
   if (!data) notFound();
@@ -88,6 +95,9 @@ export default async function ZarzadzanieGalerii({
     const wm = new Set(await listKeys(`${galleryPrefix(id)}wm/`).catch(() => [] as string[]));
     wmMissing = photos.filter((p) => !wm.has(`${galleryPrefix(id)}wm/${p.name}.jpg`)).map((p) => p.name);
   }
+
+  const pool = proT && user && (proOn || meta?.plan === "pro") ? await proUsage(user.id).catch(() => null) : null;
+  const metaExpired = Boolean(meta?.expiresAt && new Date(meta.expiresAt).getTime() < Date.now());
 
   const cover = pickCover(photos, meta?.cover);
   // Dopłata za filmy przy przedłużeniu – ta sama, którą liczy serwer przy płatności
@@ -156,16 +166,43 @@ export default async function ZarzadzanieGalerii({
               domain={domain}
               galleryLang={meta?.lang ?? "pl"}
             />
-            <PlanBar
-              id={id}
-              planId={meta?.plan ?? null}
-              period={meta?.period ?? null}
-              expiresAt={meta?.expiresAt ?? null}
-              usedBytes={usedBytes}
-              billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
-              balance={balance}
-              videoExtend={videoExtend}
-            />
+            {meta.plan === "pro" ? (
+              <ProGalleryBar
+                id={id}
+                mode="pro"
+                name={proT ? proName(proT) : "Pro"}
+                usedBytes={pool?.bytes ?? usedBytes}
+                limitBytes={proT ? proBytes(proT) : 0}
+                active={proOn}
+                paidUntil={proSub?.paidUntil ?? null}
+                expiresAt={meta.expiresAt ?? null}
+              />
+            ) : (
+              <>
+                <PlanBar
+                  id={id}
+                  planId={meta.plan as PlanId}
+                  period={meta?.period ?? null}
+                  expiresAt={meta?.expiresAt ?? null}
+                  usedBytes={usedBytes}
+                  billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
+                  balance={balance}
+                  videoExtend={videoExtend}
+                />
+                {proOn && proT && (
+                  <ProGalleryBar
+                    id={id}
+                    mode="move"
+                    name={proName(proT)}
+                    usedBytes={pool?.bytes ?? 0}
+                    limitBytes={proBytes(proT)}
+                    active
+                    paidUntil={proSub!.paidUntil}
+                    expiresAt={meta.expiresAt ?? null}
+                  />
+                )}
+              </>
+            )}
           </>
         ) : (
           <PublishBar
@@ -176,6 +213,7 @@ export default async function ZarzadzanieGalerii({
             deleteOn={meta ? draftDeleteDate(meta).toISOString() : null}
             billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
               balance={balance}
+            pro={proOn && proT ? { name: proName(proT), usedBytes: pool?.bytes ?? usedBytes, limitBytes: proBytes(proT) } : null}
           />
         )}
 
@@ -202,9 +240,9 @@ export default async function ZarzadzanieGalerii({
                 photos={photos.map((p) => ({ name: p.name, url: p.webUrl }))}
                 selections={selections}
                 initial={project}
-                active={isAdminEmail(user?.email) || albumActive(sub) || freeAlbumFor(sub, id)}
-                freeTrial={!isAdminEmail(user?.email) && !albumActive(sub) && freeAlbumFor(sub, id)}
-                paidUntil={albumActive(sub) ? paidUntil : null}
+                active={isAdminEmail(user?.email) || proOn || albumActive(sub) || freeAlbumFor(sub, id)}
+                freeTrial={!isAdminEmail(user?.email) && !proOn && !albumActive(sub) && freeAlbumFor(sub, id)}
+                paidUntil={proOn ? proSub!.paidUntil : albumActive(sub) ? paidUntil : null}
                 balance={balance}
                 billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
               />
@@ -242,13 +280,13 @@ export default async function ZarzadzanieGalerii({
               id={id}
               faces={meta?.faces ?? null}
               photos={photos.map((p) => ({ name: p.name, url: p.webUrl }))}
-              price={FACES_PRICE}
+              price={proOn ? 0 : FACES_PRICE}
               balance={balance}
               billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
             />
             <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} />
             <PickLimitCard id={id} limit={meta?.pickLimit ?? null} selling={Boolean(meta?.sale?.enabled)} />
-            <ClientExtendCard id={id} on={meta?.clientExtend !== false} />
+            {meta?.plan !== "pro" && <ClientExtendCard id={id} on={meta?.clientExtend !== false} />}
             <GuestCard id={id} guest={meta?.guest ?? null} sections={meta?.sections ?? []} />
           </SettingsForm>
         ) : (
@@ -256,7 +294,8 @@ export default async function ZarzadzanieGalerii({
           <VideoManager
             id={id}
             videos={(meta?.videos ?? []).map((v) => ({ id: v.id, name: v.name, size: v.size, duration: v.duration, status: v.status, price: v.price, months: v.months, thumbnail: v.thumbnail }))}
-            published={Boolean(meta?.plan) && !(meta?.expiresAt && new Date(meta.expiresAt).getTime() < Date.now())}
+            published={Boolean(meta?.plan) && !metaExpired}
+            pro={meta?.plan === "pro"}
             balance={balance}
             billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
           />

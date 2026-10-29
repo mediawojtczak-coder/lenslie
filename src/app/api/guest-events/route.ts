@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { activePro } from "@/lib/pro";
 import { E } from "@/lib/api-lang";
 import { getUser } from "@/lib/supabase/server";
 import { getLang } from "@/lib/lang-server";
@@ -63,6 +64,12 @@ export async function POST(req: Request) {
       if (body.invoice) await saveBilling(user.id, inv.billing).catch(() => undefined);
       const label = `Zdjęcia od gości – ${e.title}`;
       const amountGr = GUEST_PRICE * 100;
+
+      // abonament Pro: zdjęcia od gości w cenie
+      if (await activePro(user.id)) {
+        await activateGuestEvent(e.id);
+        return NextResponse.json({ ok: true, free: true });
+      }
 
       if (body.pay === "wallet") {
         const ok = await spend(user.id, amountGr, label, `guest-${e.id}`);

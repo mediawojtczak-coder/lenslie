@@ -45,6 +45,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <div className="account-menu">
             <p>{user.email}</p>
             <Link href="/panel/konto" className="account-link">{t("Moje konto", "My account")}</Link>
+            <Link href="/panel/pro" className="account-link">Lenslie Pro</Link>
             <Link href="/panel/strona" className="account-link">{t("Moja strona", "My website")}</Link>
             <Link href="/panel/znajdz-siebie" className="account-link">{t("Znajdź siebie", "Find me")}</Link>
             <Link href="/panel/goscie" className="account-link">{t("Zdjęcia od gości", "Guest uploads")}</Link>

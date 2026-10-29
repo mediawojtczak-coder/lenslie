@@ -110,7 +110,7 @@ export default function FacesCard({
             )}
           </label>
           <p className="hint-inline">
-            {money(price, lang)} {t("jednorazowo za tę galerię.", "one-off for this gallery.")}
+            {price > 0 ? `${money(price, lang)} ${t("jednorazowo za tę galerię.", "one-off for this gallery.")}` : t("W cenie abonamentu Pro.", "Included in your Pro subscription.")}
           </p>
           <InvoiceFields value={invoice} onChange={setInvoice} />
           <PayButtons price={price} balance={balance} busy={busy} disabled={!consent} label={t("i włącz", "and turn on")} onPay={buy} />

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { activePro } from "@/lib/pro";
 import { notFound } from "next/navigation";
 import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
@@ -58,7 +59,7 @@ export default async function Wydarzenie({ params, searchParams }: { params: Pro
           deleteOn={deleteOn}
           publicUrl={`${siteUrl()}/goscie/${e.id}`}
           cover={cover}
-          price={GUEST_PRICE}
+          price={(await activePro(user!.id).catch(() => null)) ? 0 : GUEST_PRICE}
           limitGb={GUEST_LIMIT_GB}
           used={used}
           balance={wallet.balance}

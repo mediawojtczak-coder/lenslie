@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { E } from "@/lib/api-lang";
 import { isValidGalleryId } from "@/lib/r2";
-import { getMeta } from "@/lib/galleries";
+import { getMeta, saveMeta } from "@/lib/galleries";
 import { getUser } from "@/lib/supabase/server";
 import { checkAction, applyAction } from "@/lib/plan-actions";
 import { p24Enabled, newSessionId, saveOrder, registerTransaction } from "@/lib/p24";
 import { cleanBilling, saveBilling } from "@/lib/billing";
 import { spend, getWallet, zlFromGr } from "@/lib/wallet";
 import { notifyAdmins } from "@/lib/email";
+import { getLang } from "@/lib/lang-server";
+import { activePro, proFits, proGraceEnd, proName } from "@/lib/pro";
+import { getGalleryUsage } from "@/lib/photos";
+import { formatBytes } from "@/lib/plans";
 
 export const runtime = "nodejs";
 
@@ -24,6 +28,33 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const body = ((await req.json().catch(() => null)) ?? {}) as { action?: string; plan?: string; period?: number; invoice?: unknown; pay?: string };
   const meta = await getMeta(id);
   if (!meta) return NextResponse.json({ error: await E("Nie znaleziono galerii.") }, { status: 404 });
+
+  // Abonament Pro: publikacja bez opłaty (albo przeniesienie opłaconej galerii do puli abonamentu)
+  if (body.action === "pro") {
+    const sub = await activePro(user.id);
+    if (!sub) return NextResponse.json({ error: await E("Abonament Pro nie jest aktywny.") }, { status: 402 });
+    if (meta.plan === "pro") return NextResponse.json({ ok: true });
+    // wersja robocza jest już liczona do puli; opłaconą galerię doliczamy
+    const extra = meta.plan ? (await getGalleryUsage(id)) + (meta.videos ?? []).reduce((s, v) => s + (v.size || 0), 0) : 0;
+    const fit = await proFits(user.id, sub, extra);
+    if (!fit.ok) {
+      const en = (await getLang()) === "en";
+      return NextResponse.json(
+        {
+          error: en
+            ? `This gallery won't fit in ${proName(fit.tier)} (used: ${formatBytes(fit.used)}). Upgrade your plan or free up space.`
+            : `Ta galeria nie zmieści się w abonamencie ${proName(fit.tier)} (zajęte: ${formatBytes(fit.used)}). Zmień pakiet na większy albo zwolnij miejsce.`,
+        },
+        { status: 402 },
+      );
+    }
+    meta.plan = "pro";
+    meta.period = undefined;
+    meta.expiresAt = proGraceEnd(sub).toISOString();
+    meta.notices = undefined;
+    await saveMeta(id, meta);
+    return NextResponse.json({ ok: true, pro: true });
+  }
 
   const checked = await checkAction(id, meta, body);
   if (!checked.ok) return NextResponse.json({ error: await E(checked.error) }, { status: 400 });
