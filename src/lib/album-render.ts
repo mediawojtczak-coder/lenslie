@@ -21,8 +21,8 @@ export function spreadPixels(p: Pick<AlbumProject, "size" | "bleed">) {
 type Img = CanvasImageSource & { width: number; height: number };
 
 // Rysuje zdjęcie przycięte do ramki (jak object-fit: cover) z punktem kadru fx/fy
-function drawCover(ctx: CanvasRenderingContext2D, img: Img, x: number, y: number, w: number, h: number, fx = 0.5, fy = 0.5) {
-  const scale = Math.max(w / img.width, h / img.height);
+function drawCover(ctx: CanvasRenderingContext2D, img: Img, x: number, y: number, w: number, h: number, fx = 0.5, fy = 0.5, zoom = 1) {
+  const scale = Math.max(w / img.width, h / img.height) * Math.max(1, zoom);
   const sw = w / scale;
   const sh = h / scale;
   const sx = (img.width - sw) * fx;
@@ -143,7 +143,7 @@ export async function drawSpread(
   const unit = Math.min(ux, uy);
 
   if (isBlurBg(p.bg) && colors.wash) {
-    const bgName = backgroundPhoto(spread);
+    const bgName = backgroundPhoto(spread, p.spreads);
     const img = bgName ? await getImage(bgName) : null;
     if (img) drawBlurBackground(ctx, img, dims.width, dims.height, colors.wash);
   }
@@ -186,7 +186,7 @@ export async function drawSpread(
     }
 
     const img = await getImage(s.photo);
-    if (img) drawCover(ctx, img, X, Y, Wd, Ht, s.fx ?? 0.5, s.fy ?? 0.45);
+    if (img) drawCover(ctx, img, X, Y, Wd, Ht, s.fx ?? 0.5, s.fy ?? 0.45, s.zoom ?? 1);
     else {
       ctx.fillStyle = "#d9d3cc";
       ctx.fillRect(X, Y, Wd, Ht);

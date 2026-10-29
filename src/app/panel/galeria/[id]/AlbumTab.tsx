@@ -13,7 +13,6 @@ import {
   ALBUM_FRAMES,
   isBlurBg,
   backgroundPhoto,
-  touches,
   type AlbumFrame,
   emptyProject,
   pageRange,
@@ -27,6 +26,8 @@ import {
   type Spread,
 } from "@/lib/album-layout";
 import AlbumSubCard from "@/app/panel/albumy/AlbumSubCard";
+import AlbumSpreadView from "./AlbumSpreadView";
+import SpreadEditor from "./SpreadEditor";
 import type { Billing } from "@/lib/billing";
 
 type Photo = { name: string; url: string };
@@ -78,6 +79,7 @@ export default function AlbumTab({
   const fmt = albumFormat(project.size);
   const ratio = fmt.w / fmt.h;
   const [pick, setPick] = useState<Pick>(null);
+  const [editing, setEditing] = useState<string | null>(null);
   const [addTo, setAddTo] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState<{ done: number; total: number } | null>(null);
   const [exporting, setExporting] = useState<{ done: number; total: number } | null>(null);
@@ -217,21 +219,6 @@ export default function AlbumTab({
     setPick(null);
   }
 
-  function nudge(dx: number, dy: number) {
-    if (!pick) return;
-    setSpreads((list) =>
-      list.map((x) =>
-        x.id !== pick.spread
-          ? x
-          : {
-              ...x,
-              slots: x.slots.map((s, i) =>
-                i !== pick.slot ? s : { ...s, fx: Math.min(1, Math.max(0, (s.fx ?? 0.5) + dx)), fy: Math.min(1, Math.max(0, (s.fy ?? 0.45) + dy)) },
-              ),
-            },
-      ),
-    );
-  }
 
   async function clickUnused(name: string) {
     const aspects = await ensureAspects([name]);
@@ -301,12 +288,6 @@ export default function AlbumTab({
     none: t("Bez ramki", "No border"),
   };
   const frameStyle = project.frame ?? "none";
-  const u = Math.min(50, 50 / ratio); // 1 jednostka (krótszy bok strony) w cqw podglądu
-  const mono = project.title
-    .split(/[\s&+,-]+/)
-    .filter((w) => /\p{L}/u.test(w))
-    .slice(0, 2)
-    .map((w) => w[0]!.toUpperCase());
   function cycleBg(sp: Spread) {
     const names = sp.slots.map((x) => x.photo);
     if (!names.length) return;
@@ -314,7 +295,6 @@ export default function AlbumTab({
     const next = names[(names.indexOf(cur ?? "") + 1) % names.length];
     setSpreads((list) => list.map((x) => (x.id === sp.id ? { ...x, bgPhoto: next } : x)));
   }
-  const colors = BG_COLORS[project.bg];
   const pages = project.spreads.length * 2;
 
   return (
@@ -395,6 +375,8 @@ export default function AlbumTab({
                     setProject((p) => ({
                       ...p,
                       style: s,
+                      // „Atelier” wygląda najlepiej na rozmytym tle ze zdjęciami w białych ramkach
+                      ...(s === "atelier" && !isBlurBg(p.bg) ? { bg: "blur-light" as AlbumBg, frame: "white" as AlbumFrame } : {}),
                       spreads: p.spreads.map((sp) =>
                         sp.kind === "title" ? sp : { ...layoutSpread(sp.slots.map((x) => x.photo), p.aspects, s, 0, p.seed, pageRatio(p.size)), id: sp.id },
                       ),
@@ -558,13 +540,6 @@ export default function AlbumTab({
           {pick && (
             <div className="alb-pickbar" role="status">
               <span>{t("Kliknij inne zdjęcie, aby je zamienić, albo zdjęcie z listy poniżej.", "Click another photo to swap, or a photo from the list below.")}</span>
-              <span className="alb-nudge">
-                {t("Kadr", "Crop")}
-                <button type="button" onClick={() => nudge(0, -0.12)} aria-label={t("w górę", "up")}>↑</button>
-                <button type="button" onClick={() => nudge(0, 0.12)} aria-label={t("w dół", "down")}>↓</button>
-                <button type="button" onClick={() => nudge(-0.12, 0)} aria-label={t("w lewo", "left")}>←</button>
-                <button type="button" onClick={() => nudge(0.12, 0)} aria-label={t("w prawo", "right")}>→</button>
-              </span>
               <button
                 type="button"
                 className="as-link"
@@ -584,65 +559,14 @@ export default function AlbumTab({
           <div className="alb-spreads">
             {project.spreads.map((s, i) => (
               <figure key={s.id} className={addTo === s.id ? "alb-spread adding" : "alb-spread"}>
-                <div
-                  className={`alb-canvas fr-${frameStyle}`}
-                  style={{ background: colors.bg, aspectRatio: `${2 * ratio}`, ["--u" as string]: `${u}cqw`, ["--muted" as string]: colors.muted }}
-                >
-                  {isBlurBg(project.bg) && (() => {
-                    const bgName0 = backgroundPhoto(s);
-                    const bgPh = bgName0 ? byName.get(bgName0) : null;
-                    return (
-                      <>
-                        {bgPh && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img className="alb-bgimg" src={bgPh.url} alt="" loading="lazy" />
-                        )}
-                        <span className="alb-wash" style={{ background: colors.wash }} />
-                      </>
-                    );
-                  })()}
-                  {s.kind === "title" ? (
-                    <div className="alb-title" style={{ color: colors.ink, left: "50%", width: "50%" }}>
-                      {mono.length > 0 && (
-                        <span className="alb-mono" style={{ borderColor: colors.muted }}>
-                          {mono.join(mono.length > 1 ? " & " : "")}
-                        </span>
-                      )}
-                      <strong>{project.title}</strong>
-                      <i style={{ background: colors.muted }} />
-                      <small style={{ color: colors.muted }}>{project.subtitle}</small>
-                    </div>
-                  ) : (
-                    s.slots.map((sl, k) => {
-                      const ph = byName.get(sl.photo);
-                      const on = pick?.spread === s.id && pick.slot === k;
-                      return (
-                        <button
-                          key={k}
-                          type="button"
-                          className={`alb-slot${on ? " on" : ""}${(() => {
-                            const t0 = touches(sl.frame);
-                            return t0.left || t0.top || t0.right || t0.bottom ? " edge" : "";
-                          })()}`}
-                          style={{
-                            zIndex: 1 + (sl.layer ?? 0),
-                            left: `${(sl.frame.x / 2) * 100}%`,
-                            top: `${sl.frame.y * 100}%`,
-                            width: `${(sl.frame.w / 2) * 100}%`,
-                            height: `${sl.frame.h * 100}%`,
-                          }}
-                          onClick={() => clickPhoto(s, k)}
-                        >
-                          {ph && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={ph.url} alt="" loading="lazy" style={{ objectPosition: `${(sl.fx ?? 0.5) * 100}% ${(sl.fy ?? 0.45) * 100}%` }} />
-                          )}
-                        </button>
-                      );
-                    })
-                  )}
-                  <span className="alb-gutter" />
-                </div>
+                <AlbumSpreadView
+                  spread={s}
+                  project={project}
+                  byName={byName}
+                  ratio={ratio}
+                  selected={pick?.spread === s.id ? pick.slot : null}
+                  onSlotClick={(k) => clickPhoto(s, k)}
+                />
                 <figcaption>
                   <span className="alb-num">
                     {s.kind === "title" ? t("Strona tytułowa", "Title page") : `${t("Rozkładówka", "Spread")} ${i + 1}`} · {t("str.", "p.")} {i * 2 + 1}–{i * 2 + 2}
@@ -652,6 +576,7 @@ export default function AlbumTab({
                     <button type="button" onClick={() => move(i, 1)} disabled={i === project.spreads.length - 1} aria-label={t("Przesuń dalej", "Move later")}>→</button>
                     {s.kind === "photos" && (
                       <>
+                        <button type="button" className="alb-edit" onClick={() => { setPick(null); setEditing(s.id); }}>{t("Edytuj swobodnie", "Free edit")}</button>
                         <button type="button" onClick={() => changeLayout(s)}>{t("Zmień układ", "Change layout")}</button>
                         {isBlurBg(project.bg) && s.slots.length > 1 && (
                           <button type="button" onClick={() => cycleBg(s)}>{t("Zmień tło", "Change background")}</button>
@@ -733,6 +658,21 @@ export default function AlbumTab({
           </section>
         </>
       )}
+      {editing && (() => {
+        const sp = project.spreads.find((x) => x.id === editing);
+        if (!sp) return null;
+        return (
+          <SpreadEditor
+            spread={sp}
+            project={project}
+            byName={byName}
+            ratio={ratio}
+            onChange={(next) => setSpreads((list) => list.map((x) => (x.id === next.id ? next : x)))}
+            onRemovePhoto={(k) => setSpreads((list) => list.map((x) => (x.id === sp.id ? { ...x, slots: x.slots.filter((_, i) => i !== k) } : x)))}
+            onClose={() => setEditing(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

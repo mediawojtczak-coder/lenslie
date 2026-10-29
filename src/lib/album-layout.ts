@@ -13,7 +13,8 @@ export type AlbumFrame = "none" | "white" | "line";
 export type Frame = { x: number; y: number; w: number; h: number };
 // fx, fy – punkt kadru (0–1), gdy zdjęcie jest przycięte; domyślnie środek
 // layer – kolejność rysowania (zdjęcie nachodzące na inne ma wyższy numer)
-export type Slot = { photo: string; frame: Frame; fx?: number; fy?: number; layer?: number };
+// zoom – powiększenie kadru w ramce (1 = zdjęcie dokładnie wypełnia ramkę)
+export type Slot = { photo: string; frame: Frame; fx?: number; fy?: number; layer?: number; zoom?: number };
 export type Spread = {
   id: string;
   kind: "photos" | "title";
@@ -83,8 +84,8 @@ export const BG_COLORS: Record<AlbumBg, { bg: string; ink: string; muted: string
 export const isBlurBg = (bg: AlbumBg) => bg === "blur-light" || bg === "blur-dark";
 
 // Zdjęcie na rozmyte tło: wybrane albo największe na rozkładówce
-export function backgroundPhoto(spread: Spread): string | null {
-  if (spread.kind === "title") return spread.bgPhoto ?? null;
+export function backgroundPhoto(spread: Spread, all?: Spread[]): string | null {
+  if (spread.kind === "title") return spread.bgPhoto ?? all?.find((x) => x.slots.length)?.slots[0]?.photo ?? null;
   if (spread.bgPhoto && spread.slots.some((s) => s.photo === spread.bgPhoto)) return spread.bgPhoto;
   let best: Slot | null = null;
   for (const s of spread.slots) if (!best || s.frame.w * s.frame.h > best.frame.w * best.frame.h) best = s;

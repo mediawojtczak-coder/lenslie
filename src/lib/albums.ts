@@ -59,6 +59,7 @@ export async function saveAlbumProject(galleryId: string, raw: unknown): Promise
     if (!s || (s.kind !== "photos" && s.kind !== "title") || !Array.isArray(s.slots) || s.slots.length > 8) return false;
     for (const sl of s.slots) {
       if (typeof sl.photo !== "string" || sl.photo.length > 200) return false;
+      if (sl.layer !== undefined && !num(sl.layer)) return false;
       const f = sl.frame;
       if (!f || !num(f.x) || !num(f.y) || !num(f.w) || !num(f.h)) return false;
     }
@@ -86,7 +87,8 @@ export async function saveAlbumProject(galleryId: string, raw: unknown): Promise
         frame: { x: sl.frame.x, y: sl.frame.y, w: sl.frame.w, h: sl.frame.h },
         ...(num(sl.fx) ? { fx: Math.min(1, Math.max(0, sl.fx!)) } : {}),
         ...(num(sl.fy) ? { fy: Math.min(1, Math.max(0, sl.fy!)) } : {}),
-        ...(num(sl.layer) ? { layer: Math.min(5, Math.max(0, Math.round(sl.layer!))) } : {}),
+        ...(num(sl.layer) ? { layer: Math.min(20, Math.max(0, Math.round(sl.layer!))) } : {}),
+        ...(num(sl.zoom) ? { zoom: Math.min(4, Math.max(1, sl.zoom!)) } : {}),
       })),
     })),
     aspects,
