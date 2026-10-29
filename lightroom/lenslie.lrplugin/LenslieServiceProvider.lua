@@ -241,8 +241,19 @@ function provider.processRenderedPhotos(functionContext, exportContext)
 	local tempDir = LrPathUtils.child(LrPathUtils.getStandardFilePath('temp'), 'lenslie-' .. tostring(os.time()) .. '-' .. tostring(math.random(100000)))
 	LrFileUtils.createAllDirectories(tempDir)
 	local webPaths = {}
-	local okPhotos, photos = pcall(function() return session:photosToExport() end)
-	if okPhotos and photos and #photos > 0 then
+	-- photosToExport() zwraca tablicę albo (w nowszych wersjach) iterator – obsługujemy oba
+	local photos = {}
+	pcall(function()
+		local got = session:photosToExport()
+		if type(got) == 'function' then
+			for a, b in got do
+				photos[#photos + 1] = (type(a) == 'number') and b or a
+			end
+		elseif type(got) == 'table' then
+			for _, p in ipairs(got) do photos[#photos + 1] = p end
+		end
+	end)
+	if #photos > 0 then
 		local webSession = LrExportSession {
 			photosToExport = photos,
 			exportSettings = webSettings(tempDir),

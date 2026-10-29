@@ -5,7 +5,7 @@ import { adminClient } from "@/lib/supabase/admin";
 
 // Wtyczka Lightroom Classic: fotograf loguje się raz e-mailem i hasłem, wtyczka dostaje własny klucz (token).
 // Przechowujemy tylko skrót klucza: lr-tokens/<sha256>.json -> { uid }, a listę kluczy konta w profiles/<uid>/lr.json.
-export const LR_PLUGIN_VERSION = "1.0.1";
+export const LR_PLUGIN_VERSION = "1.0.2";
 
 // Testy: wtyczka dostępna tylko dla tych kont. Pusta lista = dla wszystkich.
 const LR_BETA = ["adamwojtczak7@gmail.com"];
