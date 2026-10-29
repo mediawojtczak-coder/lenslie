@@ -1,4 +1,5 @@
 import Link from "next/link";
+import InstallApp from "@/components/InstallApp";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/supabase/admin";
@@ -50,6 +51,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <p>{user.email}</p>
             <Link href="/panel/konto" className="account-link">{t("Moje konto", "My account")}</Link>
             <Link href="/panel/pro" className="account-link">Lenslie Pro</Link>
+            <InstallApp className="account-link" />
             <Link href="/panel/strona" className="account-link">{t("Moja strona", "My website")}</Link>
             <Link href="/panel/znajdz-siebie" className="account-link">{t("Znajdź siebie", "Find me")}</Link>
             <Link href="/panel/goscie" className="account-link">{t("Zdjęcia od gości", "Guest uploads")}</Link>

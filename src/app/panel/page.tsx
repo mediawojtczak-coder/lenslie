@@ -1,4 +1,5 @@
 import Link from "next/link";
+import InstallApp from "@/components/InstallApp";
 import { getProSub, proActive } from "@/lib/pro";
 import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
@@ -164,6 +165,7 @@ export default async function Panel({
             <span>{t("Kody QR na stoły", "QR codes for tables")}</span>
             <span className="side-count">99 zł</span>
           </Link>
+          <InstallApp />
         </nav>
         <SideLogout />
       </aside>
