@@ -1,3 +1,4 @@
+import { getUserLang } from "@/lib/lang-server";
 import { getPrintOrder, savePrintOrder, zipDownloadUrl } from "@/lib/print";
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
 
@@ -27,17 +28,29 @@ export async function printPaid(orderId: string) {
       html: emailLayout("Nowe zamówienie wydruku albumu", lines, files ? { label: "Pobierz pliki albumu", url: files } : { label: "Panel administratora", url: `${siteUrl()}/admin#albumy` }),
     }).catch(() => undefined);
   }
+  const en = (await getUserLang(o.uid).catch(() => "pl")) === "en";
   await sendEmail({
     to: o.email,
-    subject: `Zamówienie albumu „${o.title}” przyjęte`,
-    html: emailLayout(
-      "Dziękujemy za zamówienie albumu",
-      [
-        `Album ${o.format} cm, ${o.pages} stron${o.copies > 1 ? `, ${o.copies} egz.` : ""} – „${o.title}”.`,
-        `Zapłacono ${zl(o.price)}. Album wyślemy InPostem do paczkomatu ${o.shipping.locker} (odbiorca: ${o.shipping.name}).`,
-        "Czas realizacji: do 12 dni roboczych. Numer przesyłki prześlemy mailem.",
-      ],
-      { label: "Otwórz projekt", url: `${siteUrl()}/panel/galeria/${o.galleryId}?tab=album` },
-    ),
+    subject: en ? `Album order “${o.title}” received` : `Zamówienie albumu „${o.title}” przyjęte`,
+    html: en
+      ? emailLayout(
+          "Thank you for your album order",
+          [
+            `Album ${o.format} cm, ${o.pages} pages${o.copies > 1 ? `, ${o.copies} copies` : ""} – “${o.title}”.`,
+            `Paid: PLN ${o.price}. We'll ship the album by InPost to the parcel locker ${o.shipping.locker} (recipient: ${o.shipping.name}).`,
+            "Lead time: up to 12 working days. We'll e-mail you the tracking number.",
+          ],
+          { label: "Open the design", url: `${siteUrl()}/panel/galeria/${o.galleryId}?tab=album` },
+          "en",
+        )
+      : emailLayout(
+          "Dziękujemy za zamówienie albumu",
+          [
+            `Album ${o.format} cm, ${o.pages} stron${o.copies > 1 ? `, ${o.copies} egz.` : ""} – „${o.title}”.`,
+            `Zapłacono ${zl(o.price)}. Album wyślemy InPostem do paczkomatu ${o.shipping.locker} (odbiorca: ${o.shipping.name}).`,
+            "Czas realizacji: do 12 dni roboczych. Numer przesyłki prześlemy mailem.",
+          ],
+          { label: "Otwórz projekt", url: `${siteUrl()}/panel/galeria/${o.galleryId}?tab=album` },
+        ),
   }).catch(() => undefined);
 }

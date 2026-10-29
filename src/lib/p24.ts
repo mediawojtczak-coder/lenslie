@@ -72,7 +72,10 @@ export function newSessionId() {
 }
 
 // Rejestruje transakcję i zwraca adres strony płatności
-export async function registerTransaction(o: Order, origin: string): Promise<string> {
+// lang – język strony płatności (domyślnie język osoby, która płaci)
+export async function registerTransaction(o: Order, origin: string, lang?: "pl" | "en"): Promise<string> {
+  const { getLang } = await import("@/lib/lang-server");
+  const language = lang ?? (await getLang().catch(() => "pl" as const));
   const body = {
     merchantId: merchantId(),
     posId: posId(),
@@ -83,7 +86,7 @@ export async function registerTransaction(o: Order, origin: string): Promise<str
     encoding: "UTF-8",
     email: o.email,
     country: "PL",
-    language: "pl",
+    language: language === "en" ? "en" : "pl",
     urlReturn: `${origin}${o.returnPath ?? `/panel/galeria/${o.galleryId}`}?platnosc=${o.sessionId}`,
     urlStatus: `${origin}/api/platnosci/p24`,
     sign: sign({ sessionId: o.sessionId, merchantId: merchantId(), amount: o.amount, currency: "PLN", crc: crc() }),

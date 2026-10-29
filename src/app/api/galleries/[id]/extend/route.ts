@@ -52,7 +52,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   };
   await saveOrder(order);
   try {
-    return NextResponse.json({ ok: true, redirect: await registerTransaction(order, siteUrl()) });
+    return NextResponse.json({ ok: true, redirect: await registerTransaction(order, siteUrl(), meta.lang === "en" ? "en" : "pl") });
   } catch {
     return err("Bramka płatności nie przyjęła zamówienia. Spróbuj za chwilę.", "The payment gateway is unavailable. Try again shortly.", 502);
   }
