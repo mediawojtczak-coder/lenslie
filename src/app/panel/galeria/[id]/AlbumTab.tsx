@@ -9,6 +9,12 @@ import {
   pageRatio,
   ALBUM_STYLES,
   BG_COLORS,
+  ALBUM_BGS,
+  ALBUM_FRAMES,
+  isBlurBg,
+  backgroundPhoto,
+  touches,
+  type AlbumFrame,
   emptyProject,
   pageRange,
   PAGE_OPTIONS,
@@ -277,11 +283,37 @@ export default function AlbumTab({
   }
 
   const styleName: Record<AlbumStyle, string> = {
+    atelier: t("Atelier", "Atelier"),
     minimal: t("Minimal", "Minimal"),
     editorial: t("Magazyn", "Editorial"),
     classic: t("Klasyczny", "Classic"),
   };
-  const bgName: Record<AlbumBg, string> = { white: t("Białe", "White"), ivory: t("Kremowe", "Ivory"), black: t("Czarne", "Black") };
+  const bgName: Record<AlbumBg, string> = {
+    white: t("Białe", "White"),
+    ivory: t("Kremowe", "Ivory"),
+    black: t("Czarne", "Black"),
+    "blur-light": t("Rozmyte zdjęcie – jasne", "Blurred photo – light"),
+    "blur-dark": t("Rozmyte zdjęcie – ciemne", "Blurred photo – dark"),
+  };
+  const frameName: Record<AlbumFrame, string> = {
+    white: t("Biała ramka", "White border"),
+    line: t("Cienka linia", "Fine line"),
+    none: t("Bez ramki", "No border"),
+  };
+  const frameStyle = project.frame ?? "none";
+  const u = Math.min(50, 50 / ratio); // 1 jednostka (krótszy bok strony) w cqw podglądu
+  const mono = project.title
+    .split(/[\s&+,-]+/)
+    .filter((w) => /\p{L}/u.test(w))
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase());
+  function cycleBg(sp: Spread) {
+    const names = sp.slots.map((x) => x.photo);
+    if (!names.length) return;
+    const cur = backgroundPhoto(sp);
+    const next = names[(names.indexOf(cur ?? "") + 1) % names.length];
+    setSpreads((list) => list.map((x) => (x.id === sp.id ? { ...x, bgPhoto: next } : x)));
+  }
   const colors = BG_COLORS[project.bg];
   const pages = project.spreads.length * 2;
 
@@ -396,18 +428,29 @@ export default function AlbumTab({
           </label>
 
           <div className="alb-field">
-            <span>{t("Tło stron", "Page colour")}</span>
+            <span>{t("Tło stron", "Background")}</span>
             <div className="alb-swatches">
-              {(Object.keys(BG_COLORS) as AlbumBg[]).map((b) => (
+              {ALBUM_BGS.map((b) => (
                 <button
                   key={b}
                   type="button"
                   title={bgName[b]}
                   aria-label={bgName[b]}
-                  className={project.bg === b ? "on" : ""}
-                  style={{ background: BG_COLORS[b].bg }}
+                  className={`${project.bg === b ? "on" : ""} ${isBlurBg(b) ? `sw-${b}` : ""}`}
+                  style={isBlurBg(b) ? undefined : { background: BG_COLORS[b].bg }}
                   onClick={() => update({ bg: b })}
                 />
+              ))}
+            </div>
+          </div>
+
+          <div className="alb-field">
+            <span>{t("Wykończenie zdjęć", "Photo finish")}</span>
+            <div className="seg">
+              {ALBUM_FRAMES.map((f) => (
+                <button key={f} type="button" className={frameStyle === f ? "on" : ""} onClick={() => update({ frame: f })}>
+                  {frameName[f]}
+                </button>
               ))}
             </div>
           </div>
@@ -541,9 +584,30 @@ export default function AlbumTab({
           <div className="alb-spreads">
             {project.spreads.map((s, i) => (
               <figure key={s.id} className={addTo === s.id ? "alb-spread adding" : "alb-spread"}>
-                <div className="alb-canvas" style={{ background: colors.bg, aspectRatio: `${2 * ratio}` }}>
+                <div
+                  className={`alb-canvas fr-${frameStyle}`}
+                  style={{ background: colors.bg, aspectRatio: `${2 * ratio}`, ["--u" as string]: `${u}cqw`, ["--muted" as string]: colors.muted }}
+                >
+                  {isBlurBg(project.bg) && (() => {
+                    const bgName0 = backgroundPhoto(s);
+                    const bgPh = bgName0 ? byName.get(bgName0) : null;
+                    return (
+                      <>
+                        {bgPh && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img className="alb-bgimg" src={bgPh.url} alt="" loading="lazy" />
+                        )}
+                        <span className="alb-wash" style={{ background: colors.wash }} />
+                      </>
+                    );
+                  })()}
                   {s.kind === "title" ? (
-                    <div className="alb-title" style={{ color: colors.ink }}>
+                    <div className="alb-title" style={{ color: colors.ink, left: "50%", width: "50%" }}>
+                      {mono.length > 0 && (
+                        <span className="alb-mono" style={{ borderColor: colors.muted }}>
+                          {mono.join(mono.length > 1 ? " & " : "")}
+                        </span>
+                      )}
                       <strong>{project.title}</strong>
                       <i style={{ background: colors.muted }} />
                       <small style={{ color: colors.muted }}>{project.subtitle}</small>
@@ -556,8 +620,12 @@ export default function AlbumTab({
                         <button
                           key={k}
                           type="button"
-                          className={on ? "alb-slot on" : "alb-slot"}
+                          className={`alb-slot${on ? " on" : ""}${(() => {
+                            const t0 = touches(sl.frame);
+                            return t0.left || t0.top || t0.right || t0.bottom ? " edge" : "";
+                          })()}`}
                           style={{
+                            zIndex: 1 + (sl.layer ?? 0),
                             left: `${(sl.frame.x / 2) * 100}%`,
                             top: `${sl.frame.y * 100}%`,
                             width: `${(sl.frame.w / 2) * 100}%`,
@@ -585,6 +653,9 @@ export default function AlbumTab({
                     {s.kind === "photos" && (
                       <>
                         <button type="button" onClick={() => changeLayout(s)}>{t("Zmień układ", "Change layout")}</button>
+                        {isBlurBg(project.bg) && s.slots.length > 1 && (
+                          <button type="button" onClick={() => cycleBg(s)}>{t("Zmień tło", "Change background")}</button>
+                        )}
                         <button type="button" className={addTo === s.id ? "on" : ""} disabled={s.slots.length >= MAX_SLOTS} onClick={() => setAddTo(addTo === s.id ? null : s.id)}>
                           {t("+ Zdjęcie", "+ Photo")}
                         </button>

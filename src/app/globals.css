@@ -2317,3 +2317,18 @@ main.pf { max-width: none; margin: 0; padding: 0; min-height: 100vh; }
 }
 .alb-field .plain-select.alb-pages { min-width: 200px; }
 .alb-field .plain-select.alb-format { min-width: 250px; }
+/* Projektor albumów – wykończenia „luksusowe” */
+.alb-bgimg { position: absolute; inset: -6%; width: 112%; height: 112%; object-fit: cover; filter: blur(2.2cqw); pointer-events: none; }
+.alb-wash { position: absolute; inset: 0; pointer-events: none; }
+.alb-canvas .alb-slot { overflow: visible; background: transparent; }
+.alb-canvas .alb-slot img { position: relative; }
+.alb-canvas.fr-white .alb-slot:not(.edge) img { box-shadow: 0 0 0 calc(var(--u) * 0.0075) #fbfaf8, 0 calc(var(--u) * 0.008) calc(var(--u) * 0.03) rgba(40, 30, 20, .3); }
+.alb-canvas.fr-line .alb-slot:not(.edge)::after { content: ""; position: absolute; inset: calc(var(--u) * -0.008); border: 1px solid var(--muted); pointer-events: none; }
+.alb-canvas.fr-none .alb-slot:not(.edge) img { box-shadow: 0 calc(var(--u) * 0.006) calc(var(--u) * 0.022) rgba(40, 30, 20, .18); }
+.alb-canvas .alb-slot.on img { outline: 3px solid #c9a87c; outline-offset: 2px; }
+.alb-canvas .alb-slot.on { box-shadow: none; }
+.alb-canvas .alb-slot:hover img { transform: none; filter: brightness(1.04); }
+.alb-title { z-index: 2; }
+.alb-mono { display: grid; place-items: center; width: 15cqw; max-width: calc(var(--u) * 0.15 * 2); aspect-ratio: 1; border: 1px solid; border-radius: 50%; font-family: var(--font-display), Georgia, serif; font-style: italic; font-size: 2.3cqw; margin-bottom: 2cqw; box-shadow: inset 0 0 0 0.35cqw transparent, inset 0 0 0 calc(0.35cqw + 1px) rgba(143, 135, 129, .35); }
+.alb-swatches .sw-blur-light { background: radial-gradient(circle at 30% 30%, #d9c8b4, #f3eee7 70%); }
+.alb-swatches .sw-blur-dark { background: radial-gradient(circle at 30% 30%, #6b5a4c, #1f1c19 70%); }

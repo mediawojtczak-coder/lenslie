@@ -1,7 +1,7 @@
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
 import type { AlbumProject } from "@/lib/album-layout";
-import { ALBUM_SIZES, ALBUM_STYLES } from "@/lib/album-layout";
+import { ALBUM_SIZES, ALBUM_STYLES, ALBUM_BGS, ALBUM_FRAMES } from "@/lib/album-layout";
 
 // Projektor albumów – abonament (miesiąc albo rok, z góry) i projekty zapisane przy galerii
 export const ALBUM_PRICES: Record<number, number> = { 1: 29, 12: 290 };
@@ -52,7 +52,7 @@ export async function saveAlbumProject(galleryId: string, raw: unknown): Promise
   const p = raw as AlbumProject;
   if (!p || typeof p !== "object") return false;
   const size = typeof p.size === "number" ? `${p.size}x${p.size}` : p.size;
-  if (!ALBUM_SIZES.includes(size) || !ALBUM_STYLES.includes(p.style) || !["white", "ivory", "black"].includes(p.bg)) return false;
+  if (!ALBUM_SIZES.includes(size) || !ALBUM_STYLES.includes(p.style) || !ALBUM_BGS.includes(p.bg)) return false;
   if (!Array.isArray(p.spreads) || p.spreads.length > 200) return false;
   const num = (n: unknown) => typeof n === "number" && Number.isFinite(n);
   for (const s of p.spreads) {
@@ -69,6 +69,7 @@ export async function saveAlbumProject(galleryId: string, raw: unknown): Promise
     size,
     style: p.style,
     bg: p.bg,
+    frame: ALBUM_FRAMES.includes(p.frame as never) ? p.frame : "none",
     source: String(p.source ?? "all").slice(0, 80),
     title: String(p.title ?? "").slice(0, 120),
     subtitle: String(p.subtitle ?? "").slice(0, 120),
@@ -79,11 +80,13 @@ export async function saveAlbumProject(galleryId: string, raw: unknown): Promise
       id: String(s.id).slice(0, 40),
       kind: s.kind,
       variant: num(s.variant) ? s.variant : 0,
+      ...(typeof s.bgPhoto === "string" ? { bgPhoto: s.bgPhoto.slice(0, 200) } : {}),
       slots: s.slots.map((sl) => ({
         photo: sl.photo,
         frame: { x: sl.frame.x, y: sl.frame.y, w: sl.frame.w, h: sl.frame.h },
         ...(num(sl.fx) ? { fx: Math.min(1, Math.max(0, sl.fx!)) } : {}),
         ...(num(sl.fy) ? { fy: Math.min(1, Math.max(0, sl.fy!)) } : {}),
+        ...(num(sl.layer) ? { layer: Math.min(5, Math.max(0, Math.round(sl.layer!))) } : {}),
       })),
     })),
     aspects,

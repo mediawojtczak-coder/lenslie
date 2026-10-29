@@ -4,23 +4,29 @@
 // Format albumu: szerokość × wysokość jednej strony w cm (rozkładówka = 2 × szerokość)
 export type AlbumSize = string; // np. "20x20", "30x20"
 export type AlbumFormat = { id: AlbumSize; w: number; h: number; labs: string };
-export type AlbumStyle = "minimal" | "editorial" | "classic";
-export type AlbumBg = "white" | "ivory" | "black";
+export type AlbumStyle = "atelier" | "minimal" | "editorial" | "classic";
+// Tło stron: kolor albo rozmyte, rozjaśnione/przyciemnione zdjęcie z rozkładówki
+export type AlbumBg = "white" | "ivory" | "black" | "blur-light" | "blur-dark";
+// Wykończenie zdjęć: bez ramki, biała ramka z cieniem (jak odbitka), cienka linia
+export type AlbumFrame = "none" | "white" | "line";
 
 export type Frame = { x: number; y: number; w: number; h: number };
 // fx, fy – punkt kadru (0–1), gdy zdjęcie jest przycięte; domyślnie środek
-export type Slot = { photo: string; frame: Frame; fx?: number; fy?: number };
+// layer – kolejność rysowania (zdjęcie nachodzące na inne ma wyższy numer)
+export type Slot = { photo: string; frame: Frame; fx?: number; fy?: number; layer?: number };
 export type Spread = {
   id: string;
   kind: "photos" | "title";
   slots: Slot[];
   variant: number; // który z możliwych układów (przycisk „Zmień układ”)
+  bgPhoto?: string; // zdjęcie na rozmytym tle (domyślnie największe na rozkładówce)
 };
 
 export type AlbumProject = {
   size: AlbumSize;
   style: AlbumStyle;
   bg: AlbumBg;
+  frame?: AlbumFrame;
   source: string; // id wyboru klienta albo "all"
   title: string;
   subtitle: string;
@@ -62,13 +68,28 @@ export const pageRatio = (size: unknown) => {
   const f = albumFormat(size);
   return f.w / f.h;
 };
-export const ALBUM_STYLES: AlbumStyle[] = ["minimal", "editorial", "classic"];
+export const ALBUM_STYLES: AlbumStyle[] = ["atelier", "editorial", "minimal", "classic"];
+export const ALBUM_BGS: AlbumBg[] = ["blur-light", "blur-dark", "white", "ivory", "black"];
+export const ALBUM_FRAMES: AlbumFrame[] = ["white", "line", "none"];
 
-export const BG_COLORS: Record<AlbumBg, { bg: string; ink: string; muted: string }> = {
+// wash – półprzezroczysta warstwa na rozmytym zdjęciu (jasna albo ciemna)
+export const BG_COLORS: Record<AlbumBg, { bg: string; ink: string; muted: string; wash?: string }> = {
   white: { bg: "#ffffff", ink: "#2b2724", muted: "#8f8781" },
   ivory: { bg: "#f7f3ec", ink: "#2b2724", muted: "#8f8781" },
   black: { bg: "#151413", ink: "#f2ede6", muted: "#a59d95" },
+  "blur-light": { bg: "#f4f1ec", ink: "#2b2724", muted: "#7d746d", wash: "rgba(250, 248, 244, 0.72)" },
+  "blur-dark": { bg: "#1b1917", ink: "#f4efe8", muted: "#c7bdb3", wash: "rgba(20, 18, 16, 0.62)" },
 };
+export const isBlurBg = (bg: AlbumBg) => bg === "blur-light" || bg === "blur-dark";
+
+// Zdjęcie na rozmyte tło: wybrane albo największe na rozkładówce
+export function backgroundPhoto(spread: Spread): string | null {
+  if (spread.kind === "title") return spread.bgPhoto ?? null;
+  if (spread.bgPhoto && spread.slots.some((s) => s.photo === spread.bgPhoto)) return spread.bgPhoto;
+  let best: Slot | null = null;
+  for (const s of spread.slots) if (!best || s.frame.w * s.frame.h > best.frame.w * best.frame.h) best = s;
+  return best?.photo ?? null;
+}
 
 type StyleCfg = {
   m: number; // margines strony (część boku)
@@ -79,6 +100,8 @@ type StyleCfg = {
 };
 
 const STYLES: Record<AlbumStyle, StyleCfg> = {
+  // Luksusowy: zdjęcia jak odbitki na rozmytym tle, nachodzące kadry, dużo oddechu
+  atelier: { m: 0.1, g: 0.032, bleed: 0.15, pano: 5, rhythm: [1, 2, 1, 1, 2, 1, 3, 1] },
   // Dużo powietrza, pojedyncze zdjęcia w passe-partout
   minimal: { m: 0.13, g: 0.04, bleed: 0.08, pano: 0, rhythm: [1, 1, 2, 1, 1, 2, 1, 3] },
   // Magazynowy: zdjęcia na spad, panoramy, asymetria
@@ -91,7 +114,7 @@ const STYLES: Record<AlbumStyle, StyleCfg> = {
 // Liczone w rzeczywistych proporcjach strony (szerokość r, wysokość 1), a potem
 // przeliczane na współrzędne strony (0–1 w poziomie), żeby marginesy były równe także na stronach niekwadratowych.
 
-type PageTpl = { name: string; frames: Frame[]; bleed?: boolean; asym?: boolean };
+type PageTpl = { name: string; frames: Frame[]; bleed?: boolean; asym?: boolean; overlap?: boolean; luxe?: boolean };
 
 function pageTemplates(style: AlbumStyle, r: number): PageTpl[] {
   const cfg = STYLES[style];
@@ -198,6 +221,82 @@ function pageTemplates(style: AlbumStyle, r: number): PageTpl[] {
     const sh = ih - g - bh;
     add("four-strip", [{ x: m, y: m, w: iw, h: bh }, ...[0, 1, 2].map((i) => ({ x: m + i * (sw + g), y: m + bh + g, w: sw, h: sh }))]);
   }
+
+  // Układy „luksusowe”: kadry nachodzące na siebie i zdjęcia w galeryjnym passe-partout
+  if (style === "atelier" || style === "editorial") {
+    {
+      // duże zdjęcie + mniejsze nachodzące na prawy dolny róg
+      const bw = iw * 0.8;
+      const bh = ih * 0.74;
+      const s0 = fit(2 / 3, iw * 0.4, ih * 0.52);
+      add("overlap-br", [{ x: m, y: m, w: bw, h: bh }, { x: W - m - s0.w, y: H - m - s0.h, w: s0.w, h: s0.h }], { overlap: true, luxe: true });
+    }
+    {
+      // pionowe zdjęcie + poziome nachodzące od dołu z lewej
+      const bw = iw * 0.62;
+      const s0 = fit(1.5, iw * 0.6, ih * 0.42);
+      add("overlap-bl", [{ x: W - m - bw, y: m, w: bw, h: ih * 0.82 }, { x: m, y: H - m - s0.h, w: s0.w, h: s0.h }], { overlap: true, luxe: true });
+    }
+    {
+      // jedno zdjęcie w szerokim passe-partout, przesunięte optycznie ku górze
+      const f = fit(2 / 3, iw * 0.7, ih * 0.8);
+      add("gallery-port", [{ x: (W - f.w) / 2, y: (H - f.h) * 0.42, w: f.w, h: f.h }], { luxe: true });
+    }
+    {
+      const f = fit(1.5, iw * 0.9, ih * 0.7);
+      add("gallery-land", [{ x: (W - f.w) / 2, y: (H - f.h) * 0.42, w: f.w, h: f.h }], { luxe: true });
+    }
+    {
+      // dwa zdjęcia „schodkowo”: jedno wyżej z lewej, drugie niżej z prawej
+      const w = (iw - g) * 0.5;
+      const h = Math.min(ih * 0.68, w * 1.5);
+      add("stagger", [{ x: m, y: m, w, h }, { x: m + w + g, y: H - m - h, w, h }], { asym: true, luxe: true });
+    }
+  }
+  return t;
+}
+
+// Układy na całą rozkładówkę (ponad grzbietem) – tylko dla stylu luksusowego.
+// Liczone na rozkładówce 2r × 1 i przeliczane na współrzędne rozkładówki (0–2).
+function spreadTemplates(style: AlbumStyle, r: number): PageTpl[] {
+  if (style !== "atelier") return [];
+  const cfg = STYLES[style];
+  const W = 2 * r;
+  const H = 1;
+  const base = Math.min(r, 1);
+  const m = cfg.m * base;
+  const g = cfg.g * base;
+  const t: PageTpl[] = [];
+  const add = (name: string, frames: Frame[], extra: Partial<PageTpl> = {}) =>
+    t.push({ name: `S:${name}`, frames: frames.map((f) => ({ x: f.x / r, y: f.y, w: f.w / r, h: f.h })), luxe: true, ...extra });
+  {
+    // szerokie zdjęcie na lewej stronie i kawałku prawej + pionowe nachodzące z prawej
+    const bw = r * 1.32;
+    const bh = H - 2 * m * 1.4;
+    const pw = Math.min(r * 0.55, (H - 2 * m) / 1.5);
+    const ph = pw * 1.5;
+    add("hero-overlap", [{ x: m * 1.2, y: (H - bh) / 2, w: bw, h: bh }, { x: W - m * 1.6 - pw, y: (H - ph) / 2 + m * 0.4, w: pw, h: ph }], { overlap: true });
+  }
+  {
+    // trzy pionowe kadry w rytmie: duży w środku lewej strony, dwa mniejsze na prawej na różnych wysokościach
+    const bigH = H - 2 * m;
+    const bigW = Math.min(r - 2 * m, bigH / 1.5);
+    const sw = Math.min((r - 2 * m - g) / 2, (H - 2 * m) * 0.5);
+    const sh = sw * 1.5;
+    add("rhythm-3", [
+      { x: (r - bigW) / 2, y: m, w: bigW, h: bigH },
+      { x: r + m, y: m, w: sw, h: sh },
+      { x: W - m - sw, y: H - m - sh, w: sw, h: sh },
+    ]);
+  }
+  {
+    // panorama z ramką + mała pionowa „wklejka”
+    const ph = H - 2 * m * 1.6;
+    const pw = W - 2 * m * 1.6;
+    const iw0 = Math.min(r * 0.36, (H - 2 * m) * 0.45);
+    const ih0 = iw0 * 1.5;
+    add("pano-card", [{ x: (W - pw) / 2, y: (H - ph) / 2, w: pw, h: ph }, { x: W - m * 2.6 - iw0, y: H - m * 2.2 - ih0, w: iw0, h: ih0 }], { overlap: true });
+  }
   return t;
 }
 
@@ -234,7 +333,7 @@ function fitPage(tpl: PageTpl, photos: string[], aspects: Record<string, number>
     let cost = 0;
     const slots = tpl.frames.map((f, i) => {
       cost += cropCost(f, aspects[perm[i]] ?? 1.5, r);
-      return { photo: perm[i], frame: { ...f, x: f.x + dx } };
+      return { photo: perm[i], frame: { ...f, x: f.x + dx }, ...(tpl.overlap && i > 0 ? { layer: 1 } : {}) };
     });
     // lekka preferencja zachowania kolejności
     if (perm.join() !== photos.join()) cost += 0.02;
@@ -250,7 +349,10 @@ export function spreadCandidates(photos: string[], aspects: Record<string, numbe
   const out: Candidate[] = [];
   const n = photos.length;
   // Zdjęcia na spad: w stylu „Magazyn” chętnie (mimo przycięcia), w minimalistycznym rzadko
-  const bias = (tpl: PageTpl) => (tpl.bleed ? 0.3 - cfg.bleed * 1.4 : 0) + (tpl.asym ? (style === "editorial" ? -0.05 : 0.12) : 0);
+  const bias = (tpl: PageTpl) =>
+    (tpl.bleed ? 0.3 - cfg.bleed * 1.4 : 0) +
+    (tpl.asym ? (style === "editorial" || style === "atelier" ? -0.05 : 0.12) : 0) +
+    (tpl.luxe ? (style === "atelier" ? -0.12 : 0.04) : 0);
 
   if (n === 1) {
     const a = aspects[photos[0]] ?? 1.5;
@@ -290,6 +392,11 @@ export function spreadCandidates(photos: string[], aspects: Record<string, numbe
         }
       }
     }
+  }
+  // układy na całą rozkładówkę
+  for (const tpl of spreadTemplates(style, r).filter((t) => t.frames.length === n)) {
+    const p = fitPage(tpl, photos, aspects, 0, r);
+    out.push({ key: tpl.name, cost: p.cost + bias(tpl) - 0.04, slots: p.slots });
   }
   // drobny losowy szum, żeby albumy nie były identyczne
   for (const c of out) c.cost += rand() * 0.06;
@@ -348,7 +455,8 @@ export function generateAlbum(photos: string[], aspects: Record<string, number>,
   const cfg = STYLES[style];
   const rand = rng(seed);
   const spreads: Spread[] = [];
-  if (titlePage) spreads.push({ id: newId(), kind: "title", slots: [], variant: 0 });
+  // tło strony tytułowej: pierwsze zdjęcie albumu (widoczne przy rozmytym tle)
+  if (titlePage) spreads.push({ id: newId(), kind: "title", slots: [], variant: 0, bgPhoto: photos[0] });
 
   if (pages && photos.length) {
     const want = Math.floor(pages / 2) - (titlePage ? 1 : 0);
@@ -411,8 +519,9 @@ export function touches(f: Frame) {
 export function emptyProject(source: string, title: string, subtitle: string): AlbumProject {
   return {
     size: "20x20",
-    style: "editorial",
-    bg: "ivory",
+    style: "atelier",
+    bg: "blur-light",
+    frame: "white",
     source,
     title,
     subtitle,

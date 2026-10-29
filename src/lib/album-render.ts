@@ -1,5 +1,5 @@
 // Projektor albumów: rozkładówki do druku (JPEG 300 dpi, sRGB, opcjonalnie 3 mm spadu) – generowane w przeglądarce fotografa
-import { BG_COLORS, touches, albumFormat, type AlbumProject, type Spread } from "@/lib/album-layout";
+import { BG_COLORS, touches, albumFormat, isBlurBg, backgroundPhoto, type AlbumProject, type Spread } from "@/lib/album-layout";
 
 export const DPI = 300;
 export const BLEED_CM = 0.3;
@@ -40,7 +40,12 @@ function displayFont() {
   return fam;
 }
 
-// Strona tytułowa: lewa strona pusta, na prawej imiona i data
+export function monogram(title: string) {
+  const words = title.split(/[\s&+,-]+/).filter((w) => /\p{L}/u.test(w));
+  return words.slice(0, 2).map((w) => w[0]!.toUpperCase()).join(words.length > 1 ? " & " : "");
+}
+
+// Strona tytułowa: na prawej stronie monogram w cienkim kole, imiona i data
 function drawTitle(ctx: CanvasRenderingContext2D, p: AlbumProject, ux: number, uy: number, off: number, font: string) {
   const c = BG_COLORS[p.bg];
   const cx = off + ux * 1.5;
@@ -48,27 +53,73 @@ function drawTitle(ctx: CanvasRenderingContext2D, p: AlbumProject, ux: number, u
   const unit = Math.min(ux, uy);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  const line = Math.max(1, unit * 0.0011);
+
+  // monogram
+  const mono = monogram(p.title);
+  if (mono) {
+    const r = unit * 0.075;
+    const my = cy - unit * 0.13;
+    ctx.strokeStyle = c.muted;
+    ctx.lineWidth = line;
+    ctx.beginPath();
+    ctx.arc(cx, my, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, my, r * 0.9, 0, Math.PI * 2);
+    ctx.globalAlpha = 0.5;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = c.ink;
+    ctx.font = `italic 400 ${r * (mono.length > 2 ? 0.62 : 0.9)}px ${font}`;
+    ctx.fillText(mono, cx, my + r * 0.04);
+  }
+
   ctx.fillStyle = c.ink;
-  let size = unit * 0.085;
+  let size = unit * 0.075;
   ctx.font = `400 ${size}px ${font}`;
-  while (ctx.measureText(p.title || " ").width > unit * 0.78 && size > unit * 0.03) {
+  while (ctx.measureText(p.title || " ").width > unit * 0.8 && size > unit * 0.03) {
     size *= 0.92;
     ctx.font = `400 ${size}px ${font}`;
   }
-  ctx.fillText(p.title || "", cx, cy - unit * 0.035);
+  ctx.fillText(p.title || "", cx, cy + unit * 0.02);
   ctx.strokeStyle = c.muted;
-  ctx.lineWidth = Math.max(1, unit * 0.0012);
-  ctx.beginPath();
-  ctx.moveTo(cx - unit * 0.05, cy + unit * 0.035);
-  ctx.lineTo(cx + unit * 0.05, cy + unit * 0.035);
-  ctx.stroke();
-  if (p.subtitle) {
-    ctx.fillStyle = c.muted;
-    const s = unit * 0.022;
-    ctx.font = `400 ${s}px ${font}`;
-    const text = p.subtitle.toUpperCase().split("").join(String.fromCharCode(8202));
-    ctx.fillText(text, cx, cy + unit * 0.085);
+  ctx.lineWidth = line;
+  for (const dir of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(cx + dir * unit * 0.018, cy + unit * 0.085);
+    ctx.lineTo(cx + dir * unit * 0.075, cy + unit * 0.085);
+    ctx.stroke();
   }
+  ctx.beginPath();
+  ctx.arc(cx, cy + unit * 0.085, unit * 0.003, 0, Math.PI * 2);
+  ctx.fillStyle = c.muted;
+  ctx.fill();
+  if (p.subtitle) {
+    const s0 = unit * 0.02;
+    ctx.font = `400 ${s0}px ${font}`;
+    const text = p.subtitle.toUpperCase().split("").join(String.fromCharCode(8202, 8202));
+    ctx.fillText(text, cx, cy + unit * 0.135);
+  }
+}
+
+// Rozmyte, rozjaśnione (albo przyciemnione) zdjęcie na całe tło rozkładówki.
+// Rozmycie przez zmniejszenie i powiększenie – działa w każdej przeglądarce.
+function drawBlurBackground(ctx: CanvasRenderingContext2D, img: Img, W: number, H: number, wash: string) {
+  const small = document.createElement("canvas");
+  const k = 40 / Math.max(W, H);
+  small.width = Math.max(4, Math.round(W * k));
+  small.height = Math.max(4, Math.round(H * k));
+  const sctx = small.getContext("2d")!;
+  sctx.imageSmoothingQuality = "high";
+  drawCover(sctx, img, 0, 0, small.width, small.height, 0.5, 0.5);
+  ctx.save();
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(small, 0, 0, small.width, small.height, 0, 0, W, H);
+  ctx.fillStyle = wash;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
 }
 
 // Rysuje rozkładówkę na płótnie. getImage zwraca wczytane zdjęcie (albo null – wtedy szare pole)
@@ -89,23 +140,64 @@ export async function drawSpread(
   const off = dims.bleed;
   const ux = dims.ux;
   const uy = dims.uy;
+  const unit = Math.min(ux, uy);
+
+  if (isBlurBg(p.bg) && colors.wash) {
+    const bgName = backgroundPhoto(spread);
+    const img = bgName ? await getImage(bgName) : null;
+    if (img) drawBlurBackground(ctx, img, dims.width, dims.height, colors.wash);
+  }
 
   if (spread.kind === "title") {
     drawTitle(ctx, p, ux, uy, off, displayFont());
     return;
   }
-  for (const s of spread.slots) {
+
+  const frame = p.frame ?? "none";
+  const border = frame === "white" ? Math.max(2, Math.round(unit * 0.0075)) : 0;
+  const slots = [...spread.slots].sort((a, b) => (a.layer ?? 0) - (b.layer ?? 0));
+  for (const s of slots) {
     const t = touches(s.frame);
+    const edge = t.left || t.top || t.right || t.bottom;
     // zdjęcia przy krawędzi wychodzą na spad
     const x0 = off + s.frame.x * ux - (t.left ? off : 0);
     const y0 = off + s.frame.y * uy - (t.top ? off : 0);
     const x1 = off + (s.frame.x + s.frame.w) * ux + (t.right ? off : 0);
     const y1 = off + (s.frame.y + s.frame.h) * uy + (t.bottom ? off : 0);
+    const X = Math.round(x0);
+    const Y = Math.round(y0);
+    const Wd = Math.round(x1 - x0);
+    const Ht = Math.round(y1 - y0);
+
+    // biała ramka jak przy odbitce, z miękkim cieniem (nie dla zdjęć na spad)
+    const framed = frame === "white" && !edge;
+    const shadow = !edge && (framed || (s.layer ?? 0) > 0 || isBlurBg(p.bg));
+    if (shadow) {
+      ctx.save();
+      ctx.shadowColor = p.bg === "blur-dark" || p.bg === "black" ? "rgba(0,0,0,0.55)" : "rgba(40,30,20,0.28)";
+      ctx.shadowBlur = unit * 0.03;
+      ctx.shadowOffsetY = unit * 0.008;
+      ctx.fillStyle = framed ? "#fbfaf8" : "#ddd";
+      ctx.fillRect(X - border, Y - border, Wd + 2 * border, Ht + 2 * border);
+      ctx.restore();
+    } else if (framed) {
+      ctx.fillStyle = "#fbfaf8";
+      ctx.fillRect(X - border, Y - border, Wd + 2 * border, Ht + 2 * border);
+    }
+
     const img = await getImage(s.photo);
-    if (img) drawCover(ctx, img, Math.round(x0), Math.round(y0), Math.round(x1 - x0), Math.round(y1 - y0), s.fx ?? 0.5, s.fy ?? 0.45);
+    if (img) drawCover(ctx, img, X, Y, Wd, Ht, s.fx ?? 0.5, s.fy ?? 0.45);
     else {
       ctx.fillStyle = "#d9d3cc";
-      ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+      ctx.fillRect(X, Y, Wd, Ht);
+    }
+
+    // cienka linia w kolorze tekstu, odsunięta od zdjęcia
+    if (frame === "line" && !edge) {
+      const gap = Math.round(unit * 0.008);
+      ctx.strokeStyle = colors.muted;
+      ctx.lineWidth = Math.max(1, unit * 0.0011);
+      ctx.strokeRect(X - gap, Y - gap, Wd + 2 * gap, Ht + 2 * gap);
     }
   }
 }
