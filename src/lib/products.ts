@@ -2,6 +2,7 @@ import type { ProductAction } from "@/lib/p24";
 import { addOwnedTheme } from "@/lib/themes";
 import { getMeta, saveMeta } from "@/lib/galleries";
 import { extendPortfolio } from "@/lib/portfolio";
+import { extendAlbumSub } from "@/lib/albums";
 
 // Wykonanie opłaconego dodatku (po płatności z salda albo po potwierdzeniu z Przelewy24)
 export async function fulfillProduct(a: ProductAction) {
@@ -16,6 +17,8 @@ export async function fulfillProduct(a: ProductAction) {
     }
   } else if (a.product === "portfolio") {
     await extendPortfolio(a.uid, a.months);
+  } else if (a.product === "album") {
+    await extendAlbumSub(a.uid, a.months);
   } else if (a.product === "faces") {
     const meta = await getMeta(a.galleryId);
     if (meta) {

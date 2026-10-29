@@ -135,6 +135,9 @@ export default async function Panel({
           <Link href="/panel/znajdz-siebie" className="side-link">
             <span>{t("Znajdź siebie", "Find me")}</span>
           </Link>
+          <Link href="/panel/albumy" className="side-link">
+            <span>{t("Projektor albumów", "Album designer")}</span>
+          </Link>
           <Link href="/panel/goscie" className="side-link">
             <span>{t("Zdjęcia od gości", "Guest uploads")}</span>
           </Link>

@@ -33,6 +33,9 @@ import FacesCard from "./FacesCard";
 import { FACES_PRICE } from "@/lib/faces";
 import { THEMES, getOwnedThemes } from "@/lib/themes";
 import { getPayout } from "@/lib/sales";
+import AlbumTab from "./AlbumTab";
+import { getAlbumProject, getAlbumSub, albumActive } from "@/lib/albums";
+import { isAdminEmail } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -101,6 +104,7 @@ export default async function ZarzadzanieGalerii({
   const tabs = [
     { key: "zdjecia", label: L("Zdjęcia", "Photos"), count: photos.length },
     { key: "wybory", label: meta?.sale?.enabled ? L("Zamówienia klientów", "Client orders") : L("Wybory klientów", "Client selections"), count: selectionCount ?? 0 },
+    { key: "album", label: L("Album", "Album"), count: null },
     { key: "statystyki", label: L("Statystyki", "Statistics"), count: null },
     { key: "ustawienia", label: L("Ustawienia", "Settings"), count: null },
   ];
@@ -177,6 +181,34 @@ export default async function ZarzadzanieGalerii({
 
         {tab === "wybory" ? (
           <SelectionsTab id={id} selling={Boolean(meta?.sale?.enabled)} photos={photos.map((p) => ({ name: p.name, fileName: p.fileName, url: p.webUrl }))} />
+        ) : tab === "album" ? (
+          await (async () => {
+            const [project, sub, sels] = await Promise.all([
+              getAlbumProject(id).catch(() => null),
+              user ? getAlbumSub(user.id).catch(() => ({})) : Promise.resolve({}),
+              supabase.from("selections").select("id, client_name, photos, updated_at").eq("gallery_id", id).order("updated_at", { ascending: false }),
+            ]);
+            const selections = ((sels.data ?? []) as { id: string; client_name: string | null; photos: string[] | null }[])
+              .filter((s) => (s.photos ?? []).length > 0)
+              .map((s) => ({ id: s.id, name: s.client_name ?? "", photos: s.photos ?? [] }));
+            const ev = meta?.eventDate ? new Date(`${meta.eventDate}T00:00:00Z`) : null;
+            const subtitle = ev ? new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(ev) : "";
+            const paidUntil = (sub as { paidUntil?: string }).paidUntil ?? null;
+            return (
+              <AlbumTab
+                id={id}
+                galleryTitle={gallery.title}
+                subtitle={subtitle}
+                photos={photos.map((p) => ({ name: p.name, url: p.webUrl }))}
+                selections={selections}
+                initial={project}
+                active={isAdminEmail(user?.email) || albumActive(sub)}
+                paidUntil={albumActive(sub) ? paidUntil : null}
+                balance={balance}
+                billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
+              />
+            );
+          })()
         ) : tab === "statystyki" ? (
           <StatsTab id={id} />
         ) : tab === "ustawienia" ? (
