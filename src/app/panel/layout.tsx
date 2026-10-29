@@ -8,6 +8,7 @@ import { getWallet, grantWelcome } from "@/lib/wallet";
 import { getLang } from "@/lib/lang-server";
 import { tr, money } from "@/lib/lang";
 import LangSwitch from "@/components/LangSwitch";
+import GoogleTag from "@/components/GoogleTag";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +65,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         </details>
       </header>
       {children}
+      {/* konwersja „Rejestracja Lenslie” – raz, przy przyznaniu prezentu na start */}
+      <GoogleTag conversion={Boolean(welcomed)} />
     </div>
   );
 }

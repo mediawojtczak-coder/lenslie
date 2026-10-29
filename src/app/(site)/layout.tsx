@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getLang } from "@/lib/lang-server";
 import { tr } from "@/lib/lang";
 import LangSwitch from "@/components/LangSwitch";
+import GoogleTag, { CookieSettings } from "@/components/GoogleTag";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const lang = await getLang();
@@ -29,9 +30,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           <Link href="/rejestracja">{t("Załóż konto", "Sign up")}</Link>
           <Link href="/regulamin">{t("Regulamin", "Terms of service")}</Link>
           <Link href="/polityka-prywatnosci">{t("Polityka prywatności", "Privacy policy")}</Link>
+          <CookieSettings label={t("Ustawienia cookie", "Cookie settings")} />
         </nav>
         <p className="site-copy">© {new Date().getFullYear()} Lenslie. {t("Galerie zdjęć dla fotografów.", "Photo galleries for photographers.")}</p>
       </footer>
+      <GoogleTag />
     </>
   );
 }

@@ -78,7 +78,7 @@ function PolitykaPl() {
       </p>
 
       <h2>5. Pliki cookie</h2>
-      <p>Używamy wyłącznie niezbędnych plików cookie i pamięci przeglądarki:</p>
+      <p>Używamy niezbędnych plików cookie i pamięci przeglądarki:</p>
       <ul>
         <li>sesja zalogowanego Fotografa,</li>
         <li>dostęp do galerii chronionej hasłem (30 dni),</li>
@@ -86,7 +86,13 @@ function PolitykaPl() {
         <li>jednorazowe zliczenie otwarcia galerii w ramach wizyty,</li>
         <li>wybrany język serwisu.</li>
       </ul>
-      <p>Nie używamy cookie reklamowych ani zewnętrznych narzędzi analitycznych.</p>
+      <p>
+        Na stronie Lenslie i w panelu Fotografa używamy też tagu Google Ads, aby mierzyć skuteczność naszych reklam (np. czy
+        ktoś założył konto po kliknięciu reklamy). Działa on w trybie zgody: dopóki nie klikniesz „Akceptuję”, Google nie
+        zapisuje plików cookie, a otrzymuje jedynie anonimowe sygnały bez identyfikatorów. Podstawą jest Twoja zgoda (art. 6
+        ust. 1 lit. a RODO), którą możesz w każdej chwili zmienić przyciskiem „Ustawienia cookie” w stopce. Odbiorcą danych
+        jest Google Ireland Ltd. Tagu nie ma w galeriach Klientów.
+      </p>
 
       <h2>6. Twoje prawa</h2>
       <p>
@@ -155,7 +161,7 @@ function PrivacyEn() {
       </p>
 
       <h2>5. Cookies</h2>
-      <p>We only use strictly necessary cookies and browser storage:</p>
+      <p>We use strictly necessary cookies and browser storage:</p>
       <ul>
         <li>the logged-in Photographer’s session,</li>
         <li>access to a password-protected gallery (30 days),</li>
@@ -163,7 +169,13 @@ function PrivacyEn() {
         <li>counting a gallery view once per visit,</li>
         <li>the selected website language.</li>
       </ul>
-      <p>We do not use advertising cookies or third-party analytics.</p>
+      <p>
+        On the Lenslie website and in the Photographer’s dashboard we also use the Google Ads tag to measure how our ads perform
+        (e.g. whether someone signed up after clicking an ad). It runs in consent mode: until you click “Accept”, Google stores
+        no cookies and only receives anonymous signals without identifiers. The legal basis is your consent (Art. 6(1)(a)
+        GDPR), which you can change at any time with the “Cookie settings” button in the footer. The recipient is Google
+        Ireland Ltd. The tag is not present in Client galleries.
+      </p>
 
       <h2>6. Your rights</h2>
       <p>
