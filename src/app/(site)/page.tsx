@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PricingPlans from "@/components/PricingPlans";
 import DeviceShowcase from "@/components/DeviceShowcase";
+import FeatureCards from "@/components/FeatureCards";
 import { getGalleryPhotos } from "@/lib/photos";
 import { getMeta } from "@/lib/galleries";
 import { getLang } from "@/lib/lang-server";
@@ -84,6 +85,8 @@ export default async function Home() {
           <Link href="/cennik">{t("Wszystko o pakietach i najczęstsze pytania", "All about plans and FAQ")}</Link>
         </p>
       </section>
+
+      <FeatureCards lang={lang} />
     </>
   );
 }
