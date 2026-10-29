@@ -34,7 +34,7 @@ import { FACES_PRICE } from "@/lib/faces";
 import { THEMES, getOwnedThemes } from "@/lib/themes";
 import { getPayout } from "@/lib/sales";
 import AlbumTab from "./AlbumTab";
-import { getAlbumProject, getAlbumSub, albumActive } from "@/lib/albums";
+import { getAlbumProject, getAlbumSub, albumActive, albumAllowed } from "@/lib/albums";
 import { isAdminEmail } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -104,7 +104,7 @@ export default async function ZarzadzanieGalerii({
   const tabs = [
     { key: "zdjecia", label: L("Zdjęcia", "Photos"), count: photos.length },
     { key: "wybory", label: meta?.sale?.enabled ? L("Zamówienia klientów", "Client orders") : L("Wybory klientów", "Client selections"), count: selectionCount ?? 0 },
-    { key: "album", label: L("Album", "Album"), count: null },
+    ...(albumAllowed(user?.email) ? [{ key: "album", label: L("Album", "Album"), count: null }] : []),
     { key: "statystyki", label: L("Statystyki", "Statistics"), count: null },
     { key: "ustawienia", label: L("Ustawienia", "Settings"), count: null },
   ];
@@ -181,7 +181,7 @@ export default async function ZarzadzanieGalerii({
 
         {tab === "wybory" ? (
           <SelectionsTab id={id} selling={Boolean(meta?.sale?.enabled)} photos={photos.map((p) => ({ name: p.name, fileName: p.fileName, url: p.webUrl }))} />
-        ) : tab === "album" ? (
+        ) : tab === "album" && albumAllowed(user?.email) ? (
           await (async () => {
             const [project, sub, sels] = await Promise.all([
               getAlbumProject(id).catch(() => null),

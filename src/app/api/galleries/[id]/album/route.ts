@@ -7,7 +7,7 @@ import { isAdminEmail } from "@/lib/supabase/admin";
 import { requireOwner } from "@/lib/owner";
 import { r2, BUCKET, galleryPrefix, baseName } from "@/lib/r2";
 import { listKeys } from "@/lib/photos";
-import { saveAlbumProject, getAlbumSub, albumActive } from "@/lib/albums";
+import { saveAlbumProject, getAlbumSub, albumActive, albumAllowed } from "@/lib/albums";
 
 export const runtime = "nodejs";
 
@@ -17,6 +17,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const denied = await requireOwner(id);
   if (denied) return denied;
   const { user } = await getUser();
+  if (!albumAllowed(user?.email)) return NextResponse.json({ error: await E("Nieprawidłowe dane.") }, { status: 403 });
   const body = (await req.json().catch(() => null)) as { action?: string; project?: unknown; names?: string[] } | null;
 
   if (body?.action === "save") {

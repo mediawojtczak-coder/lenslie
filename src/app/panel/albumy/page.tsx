@@ -6,7 +6,8 @@ import { getLang } from "@/lib/lang-server";
 import { tr, locale, money } from "@/lib/lang";
 import { getBilling } from "@/lib/billing";
 import { getWallet } from "@/lib/wallet";
-import { getAlbumSub, albumActive, ALBUM_PRICES } from "@/lib/albums";
+import { notFound } from "next/navigation";
+import { getAlbumSub, albumActive, albumAllowed, ALBUM_PRICES } from "@/lib/albums";
 import { getGallerySummary } from "@/lib/photos";
 import AlbumSubCard from "./AlbumSubCard";
 
@@ -15,6 +16,7 @@ export const dynamic = "force-dynamic";
 // Projektor albumów: czym jest, abonament i galerie z wyborami klientów
 export default async function AlbumyPage() {
   const { supabase, user } = await getUser();
+  if (!albumAllowed(user?.email)) notFound();
   const lang = await getLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const fmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", year: "numeric" });

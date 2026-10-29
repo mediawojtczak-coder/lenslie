@@ -6,6 +6,13 @@ import { ALBUM_SIZES, ALBUM_STYLES } from "@/lib/album-layout";
 // Projektor albumów – abonament (miesiąc albo rok, z góry) i projekty zapisane przy galerii
 export const ALBUM_PRICES: Record<number, number> = { 1: 29, 12: 290 };
 
+// Testy: Projektor albumów widoczny tylko dla tych kont. Pusta lista = dla wszystkich.
+const ALBUM_BETA = ["adamwojtczak7@gmail.com"];
+export function albumAllowed(email?: string | null) {
+  if (!ALBUM_BETA.length) return true;
+  return Boolean(email && ALBUM_BETA.includes(email.toLowerCase()));
+}
+
 async function getJson<T>(key: string): Promise<T | null> {
   try {
     const res = await r2.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
