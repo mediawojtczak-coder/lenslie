@@ -40,7 +40,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         </form>
 
         <Link href="/panel/konto?tab=saldo" className="wallet-chip" title={t("Saldo konta – doładuj", "Account balance – top up")}>
-          {money(wallet.balance / 100, lang, true)}
+          {money(wallet.balance / 100, lang, true).replace(/ \(≈[^)]*\)$/, "")}
         </Link>
 
         <details className="account">

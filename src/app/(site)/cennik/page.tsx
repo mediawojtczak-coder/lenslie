@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { usdify } from "@/lib/lang";
 import PricingPlans from "@/components/PricingPlans";
 import ProPlans from "@/components/ProPlans";
 import { getLang } from "@/lib/lang-server";
@@ -78,6 +79,12 @@ export default async function Cennik() {
 
       <ProPlans lang={lang} />
 
+      {lang === "en" && (
+        <p className="hint-inline usd-note">
+          Prices are charged in Polish złoty (PLN) via Przelewy24. Dollar amounts are approximate – the final amount depends on your bank&apos;s exchange rate.
+        </p>
+      )}
+
       <section className="included">
         <h2>{t.included}</h2>
         <ul>
@@ -92,7 +99,7 @@ export default async function Cennik() {
         {t.qa.map(([q, a]) => (
           <details key={q}>
             <summary>{q}</summary>
-            <p>{a}</p>
+            <p>{lang === "en" ? usdify(a) : a}</p>
           </details>
         ))}
       </section>

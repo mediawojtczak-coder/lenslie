@@ -1,3 +1,4 @@
+import { usd } from "@/lib/lang";
 // Pakiety galerii – jedno miejsce, z którego korzysta cennik (a później płatności i limity)
 export type Period = 1 | 3 | 6 | 12;
 
@@ -129,9 +130,9 @@ export const periodShort = (p: Period, lang: "pl" | "en" = "pl") => (lang === "e
 export function perMonthL(price: number, period: Period, lang: "pl" | "en" = "pl") {
   const v = price / period;
   return lang === "en"
-    ? `PLN ${v.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo.`
+    ? `PLN ${v.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${usd(v)})/mo.`
     : perMonth(price, period);
 }
 export function zlL(n: number, lang: "pl" | "en" = "pl") {
-  return lang === "en" ? `PLN ${n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : zl(n);
+  return lang === "en" ? `PLN ${n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${usd(n)})` : zl(n);
 }

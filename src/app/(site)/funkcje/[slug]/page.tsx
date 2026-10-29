@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { usdify } from "@/lib/lang";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getLang } from "@/lib/lang-server";
@@ -24,7 +25,7 @@ export default async function FeaturePage({ params }: { params: Promise<{ slug: 
   const f = getFeature(slug);
   if (!f) notFound();
   const lang = await getLang();
-  const t = (x: L) => x[lang === "en" ? 1 : 0];
+  const t = (x: L) => (lang === "en" ? usdify(x[1]) : x[0]);
   const others = [
     ...FEATURES.filter((x) => x.slug !== f.slug).map((x) => ({ href: `/funkcje/${x.slug}`, title: x.card.title, price: x.card.price })),
     { href: FIND_ME_CARD.href, title: FIND_ME_CARD.title, price: FIND_ME_CARD.price },

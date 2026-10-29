@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { money } from "@/lib/lang";
+import { money, usdify } from "@/lib/lang";
 import { PHOTO_TIERS, FILM_TIERS, proName, compareFor, COMPARE_ADDONS, COMPARE_GALLERY_GB, COMPARE_GALLERY_PRICE } from "@/lib/pro-plans";
 
 // Pakiety Pro na stronie cennika: karty i porównanie z cenami za pojedyncze galerie i dodatki
 export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
-  const t = (pl: string, en: string) => (lang === "en" ? en : pl);
+  const t = (pl: string, en: string) => (lang === "en" ? usdify(en) : pl);
   const n = (v: number) => v.toLocaleString(lang === "en" ? "en-GB" : "pl-PL");
   const included = [
     t("Galerie bez opłat za publikację", "Publish galleries at no extra cost"),

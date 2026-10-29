@@ -1,4 +1,5 @@
 import LoginShowcase from "@/components/LoginShowcase";
+import { usdify } from "@/lib/lang";
 import Link from "next/link";
 import { cleanCode, REWARD, THRESHOLD } from "@/lib/referrals";
 import { getLang } from "@/lib/lang-server";
@@ -99,10 +100,10 @@ export default async function Rejestracja({
             <p className="lead">{t.lead}</p>
             <p className="ref-banner">
               {lang === "en"
-                ? "Sign up and get PLN 20 on your balance to start – enough for your first gallery."
+                ? usdify("Sign up and get PLN 20 on your balance to start – enough for your first gallery.")
                 : "Załóż konto i odbierz 20 zł na start – wystarczy na pierwszą galerię."}
             </p>
-            {refCode && <p className="ref-banner">{t.ref(REWARD, THRESHOLD)}</p>}
+            {refCode && <p className="ref-banner">{lang === "en" ? usdify(t.ref(REWARD, THRESHOLD)) : t.ref(REWARD, THRESHOLD)}</p>}
             <form method="post" action="/auth/zarejestruj">
               {refCode && <input type="hidden" name="ref" value={refCode} />}
               <label htmlFor="studio">{t.studio}</label>

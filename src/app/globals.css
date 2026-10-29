@@ -2645,3 +2645,4 @@ button.install-app { background: none; border: 0; font: inherit; color: inherit;
 .fv-small .fv-appbody { min-height: 150px; }
 .fv-small .fv-dock i { width: 26px; height: 26px; }
 .fv-small .fv-dock img { width: 32px; height: 32px; }
+.usd-note { text-align: center; max-width: 640px; margin: 32px auto 0; }
