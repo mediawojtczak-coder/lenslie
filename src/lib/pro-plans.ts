@@ -9,10 +9,10 @@ export type ProMonths = 1 | 12;
 
 export const PRO_TIERS: ProTier[] = [
   // rok = 12 × cena miesięczna (bez rabatu)
-  { id: "pro500", gb: 500, videoHours: 10, monthly: 59, yearly: 708 },
-  { id: "pro700", gb: 700, videoHours: 15, monthly: 79, yearly: 948, featured: true },
-  { id: "pro1000", gb: 1000, videoHours: 20, monthly: 99, yearly: 1188 },
-  { id: "pro2000", gb: 2000, videoHours: 40, monthly: 189, yearly: 2268 },
+  { id: "pro500", gb: 500, videoHours: 5, monthly: 59, yearly: 708 },
+  { id: "pro700", gb: 700, videoHours: 8, monthly: 79, yearly: 948, featured: true },
+  { id: "pro1000", gb: 1000, videoHours: 10, monthly: 99, yearly: 1188 },
+  { id: "pro2000", gb: 2000, videoHours: 20, monthly: 189, yearly: 2268 },
   // dla filmowców
   { id: "film30", gb: 500, videoHours: 30, monthly: 129, yearly: 1548, film: true },
   { id: "film60", gb: 1000, videoHours: 60, monthly: 249, yearly: 2988, film: true },
