@@ -129,12 +129,13 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const weekStart = new Date(Date.UTC(nowD.getUTCFullYear(), nowD.getUTCMonth(), nowD.getUTCDate() - ((nowD.getUTCDay() + 6) % 7)));
   const monthStart = new Date(Date.UTC(nowD.getUTCFullYear(), nowD.getUTCMonth(), 1));
   const firstGallery = galleries.reduce((min, g) => Math.min(min, new Date(g.created_at).getTime()), Date.now());
-  // rok liczony od 1 stycznia, ale nie wcześniej niż od startu Lenslie (pierwsza galeria)
-  const yearStart = new Date(Math.max(Date.UTC(nowD.getUTCFullYear(), 0, 1), new Date(new Date(firstGallery).toISOString().slice(0, 10)).getTime()));
+  // każdy okres liczony najwcześniej od startu Lenslie (dzień pierwszej galerii)
+  const launch = new Date(new Date(firstGallery).toISOString().slice(0, 10)).getTime();
+  const clip = (d: Date) => new Date(Math.max(d.getTime(), launch));
   const periods = [
-    { key: "week", label: "Ten tydzień", start: weekStart },
-    { key: "month", label: "Ten miesiąc", start: monthStart },
-    { key: "year", label: `Rok ${nowD.getUTCFullYear()}`, start: yearStart },
+    { key: "week", label: "Ten tydzień", start: clip(weekStart) },
+    { key: "month", label: "Ten miesiąc", start: clip(monthStart) },
+    { key: "year", label: `Rok ${nowD.getUTCFullYear()}`, start: clip(new Date(Date.UTC(nowD.getUTCFullYear(), 0, 1))) },
   ] as const;
   const daysOf = (start: Date) => Math.max(0, (nowD.getTime() - start.getTime()) / (24 * 3600 * 1000));
   const streamMinutesStored = allVideos.reduce((s, { v }) => s + (v.streamUid ? Math.max(1, Math.ceil(v.duration / 60)) : 0), 0);
