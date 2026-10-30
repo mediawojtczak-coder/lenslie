@@ -24,8 +24,8 @@ export async function generateMetadata(): Promise<Metadata> {
     applicationName: "Lenslie",
     openGraph: { siteName: "Lenslie", type: "website", locale: lang === "en" ? "en_GB" : "pl_PL" },
     twitter: { card: "summary_large_image" },
-    // kod weryfikacyjny Google Search Console – zmienna GOOGLE_SITE_VERIFICATION w Vercelu
-    ...(process.env.GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } } : {}),
+    // kod weryfikacyjny Google Search Console (publiczny – i tak widać go w kodzie strony)
+    verification: { google: process.env.GOOGLE_SITE_VERIFICATION || "ojHmVlQsufXDNbrn2ueRa1LLHAUjx6G0GwK2uJZqI8Q" },
     appleWebApp: { capable: true, title: "Lenslie", statusBarStyle: "default" },
     description:
       lang === "en"
