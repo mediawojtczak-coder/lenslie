@@ -4,6 +4,24 @@ import { getSignupSource, sourceDetail, type SignupSource } from "@/lib/signup-s
 import { listObjects } from "@/lib/photos";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
 import { getPlan, formatBytes } from "@/lib/plans";
+import { videoCost, galleryVideoBytes, USD_PLN, R2_GB_MONTH } from "@/lib/videos";
+
+// Szacowany zysk na galerii (zł): cena pakietu minus prowizja płatności i koszty magazynu oraz podglądu filmów
+// przez okres pakietu. Bez przedłużeń i dopłat za zmianę pakietu; koszt filmów zakłada ok. 30 pełnych obejrzeń.
+const PAY_FEE = 0.02; // prowizja Przelewy24 (szacunek)
+function galleryProfit(m: GalleryMeta | null, bytes: number) {
+  const plan = getPlan(m?.plan);
+  if (!m || !plan || !m.period) return null;
+  const revenue = plan.prices[m.period as keyof typeof plan.prices] ?? 0;
+  const months = m.period;
+  const vids = (m.videos ?? []).filter((v) => v.status !== "error");
+  const photoBytes = Math.max(0, bytes - galleryVideoBytes(m.videos));
+  const photos = (photoBytes / 1e9) * R2_GB_MONTH * months * USD_PLN;
+  const videos = vids.reduce((s, v) => s + videoCost(v.size, v.duration, months), 0);
+  const cost = revenue * PAY_FEE + photos + videos;
+  return { revenue, cost, profit: revenue - cost };
+}
+const zlx = (n: number) => `${n < 0 ? "−" : ""}${Math.abs(n).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`;
 import ConfirmButton from "./ConfirmButton";
 import { listOrders } from "@/lib/p24";
 import { getReminders } from "@/lib/reminders";
@@ -603,12 +621,14 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                 <th>Pakiet</th>
                 <th>Dostęp do</th>
                 <th>Miejsce</th>
+                <th title="Cena pakietu minus prowizja płatności (2%) i koszt magazynu oraz podglądu filmów przez okres pakietu">Szac. zysk</th>
               </tr>
             </thead>
             <tbody>
               {galleries.map((g) => {
                 const m = metas.get(g.id) ?? null;
                 const plan = getPlan(m?.plan);
+                const pr = galleryProfit(m, usage.get(g.id) ?? 0);
                 return (
                   <tr key={g.id}>
                     <td data-l="Galeria">
@@ -620,10 +640,21 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                     <td data-l="Pakiet">{m?.plan === "pro" ? "Abonament Pro" : plan ? `${plan.name} · ${m?.period} mies.` : "–"}</td>
                     <td data-l="Dostęp do" className={isExpired(m) ? "is-expired" : undefined}>{fmtDate(m?.expiresAt)}</td>
                     <td data-l="Miejsce">{formatBytes(usage.get(g.id) ?? 0)}</td>
+                    <td data-l="Szac. zysk" title={pr ? `Przychód ${zlx(pr.revenue)} · koszty ${zlx(pr.cost)}` : undefined} className={pr && pr.profit < 0 ? "is-expired" : undefined}>
+                      {m?.plan === "pro" ? "w abonamencie" : pr ? zlx(pr.profit) : "–"}
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan={5}>Razem (galerie opłacone pakietem)</td>
+                <td>
+                  {zlx(galleries.reduce((s, g) => s + (galleryProfit(metas.get(g.id) ?? null, usage.get(g.id) ?? 0)?.profit ?? 0), 0))}
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
         {orphans.length > 0 && (

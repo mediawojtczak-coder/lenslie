@@ -31,8 +31,8 @@ export const videoPrefix = (galleryId: string) => `videos/${galleryId}/`;
 export const galleryVideoBytes = (videos?: Video[]) => (videos ?? []).reduce((s, v) => s + (v.size || 0), 0);
 
 // ===== Koszty i cena =====
-const USD_PLN = Number(process.env.USD_PLN || 4.0);
-const R2_GB_MONTH = 0.015; // USD
+export const USD_PLN = Number(process.env.USD_PLN || 4.0);
+export const R2_GB_MONTH = 0.015; // USD
 const STREAM_MIN_MONTH = 0.005; // USD (5 USD / 1000 minut miesięcznie)
 const STREAM_MIN_VIEW = 0.001; // USD (1 USD / 1000 minut obejrzanych)
 const EST_VIEWS = 30; // ile razy (średnio) ktoś obejrzy cały film
