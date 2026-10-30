@@ -18,9 +18,10 @@ import { cleanBilling, saveBilling } from "@/lib/billing";
 import { spend, getWallet, zlFromGr } from "@/lib/wallet";
 import { notifyAdmins } from "@/lib/email";
 import { p24Enabled, newSessionId, saveOrder, registerTransaction } from "@/lib/p24";
-import { videoPrefix, videoPrice, monthsLeft, startVideos, deleteVideo, type Video } from "@/lib/videos";
+import { videoPrefix, videoPrice, monthsLeft, startVideos, deleteVideo, galleryVideoBytes, type Video } from "@/lib/videos";
 import { activePro, galleryOwnerId, proFits, proName, proBytes, proUsage, proVideoSeconds, fmtDuration } from "@/lib/pro";
-import { formatBytes } from "@/lib/plans";
+import { formatBytes, getPlan, planBytes, hardLimitBytes } from "@/lib/plans";
+import { getGalleryUsage } from "@/lib/photos";
 import { getLang } from "@/lib/lang-server";
 
 export const runtime = "nodejs";
@@ -104,6 +105,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           );
         }
       }
+      // Galeria opłacona za pakiet: film w cenie, ale musi zmieścić się w miejscu pakietu (zdjęcia + filmy)
+      if (meta.plan !== "pro") {
+        const plan = getPlan(meta.plan);
+        if (plan) {
+          const used = (await getGalleryUsage(id).catch(() => 0)) + galleryVideoBytes(videos);
+          if (used + size > hardLimitBytes(plan)) {
+            const en = (await getLang()) === "en";
+            const free = formatBytes(Math.max(0, planBytes(plan) - used));
+            return NextResponse.json(
+              {
+                error: en
+                  ? `This video (${formatBytes(size)}) won't fit in the gallery – free space: ${free}. Upgrade the gallery plan or delete some photos.`
+                  : `Film (${formatBytes(size)}) nie zmieści się w galerii – wolne miejsce: ${free}. Zmień pakiet galerii na większy albo usuń część zdjęć.`,
+              },
+              { status: 402 },
+            );
+          }
+        }
+      }
       const name = safeFileName(String(body.name ?? "film.mp4"));
       const vid = randomBytes(5).toString("hex");
       const key = `${videoPrefix(id)}${vid}/${name}`;
@@ -153,16 +173,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       video.size = Number(head.ContentLength ?? video.size);
       video.uploadId = undefined;
       video.status = "unpaid";
-      if (meta.plan === "pro") {
-        // w abonamencie Pro film nie wymaga opłaty – od razu przygotowujemy podgląd
-        video.price = 0;
-        video.months = undefined;
-        await startVideos(videos, [video.id]);
-        await saveMeta(id, meta);
-        return NextResponse.json({ ok: true, video });
-      }
-      video.months = monthsLeft(meta.expiresAt);
-      video.price = videoPrice(video.size, video.duration, video.months);
+      // Film jest w cenie galerii (miejsce pakietu albo pula Pro) – od razu przygotowujemy podgląd
+      video.price = 0;
+      video.months = undefined;
+      await startVideos(videos, [video.id]);
       await saveMeta(id, meta);
       return NextResponse.json({ ok: true, video });
     }

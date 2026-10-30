@@ -27,6 +27,9 @@ export type Video = {
 
 export const videoPrefix = (galleryId: string) => `videos/${galleryId}/`;
 
+// Filmy są w cenie galerii – ich pliki liczą się do miejsca pakietu (GB) razem ze zdjęciami
+export const galleryVideoBytes = (videos?: Video[]) => (videos ?? []).reduce((s, v) => s + (v.size || 0), 0);
+
 // ===== Koszty i cena =====
 const USD_PLN = Number(process.env.USD_PLN || 4.0);
 const R2_GB_MONTH = 0.015; // USD

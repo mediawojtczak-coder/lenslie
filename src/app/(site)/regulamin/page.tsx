@@ -80,10 +80,10 @@ function RegulaminPl() {
           pobrany przez Klienta, a do oglądania Serwis przygotowuje automatycznie lżejszą wersję (do 1080p).
         </li>
         <li>
-          Cena filmu jest wyliczana po jego przesłaniu, na podstawie wielkości pliku, długości filmu i czasu pozostałego do
-          końca dostępu do Galerii, i jest widoczna przed zapłatą. Nieopłacone filmy są usuwane po 7 dniach.
+          Filmy są w cenie Galerii, bez dodatkowych opłat. Pliki filmów zajmują miejsce w Pakiecie Galerii razem ze zdjęciami –
+          film można dodać, jeśli mieści się w wolnym miejscu Pakietu.
         </li>
-        <li>Przy przedłużeniu dostępu do Galerii filmy są przedłużane razem z nią; ich koszt jest doliczany do ceny przedłużenia.</li>
+        <li>Przy przedłużeniu dostępu do Galerii filmy są przedłużane razem z nią, bez dopłat.</li>
         <li>W usłudze „Zdjęcia od gości” goście mogą przesyłać także filmy (do 4 GB każdy) w ramach opłaty za wydarzenie.</li>
       </ol>
 
@@ -315,8 +315,8 @@ function TermsEn() {
       <h2>§ 5a. Videos in Galleries</h2>
       <ol>
         <li>The Photographer may add videos to a published Gallery. The original is stored without any change in quality and can be downloaded by the Client; for viewing, the Service automatically prepares a lighter version (up to 1080p).</li>
-        <li>The video price is calculated after upload, based on file size, video length and the time left until the Gallery access ends, and is shown before payment. Unpaid videos are deleted after 7 days.</li>
-        <li>When Gallery access is extended, its videos are extended with it; their cost is added to the extension price.</li>
+        <li>Videos are included in the Gallery price at no extra cost. Video files take up space in the Gallery Plan together with photos – a video can be added if it fits in the Plan's free space.</li>
+        <li>When Gallery access is extended, its videos are extended with it at no extra cost.</li>
         <li>In the “Guest uploads” service guests may also upload videos (up to 4 GB each) within the event fee.</li>
       </ol>
 

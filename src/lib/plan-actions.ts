@@ -1,6 +1,6 @@
 import { getMeta, saveMeta, type GalleryMeta } from "@/lib/galleries";
 import { getGalleryUsage } from "@/lib/photos";
-import { videoPrice } from "@/lib/videos";
+import { galleryVideoBytes } from "@/lib/videos";
 import { PLANS, getPlan, isPeriod, addMonths, upgradeCost, planBytes, type Period, type PlanId } from "@/lib/plans";
 
 export type PlanAction =
@@ -16,7 +16,7 @@ export async function checkAction(id: string, meta: GalleryMeta, body: { action?
     const plan = getPlan(body.plan);
     if (!plan || !isPeriod(body.period)) return { ok: false, error: "Wybierz pakiet i okres." };
     if (meta.plan) return { ok: false, error: "Ta galeria jest już opublikowana." };
-    const used = await getGalleryUsage(id);
+    const used = (await getGalleryUsage(id)) + galleryVideoBytes(meta.videos);
     if (used > planBytes(plan) * 1.02) return { ok: false, error: "Zdjęcia w galerii nie mieszczą się w tym pakiecie." };
     return {
       ok: true,
@@ -42,14 +42,12 @@ export async function checkAction(id: string, meta: GalleryMeta, body: { action?
   }
   if (body.action === "extend") {
     if (!isPeriod(body.period)) return { ok: false, error: "Wybierz okres." };
-    // Filmy w galerii przedłużamy razem z nią (koszt przechowania × 2)
-    const vids = (meta.videos ?? []).filter((v) => v.status === "processing" || v.status === "ready");
-    const videos = vids.reduce((s, v) => s + videoPrice(v.size, v.duration, body.period as number, false), 0);
+    // Filmy są w cenie galerii – przedłużają się razem z nią bez dopłat
     return {
       ok: true,
-      amount: current.prices[body.period] + videos,
+      amount: current.prices[body.period],
       action: { action: "extend", period: body.period },
-      label: `przedłużenie dostępu o ${body.period} mies.${vids.length ? ` (z filmami: ${vids.length})` : ""}`,
+      label: `przedłużenie dostępu o ${body.period} mies.`,
     };
   }
   return { ok: false, error: "Nieznana operacja." };

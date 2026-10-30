@@ -148,8 +148,8 @@ export default function VideoManager({
             )
           : published
           ? t(
-              "Film w oryginalnej jakości do pobrania i lekki podgląd do oglądania – na samej górze galerii. Cenę liczymy po wgraniu: zależy od wielkości i długości filmu oraz czasu do końca dostępu do galerii.",
-              "The original-quality video for download plus a light preview for watching – at the very top of the gallery. We price it after upload, based on file size, length and the time left on the gallery.",
+              "Film w oryginalnej jakości do pobrania i podgląd do oglądania – na samej górze galerii. Filmy są w cenie galerii, bez dopłat – liczą się tylko do miejsca w pakiecie (GB), razem ze zdjęciami.",
+              "The original-quality video for download plus a preview for watching – at the very top of the gallery. Videos are included in the gallery price at no extra cost – they only count towards the plan's storage (GB), together with photos.",
             )
           : t("Opublikuj galerię, aby dodać do niej film.", "Publish the gallery to add a video.")}
       </p>

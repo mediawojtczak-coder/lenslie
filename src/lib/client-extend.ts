@@ -1,5 +1,4 @@
 import { PERIODS, type Period } from "@/lib/plans";
-import { videoPrice } from "@/lib/videos";
 import { isExpired, type GalleryMeta } from "@/lib/galleries";
 import type { PlanAction } from "@/lib/plan-actions";
 
@@ -18,14 +17,12 @@ export type ExtendOffer = {
   canExtend: boolean; // fotograf pozwala klientowi przedłużać
 };
 
-// Kwota dla klienta: stała cena + przechowanie filmów (jak przy przedłużeniu przez fotografa)
-export function clientExtendPrice(meta: GalleryMeta, period: Period): { amount: number; action: PlanAction; label: string } {
-  const vids = (meta.videos ?? []).filter((v) => v.status === "processing" || v.status === "ready");
-  const videos = vids.reduce((s, v) => s + videoPrice(v.size, v.duration, period, false), 0);
+// Kwota dla klienta: stała cena (filmy są w cenie galerii)
+export function clientExtendPrice(_meta: GalleryMeta, period: Period): { amount: number; action: PlanAction; label: string } {
   return {
-    amount: CLIENT_PRICES[period] + videos,
+    amount: CLIENT_PRICES[period],
     action: { action: "extend", period },
-    label: `przedłużenie dostępu o ${period} mies.${vids.length ? ` (z filmami: ${vids.length})` : ""}`,
+    label: `przedłużenie dostępu o ${period} mies.`,
   };
 }
 

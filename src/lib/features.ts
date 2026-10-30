@@ -363,7 +363,7 @@ export const FEATURES: Feature[] = [
     card: {
       title: ["Filmy w galerii", "Videos in the gallery"],
       text: ["Film z wesela na samej górze galerii – podgląd online i pobranie w oryginale.", "The wedding film at the top of the gallery – online preview and original download."],
-      price: ["cena wg rozmiaru filmu", "priced by file size"],
+      price: ["w cenie galerii", "included in the gallery"],
     },
     kicker: ["Filmy w galerii", "Videos in the gallery"],
     title: ["Zdjęcia i film w jednej galerii", "Photos and film in one gallery"],
@@ -371,10 +371,10 @@ export const FEATURES: Feature[] = [
       "Dodajesz film do galerii zdjęć, a klient ogląda go na samej górze – na telefonie i komputerze. Pobiera go w pełnej, oryginalnej jakości, bez kompresji.",
       "Add a film to the photo gallery and your client watches it right at the top – on phone and desktop. They download it in full original quality, without compression.",
     ],
-    price: ["Płacisz za rozmiar filmu i czas przechowania – cenę widzisz zaraz po wgraniu", "You pay for the film's size and storage time – the price shows right after upload"],
+    price: ["W cenie galerii – film liczy się tylko do miejsca w pakiecie (GB), razem ze zdjęciami", "Included in the gallery – the film only counts towards the plan's storage (GB), together with photos"],
     steps: [
       { title: ["Wgrywasz film", "Upload the film"], text: ["Nawet duże pliki – wysyłane w częściach, bez zrywania.", "Even large files – uploaded in parts, without dropping."] },
-      { title: ["Widzisz cenę", "See the price"], text: ["Liczona od rozmiaru, uczciwie i z góry.", "Based on size, fair and upfront."] },
+      { title: ["Bez dopłat", "No extra cost"], text: ["Film mieści się w GB pakietu galerii, razem ze zdjęciami.", "The film fits in the gallery plan's GB, together with photos."] },
       { title: ["Klient ogląda", "Client watches"], text: ["Film na górze galerii i przycisk pobrania oryginału.", "Film at the top of the gallery and an original download button."] },
     ],
     forPhotographer: [
@@ -394,7 +394,7 @@ export const FEATURES: Feature[] = [
       points: [
         { title: ["Oryginał", "Original"], text: ["Bez kompresji przy pobieraniu.", "No compression on download."] },
         { title: ["Na górze galerii", "Top of the gallery"], text: ["Film pierwszy, zdjęcia poniżej.", "Film first, photos below."] },
-        { title: ["Uczciwa cena", "Fair price"], text: ["Płacisz tylko za to, co wgrasz.", "Pay only for what you upload."] },
+        { title: ["Bez dopłat", "No extra cost"], text: ["Film w cenie galerii – w ramach jej GB.", "The film is included – within the gallery's GB."] },
       ],
     },
     cta: { title: ["Oddaj zdjęcia i film razem", "Deliver photos and film together"], text: ["Dodaj film w dowolnej galerii w panelu.", "Add a film in any gallery in your dashboard."] },

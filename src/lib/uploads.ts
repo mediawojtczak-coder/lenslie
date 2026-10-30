@@ -3,6 +3,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET, safeFileName, baseName, galleryPrefix } from "@/lib/r2";
 import { getMeta, isExpired, watermarkOn } from "@/lib/galleries";
 import { getGalleryUsage, listKeys } from "@/lib/photos";
+import { galleryVideoBytes } from "@/lib/videos";
 import { getPlan, hardLimitBytes, formatBytes, planBytes, MAX_PLAN } from "@/lib/plans";
 import { activePro, galleryOwnerId, proFits, proName, proBytes } from "@/lib/pro";
 
@@ -63,7 +64,7 @@ export async function prepareUploads(gallery: string, files: FileInfo[], lang: "
     };
   }
 
-  const used = await getGalleryUsage(gallery);
+  const used = (await getGalleryUsage(gallery)) + galleryVideoBytes(meta?.videos);
   if (used + incoming > hardLimitBytes(plan)) {
     const free = Math.max(0, planBytes(plan) - used);
     return {

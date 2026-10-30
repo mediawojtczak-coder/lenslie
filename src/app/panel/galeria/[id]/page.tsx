@@ -23,8 +23,7 @@ import StatsTab from "./StatsTab";
 import WmAutoFix from "./WmAutoFix";
 import SaleCard from "./SaleCard";
 import VideoManager from "./VideoManager";
-import { refreshVideos, videoPrice } from "@/lib/videos";
-import { PERIODS } from "@/lib/plans";
+import { refreshVideos, startVideos, galleryVideoBytes } from "@/lib/videos";
 import { saveMeta } from "@/lib/galleries";
 import PickLimitCard from "./PickLimitCard";
 import ClientExtendCard from "./ClientExtendCard";
@@ -90,6 +89,15 @@ export default async function ZarzadzanieGalerii({
   const photos = applyOrder(rawPhotos, meta?.order);
   // Stan przygotowania podglądu filmów (Cloudflare Stream)
   if (meta?.videos?.length && (await refreshVideos(meta.videos).catch(() => false))) await saveMeta(id, meta).catch(() => undefined);
+  // Filmy są teraz w cenie galerii – nieopłacone z wcześniejszych zasad uruchamiamy bez opłaty
+  const waiting = (meta?.videos ?? []).filter((v) => v.status === "unpaid");
+  if (meta?.plan && waiting.length && !(meta.expiresAt && new Date(meta.expiresAt).getTime() < Date.now())) {
+    for (const v of waiting) v.price = 0;
+    await startVideos(meta.videos!, waiting.map((v) => v.id)).catch(() => undefined);
+    await saveMeta(id, meta).catch(() => undefined);
+  }
+  // Miejsce galerii: zdjęcia + filmy
+  const galleryBytes = usedBytes + galleryVideoBytes(meta?.videos);
 
   // Zdjęcia, na które znak wodny nie został jeszcze nałożony
   let wmMissing: string[] = [];
@@ -102,11 +110,6 @@ export default async function ZarzadzanieGalerii({
   const metaExpired = Boolean(meta?.expiresAt && new Date(meta.expiresAt).getTime() < Date.now());
 
   const cover = pickCover(photos, meta?.cover);
-  // Dopłata za filmy przy przedłużeniu – ta sama, którą liczy serwer przy płatności
-  const paidVideos = (meta?.videos ?? []).filter((v) => v.status === "processing" || v.status === "ready");
-  const videoExtend = paidVideos.length
-    ? Object.fromEntries(PERIODS.map((p) => [p, paidVideos.reduce((s, v) => s + videoPrice(v.size, v.duration, p, false), 0)]))
-    : null;
 
   const { count: selectionCount } = await supabase
     .from("selections")
@@ -186,10 +189,9 @@ export default async function ZarzadzanieGalerii({
                   planId={meta.plan as PlanId}
                   period={meta?.period ?? null}
                   expiresAt={meta?.expiresAt ?? null}
-                  usedBytes={usedBytes}
+                  usedBytes={galleryBytes}
                   billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
                   balance={balance}
-                  videoExtend={videoExtend}
                 />
                 {proOn && proT && (
                   <ProGalleryBar
