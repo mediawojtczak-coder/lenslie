@@ -19,10 +19,18 @@ const body = Manrope({
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
   return {
-    title: "Lenslie",
+    metadataBase: new URL("https://www.lenslie.com"),
+    title: lang === "en" ? "Lenslie – online photo galleries for photographers" : "Lenslie – galerie zdjęć online dla fotografów",
     applicationName: "Lenslie",
+    openGraph: { siteName: "Lenslie", type: "website", locale: lang === "en" ? "en_GB" : "pl_PL" },
+    twitter: { card: "summary_large_image" },
+    // kod weryfikacyjny Google Search Console – zmienna GOOGLE_SITE_VERIFICATION w Vercelu
+    ...(process.env.GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } } : {}),
     appleWebApp: { capable: true, title: "Lenslie", statusBarStyle: "default" },
-    description: lang === "en" ? "Elegant photo galleries for photographers' clients" : "Eleganckie galerie zdjęć dla klientów fotografa",
+    description:
+      lang === "en"
+        ? "Elegant online galleries for photographers' clients: favourites, full-resolution downloads, photo sales, Lightroom plug-in and album designer. Pay per gallery, from PLN 5."
+        : "Eleganckie galerie online dla klientów fotografa: wybór ulubionych, pobieranie w pełnej jakości, sprzedaż zdjęć, wtyczka do Lightrooma i projektor albumów. Płacisz za galerię, od 5 zł.",
   };
 }
 

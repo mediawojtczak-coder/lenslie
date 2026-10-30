@@ -9,6 +9,20 @@ import { tr } from "@/lib/lang";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { alternates: { canonical: "/" } };
+
+// Dane strukturalne dla Google: Lenslie jako aplikacja internetowa z ceną od 5 zł
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Lenslie",
+  url: "https://www.lenslie.com",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  description: "Galerie zdjęć online dla fotografów: wybór ulubionych, pobieranie w pełnej jakości, sprzedaż zdjęć, wtyczka do Lightrooma i projektor albumów.",
+  offers: { "@type": "AggregateOffer", priceCurrency: "PLN", lowPrice: "5", highPrice: "249" },
+};
+
 // Galeria pokazowa: utwórz w panelu galerię o nazwie „Pokaz” i wgraj do niej zdjęcia na stronę główną
 const SHOWCASE_ID = "pokaz";
 
@@ -28,6 +42,7 @@ export default async function Home() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <section className="hero">
         <h1>{t("Twoje zdjęcia zasługują na piękną oprawę.", "Your photos deserve a beautiful setting.")}</h1>
         <p>
