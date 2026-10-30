@@ -10,6 +10,7 @@ import { sendOnboarding } from "@/lib/onboarding";
 import { getLang } from "@/lib/lang-server";
 import { tr, money } from "@/lib/lang";
 import LangSwitch from "@/components/LangSwitch";
+import MenuAutoClose from "@/components/MenuAutoClose";
 import GoogleTag from "@/components/GoogleTag";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           {money(wallet.balance / 100, lang, true).replace(/ \(≈[^)]*\)$/, "")}
         </Link>
 
+        <MenuAutoClose />
         <details className="account">
           <summary aria-label={t("Konto", "Account")}>
             <span className="avatar">{initial}</span>
