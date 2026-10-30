@@ -36,11 +36,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     );
   }
 
-  const [usersRes, galleriesRes, profilesRes, objects] = await Promise.all([
+  const [usersRes, galleriesRes, profilesRes, objects, videoObjects] = await Promise.all([
     db.auth.admin.listUsers({ perPage: 1000 }),
     db.from("galleries").select("id, title, owner_id, created_at").order("created_at", { ascending: false }),
     db.from("profiles").select("id, studio_name"),
     listObjects("galleries/").catch(() => []),
+    listObjects("videos/").catch(() => []),
   ]);
 
   const reminders = await getReminders().catch(() => []);
@@ -85,9 +86,9 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const studios = new Map(((profilesRes.data ?? []) as { id: string; studio_name: string | null }[]).map((p) => [p.id, p.studio_name]));
   const emails = new Map(users.map((u) => [u.id, u.email ?? ""]));
 
-  // Zajęte miejsce każdej galerii w jednym przejściu po magazynie
+  // Zajęte miejsce każdej galerii w jednym przejściu po magazynie (zdjęcia + filmy)
   const usage = new Map<string, number>();
-  for (const o of objects) {
+  for (const o of [...objects, ...videoObjects]) {
     const gid = o.key.split("/")[1];
     usage.set(gid, (usage.get(gid) ?? 0) + o.size);
   }
