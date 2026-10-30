@@ -151,7 +151,10 @@ export default function VideoManager({
               "Film w oryginalnej jakości do pobrania i podgląd do oglądania – na samej górze galerii. Filmy są w cenie galerii, bez dopłat – liczą się tylko do miejsca w pakiecie (GB), razem ze zdjęciami.",
               "The original-quality video for download plus a preview for watching – at the very top of the gallery. Videos are included in the gallery price at no extra cost – they only count towards the plan's storage (GB), together with photos.",
             )
-          : t("Opublikuj galerię, aby dodać do niej film.", "Publish the gallery to add a video.")}
+          : t(
+              "Opublikuj galerię, aby dodać do niej film – możesz ją opublikować także bez zdjęć. Wybierz pakiet, w którym zmieści się film (np. 13 GB → Duża, 15 GB).",
+              "Publish the gallery to add a video – you can publish it without photos too. Choose a plan the video fits in (e.g. 13 GB → Large, 15 GB).",
+            )}
       </p>
       <input ref={inputRef} type="file" accept="video/*,.mov,.mp4,.m4v,.mts,.mkv" multiple hidden onChange={(e) => add(e.target.files)} />
 

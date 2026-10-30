@@ -129,7 +129,7 @@ export default function PublishBar({
           </svg>
           {t("Podgląd galerii", "Preview gallery")}
         </a>
-        <button type="button" className="btn btn-small btn-dark" onClick={open} disabled={photoCount === 0} title={photoCount === 0 ? t("Najpierw prześlij zdjęcia", "Upload photos first") : undefined}>
+        <button type="button" className="btn btn-small btn-dark" onClick={open}>
           {t("Opublikuj", "Publish")}
         </button>
         <button type="button" className="btn btn-ghost btn-small" disabled title={t("Dostępne po opublikowaniu", "Available after publishing")}>
