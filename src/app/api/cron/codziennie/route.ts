@@ -13,6 +13,8 @@ import { getReminders, lastReminderMail, markReminderMail } from "@/lib/reminder
 import { listObjects } from "@/lib/photos";
 import { getDomainByHost, saveDomain, vercelRemoveDomain, DOMAIN_PRICE } from "@/lib/domains";
 import { getGuestEvent, saveGuestEvent, deleteGuestEvent, GUEST_DELETE_AFTER } from "@/lib/guest-events";
+import { getOnboarding, sendOnboarding, NUDGE_AFTER_DAYS, TIPS_AFTER_DAYS } from "@/lib/onboarding";
+import { WELCOME_FROM } from "@/lib/wallet";
 import { getProSub, listProSubs, saveProSub, proGraceEnd, proTier, proName, type ProSub } from "@/lib/pro";
 
 export const runtime = "nodejs";
@@ -422,6 +424,30 @@ export async function GET(req: Request) {
         }
         await saveDomain({ ...rec, reminded: true });
       }
+    }
+  }
+
+  // Maile powitalne dla nowych fotografów (konta od 29.10.2026, po potwierdzeniu e-maila)
+  if (db) {
+    const { data } = await db.auth.admin.listUsers({ perPage: 1000 });
+    const fresh = (data?.users ?? []).filter(
+      (u) => u.email && u.email_confirmed_at && u.created_at >= WELCOME_FROM && now - new Date(u.created_at).getTime() < 14 * DAY,
+    );
+    for (const u of fresh) {
+      const age = (now - new Date(u.created_at).getTime()) / DAY;
+      let step: "welcome" | "nudge" | "tips" | null = null;
+      if (age >= TIPS_AFTER_DAYS) step = "tips";
+      else if (age >= NUDGE_AFTER_DAYS) {
+        // przypomnienie tylko, jeśli nic jeszcze nie opublikował
+        const { data: gs } = await db.from("galleries").select("id").eq("owner_id", u.id);
+        const metas = await Promise.all(((gs ?? []) as { id: string }[]).map((g) => getMeta(g.id).catch(() => null)));
+        if (!metas.some((m) => m?.plan)) step = "nudge";
+      } else step = "welcome";
+      if (!step) continue;
+      const st = await getOnboarding(u.id);
+      if (st.off || st.sent[step]) continue;
+      log.push(`powitanie ${u.id}: ${step}`);
+      if (!dry) await sendOnboarding(u.id, u.email!, step, await getUserLang(u.id)).catch(() => false);
     }
   }
 
