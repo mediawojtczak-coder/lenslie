@@ -29,7 +29,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (size <= 0 || size > GUEST_VIDEO_MAX) {
     return NextResponse.json({ error: msg("Film może mieć najwyżej 4 GB.", "A video can be at most 4 GB.") }, { status: 400 });
   }
-  if ((await guestUsage(id)) + size > GUEST_LIMIT_GB * 1024 ** 3) {
+  if ((await guestUsage(id)) + size > GUEST_LIMIT_GB * 1e9) {
     return NextResponse.json({ error: msg("Galeria gości jest już pełna.", "The guest gallery is full."), code: "LIMIT" }, { status: 402 });
   }
   const type = String(body.type || "").startsWith("video/") ? String(body.type) : "video/mp4";

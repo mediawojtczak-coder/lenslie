@@ -19,7 +19,7 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
             <p className="plan-for">
               {x.film
                 ? t(`ok. ${Math.round(x.videoHours / 1.5)} wesel rocznie (teledysk + reportaż)`, `approx. ${Math.round(x.videoHours / 1.5)} weddings a year (highlights + full film)`)
-                : t(`ok. ${n(Math.round((x.gb * 1024) / 7.5 / 1000))} tys. zdjęć w pełnej rozdzielczości`, `approx. ${n(Math.round((x.gb * 1024) / 7.5 / 1000))},000 full-resolution photos`)}
+                : t(`ok. ${n(Math.round((x.gb * 1000) / 7.5 / 1000))} tys. zdjęć w pełnej rozdzielczości`, `approx. ${n(Math.round((x.gb * 1000) / 7.5 / 1000))},000 full-resolution photos`)}
             </p>
             <p className="plan-price">
               <span className="amount">{money(x.monthly, lang)}</span>

@@ -65,7 +65,9 @@ export type PlanId = Plan["id"];
 
 // Zapas ponad limit pakietu, żeby pojedyncze zdjęcia nie blokowały pracy
 export const TOLERANCE = 0.02;
-const GB = 1024 ** 3;
+// Jednostki dziesiętne – tak jak pokazuje Mac (1 GB = 1 000 000 000 bajtów)
+export const GB = 1e9;
+export const MB = 1e6;
 
 export function getPlan(id: string | undefined | null): Plan | undefined {
   return PLANS.find((p) => p.id === id);
@@ -98,7 +100,7 @@ export function upgradeCost(from: Plan, to: Plan, period: Period) {
 
 export function formatBytes(bytes: number) {
   if (bytes >= GB) return `${(bytes / GB).toLocaleString("pl-PL", { maximumFractionDigits: 2 })} GB`;
-  return `${Math.max(0, Math.round(bytes / 1024 ** 2)).toLocaleString("pl-PL")} MB`;
+  return `${Math.max(0, Math.round(bytes / MB)).toLocaleString("pl-PL")} MB`;
 }
 
 // Najmniejszy pakiet, w którym zmieszczą się zdjęcia galerii (z zapasem); null, gdy galeria jest za duża

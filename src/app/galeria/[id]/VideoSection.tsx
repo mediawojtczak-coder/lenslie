@@ -2,7 +2,7 @@ import { T, type Lang } from "@/lib/i18n";
 
 export type ClientVideo = { id: string; name: string; iframe?: string; src: string; poster?: string; download?: string; size: number; youtube?: boolean };
 
-const fmtSize = (b: number) => (b >= 1024 ** 3 ? `${(b / 1024 ** 3).toFixed(1).replace(".", ",")} GB` : `${Math.max(1, Math.round(b / 1024 ** 2))} MB`);
+const fmtSize = (b: number) => (b >= 1e9 ? `${(b / 1e9).toFixed(2).replace(".", ",")} GB` : `${Math.max(1, Math.round(b / 1e6))} MB`);
 
 // Filmy na samej górze galerii: podgląd do oglądania i oryginał w pełnej jakości do pobrania
 export default function VideoSection({ videos, lang }: { videos: ClientVideo[]; lang: Lang }) {

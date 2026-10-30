@@ -20,7 +20,7 @@ export type VideoRow = {
   thumbnail?: string;
 };
 
-const fmtSize = (b: number) => (b >= 1024 ** 3 ? `${(b / 1024 ** 3).toFixed(1)} GB` : `${Math.max(1, Math.round(b / 1024 ** 2))} MB`);
+const fmtSize = (b: number) => (b >= 1e9 ? `${(b / 1e9).toFixed(2).replace(".", ",")} GB` : `${Math.max(1, Math.round(b / 1e6))} MB`);
 const fmtDur = (s: number) => {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
@@ -164,7 +164,7 @@ export default function VideoManager({
             <span className="video-name">{current.name}</span>
             <span>
               {current.total ? `${fmtSize(current.sent ?? 0)} / ${fmtSize(current.total)} · ` : ""}
-              {(current.total ?? 0) > 2 * 1024 ** 3 ? (current.progress * 100).toFixed(1) : Math.round(current.progress * 100)}%
+              {(current.total ?? 0) > 2e9 ? (current.progress * 100).toFixed(1) : Math.round(current.progress * 100)}%
             </span>
           </div>
           <div className="up-total">

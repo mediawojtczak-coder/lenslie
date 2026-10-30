@@ -26,7 +26,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: msg("Jedno ze zdjęć jest za duże (maks. 60 MB).", "One of the photos is too large (max 60 MB).") }, { status: 400 });
   }
   const incoming = files.reduce((s, f) => s + Math.max(0, Number(f.size) || 0), 0) * 1.3;
-  if ((await guestUsage(id)) + incoming > GUEST_LIMIT_GB * 1024 ** 3) {
+  if ((await guestUsage(id)) + incoming > GUEST_LIMIT_GB * 1e9) {
     return NextResponse.json({ error: msg("Galeria gości jest już pełna.", "The guest gallery is full."), code: "LIMIT" }, { status: 402 });
   }
 

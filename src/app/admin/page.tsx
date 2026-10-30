@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Warsaw" });
 const fmtDate = (d?: string | null) => (d ? dateFmt.format(new Date(d)) : "–");
-const GB = 1024 ** 3;
+const GB = 1e9;
 
 type G = { id: string; title: string; owner_id: string | null; created_at: string };
 

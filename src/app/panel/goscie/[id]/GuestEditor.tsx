@@ -21,7 +21,7 @@ async function api(body: Record<string, unknown>) {
   return data;
 }
 
-const gb = (b: number) => (b / 1024 ** 3).toLocaleString("pl-PL", { maximumFractionDigits: 1 });
+const gb = (b: number) => (b / 1e9).toLocaleString("pl-PL", { maximumFractionDigits: 1 });
 
 export default function GuestEditor({
   event,
@@ -263,7 +263,7 @@ export default function GuestEditor({
                 <div className="video-info">
                   <strong className="video-name">{t("Film od gościa", "Guest video")}</strong>
                   <small>
-                    {v.size >= 1024 ** 3 ? `${(v.size / 1024 ** 3).toFixed(1)} GB` : `${Math.max(1, Math.round(v.size / 1024 ** 2))} MB`}
+                    {v.size >= 1e9 ? `${(v.size / 1e9).toFixed(1)} GB` : `${Math.max(1, Math.round(v.size / 1e6))} MB`}
                     {v.processing && ` · ${t("przygotowuję podgląd…", "preparing preview…")}`}
                   </small>
                 </div>

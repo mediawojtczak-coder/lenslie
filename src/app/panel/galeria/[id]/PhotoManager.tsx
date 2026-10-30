@@ -16,8 +16,8 @@ type Filter = string;
 
 function formatSize(bytes: number) {
   if (!bytes) return "";
-  const mb = bytes / (1024 * 1024);
-  return mb >= 1 ? `${mb.toFixed(mb >= 10 ? 0 : 1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  const mb = bytes / 1e6;
+  return mb >= 1 ? `${mb.toFixed(mb >= 10 ? 0 : 1)} MB` : `${Math.max(1, Math.round(bytes / 1000))} KB`;
 }
 
 export default function PhotoManager({

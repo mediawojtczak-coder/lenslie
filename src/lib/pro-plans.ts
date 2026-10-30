@@ -28,7 +28,7 @@ export const proIsBigger = (to: ProTier, from: ProTier) => to.monthly > from.mon
 export const PRO_GRACE_DAYS = 30;
 // Zapas ponad pulę, żeby pojedyncze zdjęcia nie blokowały pracy
 export const PRO_TOLERANCE = 0.02;
-const GB = 1024 ** 3;
+const GB = 1e9; // jednostki dziesiętne, jak na Macu
 const DAY = 24 * 3600 * 1000;
 
 export function proTier(id: unknown): ProTier | undefined {
