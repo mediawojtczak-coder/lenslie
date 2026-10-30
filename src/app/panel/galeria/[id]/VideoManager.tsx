@@ -21,6 +21,11 @@ export type VideoRow = {
 };
 
 const fmtSize = (b: number) => (b >= 1e9 ? `${(b / 1e9).toFixed(2).replace(".", ",")} GB` : `${Math.max(1, Math.round(b / 1e6))} MB`);
+// „1 h 20 min” / „12 min” – szacowany czas do końca wgrywania
+const eta = (s: number) => {
+  const m = Math.max(1, Math.round(s / 60));
+  return m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m} min`;
+};
 const fmtDur = (s: number) => {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
@@ -49,7 +54,18 @@ export default function VideoManager({
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const jobRef = useRef<VideoUpload | null>(null);
-  const [current, setCurrent] = useState<{ name: string; progress: number; left: number; sent?: number; total?: number; resumed?: boolean } | null>(null);
+  const [current, setCurrent] = useState<{
+    name: string;
+    progress: number;
+    left: number;
+    sent?: number;
+    total?: number;
+    resumed?: boolean;
+    retrying?: number;
+    speed?: number;
+  } | null>(null);
+  // plik, którego wgrywanie się przerwało – „Wznów” bez ponownego wybierania
+  const [failed, setFailed] = useState<File[] | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [invoice, setInvoice] = useState<Billing>(billing);
@@ -74,23 +90,27 @@ export default function VideoManager({
     return () => window.removeEventListener("beforeunload", warn);
   }, [current]);
 
-  async function add(list: FileList | null) {
+  async function add(list: FileList | File[] | null) {
     const files = [...(list ?? [])].filter((f) => f.type.startsWith("video/") || /\.(mp4|mov|m4v|avi|mkv|mts|webm)$/i.test(f.name));
     if (inputRef.current) inputRef.current.value = "";
     if (files.length === 0) return;
     setError("");
+    setFailed(null);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       setCurrent({ name: file.name, progress: 0, left: files.length - i - 1 });
       try {
         const duration = await readDuration(file);
         const job = uploadVideo(endpoint, file, duration, (p) =>
-          setCurrent((c) => (c ? { ...c, progress: p.fraction, sent: p.sent, total: p.total, resumed: p.resumed } : c)),
+          setCurrent((c) => (c ? { ...c, progress: p.fraction, sent: p.sent, total: p.total, resumed: p.resumed, retrying: p.retrying, speed: p.speed } : c)),
         );
         jobRef.current = job;
         await job.done;
       } catch (err) {
-        if (!(err instanceof Error && err.message === "abort")) setError(err instanceof Error ? err.message : t("Nie udało się wgrać filmu.", "Could not upload the video."));
+        if (!(err instanceof Error && err.message === "abort")) {
+          setError(err instanceof Error ? err.message : t("Nie udało się wgrać filmu.", "Could not upload the video."));
+          setFailed(files.slice(i));
+        }
         break;
       } finally {
         jobRef.current = null;
@@ -172,6 +192,10 @@ export default function VideoManager({
           </div>
           <div className="video-up-line">
             <small>
+              {current.speed && current.total && current.sent !== undefined
+                ? `${(current.speed / 1e6).toFixed(1)} MB/s · ${t("zostało ok.", "approx.")} ${eta((current.total - current.sent) / current.speed)}${lang === "en" ? " left" : ""}. `
+                : ""}
+              {current.retrying ? `${t("Połączenie słabnie – ponawiam", "Connection is weak – retrying")} (${current.retrying}). ` : ""}
               {current.resumed && `${t("Wznowiono – wgrane części są pomijane.", "Resumed – uploaded parts are skipped.")} `}
               {t(
                 "Nie zamykaj tej karty i nie usypiaj komputera do końca wgrywania.",
@@ -248,6 +272,11 @@ export default function VideoManager({
         <p className="error" role="alert">
           {error}
         </p>
+      )}
+      {failed && !current && (
+        <button type="button" className="btn btn-small" onClick={() => add(failed)}>
+          {t("Wznów wgrywanie", "Resume upload")}
+        </button>
       )}
     </section>
   );

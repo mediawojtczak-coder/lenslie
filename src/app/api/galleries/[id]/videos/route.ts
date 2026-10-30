@@ -26,7 +26,7 @@ import { getLang } from "@/lib/lang-server";
 
 export const runtime = "nodejs";
 
-const PART = 32 * 1024 * 1024; // 32 MB na część – przy zerwaniu połączenia mniej do powtórzenia
+const PART = 16 * 1024 * 1024; // 16 MB na część – krótsze połączenia, przy zerwaniu mniej do powtórzenia
 const LEGACY_PART = 64 * 1024 * 1024;
 const MAX_SIZE = 30 * 1024 ** 3; // limit Cloudflare Stream
 
@@ -179,6 +179,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       await startVideos(videos, [video.id]);
       await saveMeta(id, meta);
       return NextResponse.json({ ok: true, video });
+    }
+    case "report": {
+      // Przeglądarka zgłasza nieudane wgrywanie – wysyłamy szczegóły administratorowi (do diagnozy)
+      const { user } = await getUser();
+      const n = (k: string) => Number(body[k]) || 0;
+      const gb = (b: number) => `${(b / 1e9).toFixed(2)} GB`;
+      await notifyAdmins(`Problem z wgrywaniem filmu – ${user?.email ?? "?"}`, "Wgrywanie filmu przerwane", [
+        `Konto: ${user?.email ?? "?"}. Galeria: ${meta.title ?? id} (${id}).`,
+        `Film: ${video?.name ?? "?"}, ${gb(n("size"))}. Wgrane: ${gb(n("sent"))}.`,
+        `Część nr ${n("part")} (od ${gb(n("offset"))}), prób: ${n("attempts")}, kod: ${n("status")}, komunikat: ${String(body.message ?? "").slice(0, 200)}.`,
+        `Przeglądarka online: ${body.online ? "tak" : "nie"}. ${String(body.ua ?? "").slice(0, 300)}`,
+      ]).catch(() => undefined);
+      return NextResponse.json({ ok: true });
     }
     case "abort":
     case "delete": {
