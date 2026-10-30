@@ -12,8 +12,8 @@ const PAY_FEE = 0.02; // prowizja Przelewy24 (szacunek)
 function galleryProfit(m: GalleryMeta | null, bytes: number, paid?: number) {
   const plan = getPlan(m?.plan);
   if (!m || !plan || !m.period) return null;
-  // faktycznie zapłacone (z przedłużeniami), a gdy brak danych – cena pakietu
-  const revenue = paid && paid > 0 ? paid : (plan.prices[m.period as keyof typeof plan.prices] ?? 0);
+  // tylko faktycznie zapłacone (pakiet z przedłużeniami + dodatki); bez wpłaty zostają same koszty
+  const revenue = paid ?? 0;
   const months = m.period;
   const vids = (m.videos ?? []).filter((v) => v.status !== "error");
   const photoBytes = Math.max(0, bytes - galleryVideoBytes(m.videos));
@@ -120,15 +120,23 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
 
   // Ile zapłacono za każdą galerię: płatności Przelewy24 (fotograf i klient przedłużający dostęp)
   // oraz zakupy z salda fotografa (opis kończy się nazwą galerii)
-  const paidFor = new Map<string, { total: number; byClient: number; wallet: number }>();
-  const addPaid = (gid: string, zl: number, kind: "p24" | "client" | "wallet") => {
-    const p = paidFor.get(gid) ?? { total: 0, byClient: 0, wallet: 0 };
-    p.total += zl;
-    if (kind === "client") p.byClient += zl;
-    if (kind === "wallet") p.wallet += zl;
+  // Podział: pakiet (publikacja, zmiana, przedłużenie), dodatki (motyw, Znajdź siebie, filmy…), wydruk albumu (osobno – ma własne koszty)
+  type Paid = { total: number; plan: number; addons: number; print: number; byClient: number; wallet: number };
+  const paidFor = new Map<string, Paid>();
+  const addPaid = (gid: string, zl: number, cat: "plan" | "addons" | "print", how: "p24" | "client" | "wallet") => {
+    const p = paidFor.get(gid) ?? { total: 0, plan: 0, addons: 0, print: 0, byClient: 0, wallet: 0 };
+    p[cat] += zl;
+    if (cat !== "print") p.total += zl;
+    if (how === "client") p.byClient += zl;
+    if (how === "wallet") p.wallet += zl;
     paidFor.set(gid, p);
   };
-  for (const o of allOrders) if (o.status === "paid" && o.galleryId) addPaid(o.galleryId, o.amount / 100, o.byClient ? "client" : "p24");
+  for (const o of allOrders) {
+    if (o.status !== "paid" || !o.galleryId) continue;
+    const a = o.action as { action: string; product?: string };
+    const cat = ["choose", "upgrade", "extend"].includes(a.action) ? "plan" : a.product === "print" ? "print" : "addons";
+    addPaid(o.galleryId, o.amount / 100, cat, o.byClient ? "client" : "p24");
+  }
   const owners = [...new Set(galleries.map((g) => g.owner_id).filter((x): x is string => Boolean(x)))];
   const wallets = new Map<string, WalletEntry[]>(
     await Promise.all(owners.map(async (uid) => [uid, (await getWallet(uid).catch(() => ({ history: [] as WalletEntry[] }))).history] as const)),
@@ -136,7 +144,13 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   for (const g of galleries) {
     if (!g.owner_id) continue;
     for (const h of wallets.get(g.owner_id) ?? []) {
-      if (h.type === "spend" && h.description.endsWith(` – ${g.title}`)) addPaid(g.id, Math.abs(h.amount) / 100, "wallet");
+      if (h.type !== "spend" || !h.description.endsWith(` – ${g.title}`)) continue;
+      const cat = (h.ref ?? "").startsWith("print-")
+        ? "print"
+        : /^(publikacja galerii|zmiana pakietu|przedłużenie dostępu)/.test(h.description)
+          ? "plan"
+          : "addons";
+      addPaid(g.id, Math.abs(h.amount) / 100, cat, "wallet");
     }
   }
 
@@ -668,10 +682,19 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                     <td data-l="Miejsce">{formatBytes(usage.get(g.id) ?? 0)}</td>
                     <td
                       data-l="Zapłacono"
-                      title={paid ? `Przelewy24: ${zlx(paid.total - paid.wallet - paid.byClient)} · z salda: ${zlx(paid.wallet)} · klient: ${zlx(paid.byClient)}` : undefined}
+                      title={
+                        paid
+                          ? `Pakiet: ${zlx(paid.plan)} · dodatki: ${zlx(paid.addons)}${paid.print ? ` · wydruk albumu (poza sumą): ${zlx(paid.print)}` : ""} · z salda: ${zlx(paid.wallet)} · klient: ${zlx(paid.byClient)}`
+                          : undefined
+                      }
                     >
-                      {paid ? zlx(paid.total) : "–"}
-                      {paid && paid.byClient > 0 && <small style={{ color: "var(--taupe)" }}> (klient {zlx(paid.byClient)})</small>}
+                      {paid && paid.total > 0 ? zlx(paid.total) : "–"}
+                      {paid && paid.addons > 0 && (
+                        <small style={{ display: "block", color: "var(--taupe)" }}>
+                          pakiet {zlx(paid.plan)} + dodatki {zlx(paid.addons)}
+                        </small>
+                      )}
+                      {paid && paid.byClient > 0 && <small style={{ display: "block", color: "var(--taupe)" }}>w tym klient {zlx(paid.byClient)}</small>}
                     </td>
                     <td data-l="Szac. zysk" title={pr ? `Przychód ${zlx(pr.revenue)} · koszty ${zlx(pr.cost)}` : undefined} className={pr && pr.profit < 0 ? "is-expired" : undefined}>
                       {m?.plan === "pro" ? "w abonamencie" : pr ? zlx(pr.profit) : "–"}
