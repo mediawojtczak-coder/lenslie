@@ -3,6 +3,7 @@ import { EB_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
 import { getLang } from "@/lib/lang-server";
 import { LangProvider } from "@/components/LangProvider";
+import NavProgress from "@/components/NavProgress";
 
 const display = EB_Garamond({
   subsets: ["latin", "latin-ext"],
@@ -41,6 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={lang} className={`${display.variable} ${body.variable}`}>
       <body>
+        <NavProgress />
         <LangProvider lang={lang}>{children}</LangProvider>
       </body>
     </html>

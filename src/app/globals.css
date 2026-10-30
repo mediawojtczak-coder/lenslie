@@ -2656,3 +2656,106 @@ button.install-app { background: none; border: 0; font: inherit; color: inherit;
 .gtheme-noir .client-grid.cols { gap: 14px; }
 .gtheme-minimal .client-grid.cols { gap: 4px; }
 @media (max-width: 760px) { .client-grid.cols { gap: 4px; } }
+
+/* ===== Pasek ładowania przy przechodzeniu między stronami ===== */
+.nav-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0;
+  z-index: 9999;
+  background: var(--brass);
+  box-shadow: 0 0 8px rgba(180, 132, 122, 0.5);
+  opacity: 0;
+  pointer-events: none;
+}
+.nav-progress.loading {
+  opacity: 1;
+  width: 85%;
+  transition: width 8s cubic-bezier(0.1, 0.7, 0.2, 1), opacity 0.1s;
+}
+.nav-progress.done {
+  opacity: 0;
+  width: 100%;
+  transition: width 0.2s ease-out, opacity 0.3s 0.15s;
+}
+/* w trakcie ładowania treść lekko przygasa – wiadomo, że kliknięcie zadziałało */
+html.nav-busy .app-main,
+html.nav-busy .app-body > main {
+  opacity: 0.55;
+  transition: opacity 0.25s 0.15s;
+}
+html.nav-busy body {
+  cursor: progress;
+}
+
+/* ===== Ekrany ładowania ===== */
+.page-loading {
+  display: grid;
+  gap: 16px;
+  padding: 28px 0;
+}
+.sk {
+  background: linear-gradient(90deg, var(--hair) 0%, #f7f3f0 50%, var(--hair) 100%);
+  background-size: 200% 100%;
+  animation: sk-shine 1.4s ease-in-out infinite;
+  border-radius: 10px;
+}
+.sk-line {
+  height: 14px;
+}
+.sk-card {
+  height: 72px;
+}
+.sk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+}
+.sk-photo {
+  aspect-ratio: 4 / 3;
+}
+@keyframes sk-shine {
+  to {
+    background-position: -200% 0;
+  }
+}
+.gallery-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  color: var(--taupe);
+  text-align: center;
+  padding: 24px;
+}
+.gallery-loading .spin {
+  width: 34px;
+  height: 34px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  border: 2px solid var(--hair);
+  border-top-color: var(--brass);
+  animation: spin 0.9s linear infinite;
+}
+.gallery-loading p {
+  font-family: var(--font-display), serif;
+  font-size: 20px;
+  margin: 0;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk,
+  .gallery-loading .spin {
+    animation: none;
+  }
+  .nav-progress.loading {
+    transition: none;
+    width: 60%;
+  }
+}

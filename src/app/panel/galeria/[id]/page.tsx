@@ -3,7 +3,7 @@ import SideLogout from "@/components/SideLogout";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { isValidGalleryId, galleryPrefix } from "@/lib/r2";
-import { getGalleryPhotos, getGalleryUsage, pickCover, applyOrder, listKeys, type Photo } from "@/lib/photos";
+import { getGalleryPhotosAndUsage, pickCover, applyOrder, type Photo } from "@/lib/photos";
 import { getMeta, watermarkOn, draftDeleteDate } from "@/lib/galleries";
 import ShareBar from "./ShareBar";
 import PublishBar from "./PublishBar";
@@ -30,7 +30,7 @@ import ClientExtendCard from "./ClientExtendCard";
 import ThemeCard from "./ThemeCard";
 import FacesCard from "./FacesCard";
 import { FACES_PRICE } from "@/lib/faces";
-import { THEMES, getOwnedThemes } from "@/lib/themes";
+import { THEMES, getOwnedThemes, type ThemeId } from "@/lib/themes";
 import { getPayout } from "@/lib/sales";
 import AlbumTab from "./AlbumTab";
 import { getAlbumProject, getAlbumSub, albumActive, albumAllowed, freeAlbumFor } from "@/lib/albums";
@@ -59,9 +59,20 @@ export default async function ZarzadzanieGalerii({
   if (!isValidGalleryId(id)) notFound();
 
   const { supabase, user } = await getUser();
-  const billing = user ? await getBilling(user.id) : null;
-  const balance = user ? (await getWallet(user.id)).balance : 0;
-  const domainRec = user ? await getDomainByUser(user.id).catch(() => null) : null;
+  // Wszystko, co niezależne, pobieramy równolegle – strona otwiera się szybciej
+  const [billing, wallet, domainRec, proSub, ownedThemesRaw, payout, galleryRow, meta0, listing, selCount] = await Promise.all([
+    user ? getBilling(user.id) : Promise.resolve(null),
+    user ? getWallet(user.id) : Promise.resolve(null),
+    user ? getDomainByUser(user.id).catch(() => null) : Promise.resolve(null),
+    user ? getProSub(user.id).catch(() => null) : Promise.resolve(null),
+    user ? getOwnedThemes(user.id).catch(() => [] as ThemeId[]) : Promise.resolve([] as ThemeId[]),
+    user ? getPayout(user.id).catch(() => null) : Promise.resolve(null),
+    supabase.from("galleries").select("id, title, created_at").eq("id", id).maybeSingle(),
+    getMeta(id).catch(() => null),
+    getGalleryPhotosAndUsage(id).catch(() => ({ photos: [] as Photo[], usage: 0, wmKeys: new Set<string>() })),
+    supabase.from("selections").select("id", { count: "exact", head: true }).eq("gallery_id", id),
+  ]);
+  const balance = wallet?.balance ?? 0;
   // Własna domena w linkach dopiero, gdy DNS już działa – inaczej klient dostałby niedziałający link
   let domain = domainActive(domainRec) && domainRec!.verified ? domainRec!.host : null;
   if (domainActive(domainRec) && !domainRec!.verified) {
@@ -72,21 +83,17 @@ export default async function ZarzadzanieGalerii({
     }
   }
   // Abonament Pro: galerie bez opłat, wspólna pula miejsca, dodatki w cenie
-  const proSub = user ? await getProSub(user.id).catch(() => null) : null;
   const proOn = proActive(proSub);
   const proT = proSub ? proTier(proSub.tier) : undefined;
-  const ownedThemes = proOn ? THEMES.map((th) => th.id) : user ? await getOwnedThemes(user.id).catch(() => []) : [];
-  const hasPayout = user ? Boolean(await getPayout(user.id).catch(() => null)) : false;
-  const { data } = await supabase.from("galleries").select("id, title, created_at").eq("id", id).maybeSingle();
+  const ownedThemes = proOn ? THEMES.map((th) => th.id) : ownedThemesRaw;
+  const hasPayout = Boolean(payout);
+  const data = galleryRow.data;
   if (!data) notFound();
   const gallery = data as { id: string; title: string; created_at: string };
 
-  const [meta, rawPhotos, usedBytes] = await Promise.all([
-    getMeta(id).catch(() => null),
-    getGalleryPhotos(id).catch(() => [] as Photo[]),
-    getGalleryUsage(id).catch(() => 0),
-  ]);
-  const photos = applyOrder(rawPhotos, meta?.order);
+  const meta = meta0;
+  const usedBytes = listing.usage;
+  const photos = applyOrder(listing.photos, meta?.order);
   // Stan przygotowania podglądu filmów (Cloudflare Stream)
   if (meta?.videos?.length && (await refreshVideos(meta.videos).catch(() => false))) await saveMeta(id, meta).catch(() => undefined);
   // Filmy są teraz w cenie galerii – nieopłacone z wcześniejszych zasad uruchamiamy bez opłaty
@@ -102,7 +109,7 @@ export default async function ZarzadzanieGalerii({
   // Zdjęcia, na które znak wodny nie został jeszcze nałożony
   let wmMissing: string[] = [];
   if (watermarkOn(meta)) {
-    const wm = new Set(await listKeys(`${galleryPrefix(id)}wm/`).catch(() => [] as string[]));
+    const wm = listing.wmKeys;
     wmMissing = photos.filter((p) => !wm.has(`${galleryPrefix(id)}wm/${p.name}.jpg`)).map((p) => p.name);
   }
 
@@ -111,10 +118,7 @@ export default async function ZarzadzanieGalerii({
 
   const cover = pickCover(photos, meta?.cover);
 
-  const { count: selectionCount } = await supabase
-    .from("selections")
-    .select("id", { count: "exact", head: true })
-    .eq("gallery_id", id);
+  const selectionCount = selCount.count;
 
   const tabs = [
     { key: "zdjecia", label: L("Zdjęcia", "Photos"), count: photos.length },

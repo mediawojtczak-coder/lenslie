@@ -1,6 +1,6 @@
-import { GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { r2, BUCKET, baseName, galleryPrefix } from "@/lib/r2";
+import { presigner, presignGet } from "@/lib/presign";
 
 export type Photo = {
   name: string;
@@ -44,12 +44,27 @@ export async function listKeys(prefix: string) {
 export async function getGalleryPhotos(id: string, opts: { watermark?: boolean } = {}): Promise<Photo[]> {
   if (!process.env.R2_ENDPOINT) return [];
   const prefix = galleryPrefix(id);
-
   const [webObjs, originalObjs, wmObjs] = await Promise.all([
     listObjects(`${prefix}web/`),
     listObjects(`${prefix}original/`),
     opts.watermark ? listObjects(`${prefix}wm/`) : Promise.resolve([] as Obj[]),
   ]);
+  return buildPhotos(prefix, webObjs, originalObjs, wmObjs, opts);
+}
+
+// Zdjęcia i zajęte miejsce z jednego przeglądu magazynu (panel galerii – szybciej niż osobno)
+export async function getGalleryPhotosAndUsage(id: string, opts: { watermark?: boolean } = {}): Promise<{ photos: Photo[]; usage: number; wmKeys: Set<string> }> {
+  if (!process.env.R2_ENDPOINT) return { photos: [], usage: 0, wmKeys: new Set() };
+  const prefix = galleryPrefix(id);
+  const all = await listObjects(prefix);
+  const pick = (sub: string) => all.filter((o) => o.key.startsWith(`${prefix}${sub}/`));
+  const wm = pick("wm");
+  const photos = await buildPhotos(prefix, pick("web"), pick("original"), opts.watermark ? wm : [], opts);
+  return { photos, usage: all.reduce((s, o) => s + o.size, 0), wmKeys: new Set(wm.map((o) => o.key)) };
+}
+
+async function buildPhotos(prefix: string, webObjs: Obj[], originalObjs: Obj[], wmObjs: Obj[], opts: { watermark?: boolean }): Promise<Photo[]> {
+  const sign = await presigner();
   const wmKeys = new Set(wmObjs.map((o) => o.key));
   const webKeys = webObjs.map((o) => o.key);
 
@@ -74,25 +89,9 @@ export async function getGalleryPhotos(id: string, opts: { watermark?: boolean }
 
       const webFileName = `${name}-internet.jpg`;
       const [webUrl, downloadUrl, webDownloadUrl] = await Promise.all([
-        getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: key }), { expiresIn: 7200 }),
-        getSignedUrl(
-          r2,
-          new GetObjectCommand({
-            Bucket: BUCKET,
-            Key: originalKey,
-            ResponseContentDisposition: `attachment; filename="${originalFile}"`,
-          }),
-          { expiresIn: 7200 },
-        ),
-        getSignedUrl(
-          r2,
-          new GetObjectCommand({
-            Bucket: BUCKET,
-            Key: key,
-            ResponseContentDisposition: `attachment; filename="${webFileName}"`,
-          }),
-          { expiresIn: 7200 },
-        ),
+        sign(key, { expiresIn: 7200 }),
+        sign(originalKey, { expiresIn: 7200, disposition: `attachment; filename="${originalFile}"` }),
+        sign(key, { expiresIn: 7200, disposition: `attachment; filename="${webFileName}"` }),
       ]);
 
       return {
@@ -121,9 +120,7 @@ export async function getGallerySummary(
   keys.sort((a, b) => a.localeCompare(b, "pl", { numeric: true }));
   // Wybrana okładka, a jeśli jej nie ma (np. usunięta) – pierwsze zdjęcie
   const chosen = cover ? keys.find((k) => k === `${galleryPrefix(id)}web/${cover}.jpg`) : undefined;
-  const coverUrl = await getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: chosen ?? keys[0] }), {
-    expiresIn: 7200,
-  });
+  const coverUrl = await presignGet(chosen ?? keys[0], { expiresIn: 7200 });
   return { count: keys.length, coverUrl };
 }
 
@@ -158,7 +155,5 @@ export function applyOrder<T extends { name: string }>(photos: T[], order?: stri
 
 // Link do muzyki pokazu slajdów (ważny 2 godziny)
 export async function getMusicUrl(id: string): Promise<string> {
-  return getSignedUrl(r2, new GetObjectCommand({ Bucket: BUCKET, Key: `${galleryPrefix(id)}music.mp3` }), {
-    expiresIn: 7200,
-  });
+  return presignGet(`${galleryPrefix(id)}music.mp3`, { expiresIn: 7200 });
 }
