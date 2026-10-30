@@ -5,7 +5,8 @@ import { listObjects } from "@/lib/photos";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
 import { getPlan, formatBytes } from "@/lib/plans";
 import { videoCost, galleryVideoBytes, USD_PLN, R2_GB_MONTH, STREAM_MIN_MONTH, STREAM_MIN_VIEW } from "@/lib/videos";
-import { getStreamStats } from "@/lib/stream-stats";
+import { getStreamStats, minutesViewedSince } from "@/lib/stream-stats";
+import { FIXED_COSTS, fixedCostFor } from "@/lib/platform-costs";
 
 // Szacowany zysk na galerii (zł): cena pakietu minus prowizja płatności i koszty magazynu oraz podglądu filmów
 // przez okres pakietu. Bez przedłużeń i dopłat za zmianę pakietu; koszt filmów zakłada ok. 30 pełnych obejrzeń.
@@ -122,6 +123,51 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   // Filmy: oglądanie (Cloudflare Stream) i koszty podglądu
   const allVideos = galleries.flatMap((g) => (metas.get(g.id)?.videos ?? []).map((v) => ({ g, v })));
   const streamStats = allVideos.some(({ v }) => v.streamUid) ? await getStreamStats() : null;
+
+  // ===== Koszty utrzymania platformy: bieżący tydzień, miesiąc i rok =====
+  const nowD = new Date();
+  const weekStart = new Date(Date.UTC(nowD.getUTCFullYear(), nowD.getUTCMonth(), nowD.getUTCDate() - ((nowD.getUTCDay() + 6) % 7)));
+  const monthStart = new Date(Date.UTC(nowD.getUTCFullYear(), nowD.getUTCMonth(), 1));
+  const firstGallery = galleries.reduce((min, g) => Math.min(min, new Date(g.created_at).getTime()), Date.now());
+  // rok liczony od 1 stycznia, ale nie wcześniej niż od startu Lenslie (pierwsza galeria)
+  const yearStart = new Date(Math.max(Date.UTC(nowD.getUTCFullYear(), 0, 1), new Date(new Date(firstGallery).toISOString().slice(0, 10)).getTime()));
+  const periods = [
+    { key: "week", label: "Ten tydzień", start: weekStart },
+    { key: "month", label: "Ten miesiąc", start: monthStart },
+    { key: "year", label: `Rok ${nowD.getUTCFullYear()}`, start: yearStart },
+  ] as const;
+  const daysOf = (start: Date) => Math.max(0, (nowD.getTime() - start.getTime()) / (24 * 3600 * 1000));
+  const streamMinutesStored = allVideos.reduce((s, { v }) => s + (v.streamUid ? Math.max(1, Math.ceil(v.duration / 60)) : 0), 0);
+  const viewed = allVideos.some(({ v }) => v.streamUid)
+    ? await Promise.all(periods.map((p) => minutesViewedSince(p.start)))
+    : periods.map(() => ({ ok: true as const, minutes: 0, from: new Date() }));
+  const paidIn = (start: Date) =>
+    allOrders.filter((o) => o.status === "paid" && new Date(o.paidAt ?? o.createdAt).getTime() >= start.getTime()).reduce((s, o) => s + o.amount / 100, 0);
+  const costRows: { name: string; note?: string; values: (number | null)[] }[] = [
+    {
+      name: "Magazyn plików (Cloudflare R2)",
+      note: `${formatBytes(totalBytes)} · 0,015 USD za GB/mies. (pierwsze 10 GB gratis)`,
+      values: periods.map((p) => (Math.max(0, totalBytes / 1e9 - 10) * R2_GB_MONTH * USD_PLN * daysOf(p.start)) / 30.44),
+    },
+    {
+      name: "Podglądy filmów – przechowanie (Stream)",
+      note: `${streamMinutesStored} min filmów · 5 USD za 1000 min/mies.`,
+      values: periods.map((p) => (streamMinutesStored * STREAM_MIN_MONTH * USD_PLN * daysOf(p.start)) / 30.44),
+    },
+    {
+      name: "Podglądy filmów – oglądanie (Stream)",
+      note: "1 USD za 1000 obejrzanych minut (dane Cloudflare z max 90 dni)",
+      values: viewed.map((v) => (v.ok ? v.minutes * STREAM_MIN_VIEW * USD_PLN : null)),
+    },
+    {
+      name: "Prowizje płatności (Przelewy24)",
+      note: "ok. 2% wpłat",
+      values: periods.map((p) => paidIn(p.start) * PAY_FEE),
+    },
+    ...FIXED_COSTS.map((c) => ({ name: c.name, note: c.note, values: periods.map((p) => fixedCostFor(c, p.start, nowD, USD_PLN)) })),
+  ];
+  const costTotals = periods.map((_, i) => costRows.reduce((s, r) => s + (r.values[i] ?? 0), 0));
+  const incomeTotals = periods.map((p) => paidIn(p.start));
 
   // Ile zapłacono za każdą galerię: płatności Przelewy24 (fotograf i klient przedłużający dostęp)
   // oraz zakupy z salda fotografa (opis kończy się nazwą galerii)
@@ -649,6 +695,66 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                 );
               })}
             </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="settings-card">
+        <h2>Koszty utrzymania platformy</h2>
+        <p className="hint-inline">
+          Szacunek od początku tygodnia (poniedziałek), miesiąca i roku do dziś. Magazyn i podglądy liczone według obecnego stanu, proporcjonalnie do liczby dni.
+          Koszty stałe ustawisz w pliku src/lib/platform-costs.ts. Wpłaty = płatności Przelewy24 (doładowania salda i zakupy), bez bonusów.
+        </p>
+        <div className="table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Koszt</th>
+                {periods.map((p) => (
+                  <th key={p.key}>
+                    {p.label}
+                    <small style={{ display: "block", color: "var(--taupe)", fontWeight: 400 }}>od {fmtDate(p.start.toISOString())}</small>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {costRows.map((r) => (
+                <tr key={r.name}>
+                  <td data-l="Koszt">
+                    {r.name}
+                    {r.note && <small style={{ display: "block", color: "var(--taupe)" }}>{r.note}</small>}
+                  </td>
+                  {r.values.map((v, i) => (
+                    <td key={periods[i].key} data-l={periods[i].label}>
+                      {v === null ? "brak danych" : zlx(v)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td>Razem koszty</td>
+                {costTotals.map((v, i) => (
+                  <td key={periods[i].key}>{zlx(v)}</td>
+                ))}
+              </tr>
+              <tr>
+                <td>Wpłaty (Przelewy24)</td>
+                {incomeTotals.map((v, i) => (
+                  <td key={periods[i].key}>{zlx(v)}</td>
+                ))}
+              </tr>
+              <tr>
+                <td>Wynik</td>
+                {incomeTotals.map((v, i) => (
+                  <td key={periods[i].key} className={v - costTotals[i] < 0 ? "is-expired" : undefined}>
+                    {zlx(v - costTotals[i])}
+                  </td>
+                ))}
+              </tr>
+            </tfoot>
           </table>
         </div>
       </section>

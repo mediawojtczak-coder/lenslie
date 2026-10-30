@@ -38,6 +38,26 @@ async function window(token: string, acc: string, start: Date, end: Date): Promi
   return out;
 }
 
+// Minuty obejrzane wszystkich filmów od `start` do teraz (najwyżej 90 dni wstecz – dłużej Cloudflare nie trzyma danych)
+export async function minutesViewedSince(start: Date): Promise<{ ok: true; minutes: number; from: Date } | { ok: false; error: string }> {
+  const token = process.env.CLOUDFLARE_ANALYTICS_TOKEN || process.env.CLOUDFLARE_STREAM_TOKEN;
+  const acc = accountId();
+  if (!token || !acc) return { ok: false, error: "Brak tokenu Cloudflare albo identyfikatora konta." };
+  const DAY = 24 * 3600 * 1000;
+  const end = new Date(Date.now() + DAY);
+  const from = new Date(Math.max(start.getTime(), Date.now() - 90 * DAY));
+  const wins: [Date, Date][] = [];
+  for (let s = from.getTime(); s < end.getTime(); s += 30 * DAY) wins.push([new Date(s), new Date(Math.min(end.getTime(), s + 30 * DAY))]);
+  try {
+    const maps = await Promise.all(wins.map(([a, b]) => window(token, acc, a, b)));
+    let minutes = 0;
+    for (const m of maps) for (const v of m.values()) minutes += v;
+    return { ok: true, minutes, from };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 export async function getStreamStats(): Promise<StreamStats> {
   const token = process.env.CLOUDFLARE_ANALYTICS_TOKEN || process.env.CLOUDFLARE_STREAM_TOKEN;
   const acc = accountId();
