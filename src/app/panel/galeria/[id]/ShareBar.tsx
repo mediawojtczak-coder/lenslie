@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
+import { publicOrigin } from "@/lib/public-origin";
 import { useTr } from "@/components/LangProvider";
 
 type Tab = "link" | "email" | "qr";
@@ -38,19 +39,40 @@ export default function ShareBar({
   const [tab, setTab] = useState<Tab>("link");
   const [origin, setOrigin] = useState("");
   const [pass, setPass] = useState(password ?? "");
+  // hasło zapisane w galerii (aktualizowane od razu po automatycznym zapisie)
+  const [savedPass, setSavedPass] = useState(password ?? "");
   const [saving, setSaving] = useState(false);
+  const [savedNote, setSavedNote] = useState(false);
   const [copied, setCopied] = useState("");
   const [error, setError] = useState("");
   const [qr, setQr] = useState("");
   const [email, setEmail] = useState("");
   const [body, setBody] = useState("");
 
-  useEffect(() => setOrigin(window.location.origin), []);
-  useEffect(() => setPass(password ?? ""), [password]);
+  useEffect(() => setOrigin(publicOrigin()), []);
+  // hasło zmienione gdzie indziej (np. w ustawieniach) – pokazujemy je; nasz własny zapis nie przerywa pisania
+  const savedRef = useRef(password ?? "");
+  useEffect(() => {
+    const p = password ?? "";
+    if (p !== savedRef.current) {
+      savedRef.current = p;
+      setPass(p);
+      setSavedPass(p);
+    }
+  }, [password]);
 
   const link = domain ? `https://${domain}/${id}` : `${origin}/galeria/${id}`;
-  const currentPassword = password ?? "";
+  const currentPassword = savedPass;
   const passwordChanged = pass.trim() !== currentPassword;
+
+  // Automatyczny zapis hasła chwilę po zmianie (puste pole nie usuwa hasła – do tego jest osobny przycisk)
+  useEffect(() => {
+    const value = pass.trim();
+    if (value === savedPass || value.length < 4) return;
+    const timer = setTimeout(() => savePassword(value), 700);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pass, savedPass]);
   const shareText = currentPassword
     ? `${ge ? "Gallery link" : "Link do galerii"}: ${link}\n${ge ? "Password" : "Hasło"}: ${currentPassword}`
     : `${ge ? "Gallery link" : "Link do galerii"}: ${link}`;
@@ -92,10 +114,10 @@ export default function ShareBar({
     }
   }
 
-  async function savePassword() {
-    const value = pass.trim();
+  async function savePassword(value = pass.trim()) {
     if (value && value.length < 4) return setError(t("Hasło musi mieć co najmniej 4 znaki.", "The password must have at least 4 characters."));
     setSaving(true);
+    setSavedNote(false);
     setError("");
     try {
       const res = await fetch("/api/galleries", {
@@ -104,6 +126,9 @@ export default function ShareBar({
         body: JSON.stringify({ gallery: id, clientPassword: value, removePassword: !value }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? t("Nie udało się zapisać hasła.", "Could not save the password."));
+      savedRef.current = value;
+      setSavedPass(value);
+      setSavedNote(true);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("Nie udało się zapisać hasła.", "Could not save the password."));
@@ -193,11 +218,17 @@ export default function ShareBar({
                   {t("Generuj", "Generate")}
                 </button>
               </div>
-              {passwordChanged && (
-                <button type="button" className="btn btn-small save-pass" onClick={savePassword} disabled={saving}>
-                  {saving ? t("Zapisuję…", "Saving…") : pass.trim() ? t("Zapisz nowe hasło", "Save new password") : t("Usuń hasło", "Remove password")}
+              {passwordChanged && !pass.trim() ? (
+                <button type="button" className="btn btn-small save-pass" onClick={() => savePassword("")} disabled={saving}>
+                  {saving ? t("Zapisuję…", "Saving…") : t("Usuń hasło – galeria otwarta dla każdego z linkiem", "Remove password – open to anyone with the link")}
                 </button>
-              )}
+              ) : passwordChanged && pass.trim().length < 4 ? (
+                <p className="hint-inline">{t("Hasło musi mieć co najmniej 4 znaki.", "The password must have at least 4 characters.")}</p>
+              ) : saving ? (
+                <p className="hint-inline">{t("Zapisuję hasło…", "Saving password…")}</p>
+              ) : savedNote && !passwordChanged ? (
+                <p className="hint-inline">✓ {t("Hasło zapisane automatycznie.", "Password saved automatically.")}</p>
+              ) : null}
 
               <p className="share-sub">{t("Adres galerii", "Gallery address")}</p>
               <a href={link} target="_blank" rel="noreferrer" className="share-url">
@@ -212,7 +243,7 @@ export default function ShareBar({
               >
                 {copied === "link" ? t("Skopiowano", "Copied") : currentPassword ? t("Kopiuj link i hasło", "Copy link & password") : t("Kopiuj link", "Copy link")}
               </button>
-              {passwordChanged && <p className="hint-inline">{t("Najpierw zapisz zmienione hasło.", "Save the changed password first.")}</p>}
+
             </div>
           )}
 

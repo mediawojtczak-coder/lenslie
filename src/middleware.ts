@@ -10,6 +10,12 @@ export async function middleware(request: NextRequest) {
   const host = (request.headers.get("host") ?? "").split(":")[0].toLowerCase();
   const path = request.nextUrl.pathname;
 
+  // Adres techniczny lenslie.vercel.app → www.lenslie.com (tylko strony, nie API)
+  if (host === "lenslie.vercel.app" && (request.method === "GET" || request.method === "HEAD") && !path.startsWith("/api/")) {
+    const url = new URL(request.nextUrl.pathname + request.nextUrl.search, "https://www.lenslie.com");
+    return NextResponse.redirect(url, 308);
+  }
+
   // Własna domena fotografa: galerie pod jego adresem (API i pliki strony działają bez zmian)
   if (host && !MAIN_HOSTS.has(host) && !host.endsWith(".vercel.app")) {
     if (path.startsWith("/api/") || path.startsWith("/_next/") || path.includes(".")) return NextResponse.next();

@@ -167,7 +167,7 @@ export default async function ZarzadzanieGalerii({
               title={gallery.title}
               protectedByPassword={Boolean(meta?.passwordHash)}
               password={meta?.password ?? null}
-              photoCount={photos.length}
+              photoCount={photos.length + (meta?.videos?.length ?? 0)}
               domain={domain}
               galleryLang={meta?.lang ?? "pl"}
             />

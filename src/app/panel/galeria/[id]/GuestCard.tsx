@@ -1,5 +1,6 @@
 "use client";
 
+import { publicOrigin } from "@/lib/public-origin";
 import { useTr } from "@/components/LangProvider";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,7 +27,7 @@ export default function GuestCard({
   const [origin, setOrigin] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => setOrigin(window.location.origin), []);
+  useEffect(() => setOrigin(publicOrigin()), []);
 
   async function send(body: Record<string, unknown>) {
     setBusy(true);
