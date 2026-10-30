@@ -33,8 +33,8 @@ export const galleryVideoBytes = (videos?: Video[]) => (videos ?? []).reduce((s,
 // ===== Koszty i cena =====
 export const USD_PLN = Number(process.env.USD_PLN || 4.0);
 export const R2_GB_MONTH = 0.015; // USD
-const STREAM_MIN_MONTH = 0.005; // USD (5 USD / 1000 minut miesięcznie)
-const STREAM_MIN_VIEW = 0.001; // USD (1 USD / 1000 minut obejrzanych)
+export const STREAM_MIN_MONTH = 0.005; // USD (5 USD / 1000 minut miesięcznie)
+export const STREAM_MIN_VIEW = 0.001; // USD (1 USD / 1000 minut obejrzanych)
 const EST_VIEWS = 30; // ile razy (średnio) ktoś obejrzy cały film
 export const MARKUP = 2; // marża 100%
 export const MIN_PRICE = 2; // zł – poniżej prowizja płatności zjadłaby całość
@@ -43,7 +43,7 @@ export function streamEnabled() {
   return Boolean(process.env.CLOUDFLARE_STREAM_TOKEN && accountId());
 }
 
-function accountId() {
+export function accountId() {
   if (process.env.CLOUDFLARE_ACCOUNT_ID) return process.env.CLOUDFLARE_ACCOUNT_ID;
   // Konto Cloudflare jest w adresie R2: https://<konto>.r2.cloudflarestorage.com
   const m = /^https:\/\/([a-f0-9]{32})\./.exec(process.env.R2_ENDPOINT ?? "");

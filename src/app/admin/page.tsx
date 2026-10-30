@@ -4,7 +4,8 @@ import { getSignupSource, sourceDetail, type SignupSource } from "@/lib/signup-s
 import { listObjects } from "@/lib/photos";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
 import { getPlan, formatBytes } from "@/lib/plans";
-import { videoCost, galleryVideoBytes, USD_PLN, R2_GB_MONTH } from "@/lib/videos";
+import { videoCost, galleryVideoBytes, USD_PLN, R2_GB_MONTH, STREAM_MIN_MONTH, STREAM_MIN_VIEW } from "@/lib/videos";
+import { getStreamStats } from "@/lib/stream-stats";
 
 // Szacowany zysk na galerii (zł): cena pakietu minus prowizja płatności i koszty magazynu oraz podglądu filmów
 // przez okres pakietu. Bez przedłużeń i dopłat za zmianę pakietu; koszt filmów zakłada ok. 30 pełnych obejrzeń.
@@ -117,6 +118,10 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     await Promise.all(galleries.map(async (g) => [g.id, await getMeta(g.id).catch(() => null)] as const)),
   );
   const orphans = [...usage.keys()].filter((gid) => !galleries.some((g) => g.id === gid));
+
+  // Filmy: oglądanie (Cloudflare Stream) i koszty podglądu
+  const allVideos = galleries.flatMap((g) => (metas.get(g.id)?.videos ?? []).map((v) => ({ g, v })));
+  const streamStats = allVideos.some(({ v }) => v.streamUid) ? await getStreamStats() : null;
 
   // Ile zapłacono za każdą galerię: płatności Przelewy24 (fotograf i klient przedłużający dostęp)
   // oraz zakupy z salda fotografa (opis kończy się nazwą galerii)
@@ -647,6 +652,75 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </table>
         </div>
       </section>
+
+      {allVideos.length > 0 && (
+        <section className="settings-card">
+          <h2>Filmy – oglądanie i koszty</h2>
+          <p className="hint-inline">
+            Minuty obejrzane z Cloudflare Stream (dane próbkowane, mogą różnić się od faktury). Koszt oglądania: 1 USD za 1000 minut, przechowanie
+            podglądu: 5 USD za 1000 minut filmu miesięcznie (kurs {USD_PLN} zł). „Pełne obejrzenia” = minuty obejrzane ÷ długość filmu.
+          </p>
+          {streamStats && !streamStats.ok && (
+            <p className="warn-inline">
+              Nie udało się pobrać statystyk z Cloudflare: {streamStats.error}. Utwórz w Cloudflare token z uprawnieniem „Account Analytics: Read” i dodaj go w
+              Vercelu jako zmienną CLOUDFLARE_ANALYTICS_TOKEN.
+            </p>
+          )}
+          <div className="table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Film</th>
+                  <th>Galeria</th>
+                  <th>Długość</th>
+                  <th>Obejrzane 30 dni</th>
+                  <th>Obejrzane 90 dni</th>
+                  <th>≈ pełne obejrzenia (90 dni)</th>
+                  <th>Koszt oglądania (90 dni)</th>
+                  <th>Podgląd / mies.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allVideos.map(({ g, v }) => {
+                  const min = Math.max(1, Math.ceil(v.duration / 60));
+                  const m30 = streamStats?.ok && v.streamUid ? (streamStats.d30.get(v.streamUid) ?? 0) : null;
+                  const m90 = streamStats?.ok && v.streamUid ? (streamStats.d90.get(v.streamUid) ?? 0) : null;
+                  const fmtMin = (x: number | null) => (x === null ? "–" : `${Math.round(x).toLocaleString("pl-PL")} min`);
+                  return (
+                    <tr key={`${g.id}-${v.id}`}>
+                      <td data-l="Film">{v.name}</td>
+                      <td data-l="Galeria">
+                        <a href={`/galeria/${g.id}`} target="_blank" rel="noreferrer">
+                          {g.title}
+                        </a>
+                      </td>
+                      <td data-l="Długość">{min} min</td>
+                      <td data-l="Obejrzane 30 dni">{fmtMin(m30)}</td>
+                      <td data-l="Obejrzane 90 dni">{fmtMin(m90)}</td>
+                      <td data-l="Pełne obejrzenia">{m90 === null ? "–" : (m90 / min).toLocaleString("pl-PL", { maximumFractionDigits: 1 })}</td>
+                      <td data-l="Koszt oglądania">{m90 === null ? "–" : zlx(m90 * STREAM_MIN_VIEW * USD_PLN)}</td>
+                      <td data-l="Podgląd / mies.">{v.streamUid ? zlx(min * STREAM_MIN_MONTH * USD_PLN) : "–"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              {streamStats?.ok && (
+                <tfoot>
+                  <tr>
+                    <td colSpan={6}>Razem</td>
+                    <td>
+                      {zlx(allVideos.reduce((s, { v }) => s + (v.streamUid ? (streamStats.d90.get(v.streamUid) ?? 0) : 0), 0) * STREAM_MIN_VIEW * USD_PLN)}
+                    </td>
+                    <td>
+                      {zlx(allVideos.reduce((s, { v }) => s + (v.streamUid ? Math.max(1, Math.ceil(v.duration / 60)) : 0), 0) * STREAM_MIN_MONTH * USD_PLN)}
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </div>
+        </section>
+      )}
 
       <section className="settings-card">
         <h2>Galerie</h2>
