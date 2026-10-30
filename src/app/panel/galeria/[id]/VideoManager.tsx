@@ -49,7 +49,7 @@ export default function VideoManager({
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const jobRef = useRef<VideoUpload | null>(null);
-  const [current, setCurrent] = useState<{ name: string; progress: number; left: number } | null>(null);
+  const [current, setCurrent] = useState<{ name: string; progress: number; left: number; sent?: number; total?: number; resumed?: boolean } | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [invoice, setInvoice] = useState<Billing>(billing);
@@ -84,7 +84,9 @@ export default function VideoManager({
       setCurrent({ name: file.name, progress: 0, left: files.length - i - 1 });
       try {
         const duration = await readDuration(file);
-        const job = uploadVideo(endpoint, file, duration, (p) => setCurrent((c) => (c ? { ...c, progress: p } : c)));
+        const job = uploadVideo(endpoint, file, duration, (p) =>
+          setCurrent((c) => (c ? { ...c, progress: p.fraction, sent: p.sent, total: p.total, resumed: p.resumed } : c)),
+        );
         jobRef.current = job;
         await job.done;
       } catch (err) {
@@ -126,7 +128,7 @@ export default function VideoManager({
           ? t("Widoczny w galerii", "Visible in gallery")
           : v.status === "error"
             ? t("Błąd podglądu – oryginał jest bezpieczny", "Preview error – the original is safe")
-            : t("Wgrywanie przerwane", "Upload interrupted");
+            : t("Wgrywanie przerwane – wybierz ten plik ponownie, aby dokończyć", "Upload interrupted – choose this file again to finish");
 
   return (
     <section className="settings-card video-card">
@@ -157,14 +159,21 @@ export default function VideoManager({
         <div className="video-up" aria-live="polite">
           <div className="video-up-line">
             <span className="video-name">{current.name}</span>
-            <span>{Math.round(current.progress * 100)}%</span>
+            <span>
+              {current.total ? `${fmtSize(current.sent ?? 0)} / ${fmtSize(current.total)} · ` : ""}
+              {(current.total ?? 0) > 2 * 1024 ** 3 ? (current.progress * 100).toFixed(1) : Math.round(current.progress * 100)}%
+            </span>
           </div>
           <div className="up-total">
             <span style={{ width: `${Math.max(2, Math.round(current.progress * 100))}%` }} />
           </div>
           <div className="video-up-line">
             <small>
-              {t("Nie zamykaj tej karty do końca wgrywania.", "Keep this tab open until the upload finishes.")}
+              {current.resumed && `${t("Wznowiono – wgrane części są pomijane.", "Resumed – uploaded parts are skipped.")} `}
+              {t(
+                "Nie zamykaj tej karty i nie usypiaj komputera do końca wgrywania.",
+                "Keep this tab open and don't let the computer sleep until the upload finishes.",
+              )}
               {current.left > 0 && ` ${t("W kolejce", "Queued")}: ${current.left}.`}
             </small>
             <button type="button" className="as-link" onClick={() => jobRef.current?.cancel()}>

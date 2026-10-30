@@ -25,7 +25,8 @@ import { getLang } from "@/lib/lang-server";
 
 export const runtime = "nodejs";
 
-const PART = 64 * 1024 * 1024; // 64 MB na część
+const PART = 32 * 1024 * 1024; // 32 MB na część – przy zerwaniu połączenia mniej do powtórzenia
+const LEGACY_PART = 64 * 1024 * 1024;
 const MAX_SIZE = 30 * 1024 ** 3; // limit Cloudflare Stream
 
 type Body = Record<string, unknown> & { action?: string; videoId?: string };
@@ -46,6 +47,29 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       if (!meta.plan || isExpired(meta)) return NextResponse.json({ error: await E("Film można dodać do opublikowanej galerii.") }, { status: 400 });
       const size = Number(body.size) || 0;
       if (size <= 0 || size > MAX_SIZE) return NextResponse.json({ error: await E("Film może mieć najwyżej 30 GB.") }, { status: 400 });
+      // Wznowienie przerwanego wgrywania tego samego pliku – części już wgrane pomijamy
+      const same = videos.find((v) => v.status === "uploading" && v.uploadId && v.size === size && v.name === safeFileName(String(body.name ?? "film.mp4")));
+      if (same) {
+        const partSize = same.partSize ?? LEGACY_PART;
+        const total = Math.ceil(size / partSize);
+        const done: number[] = [];
+        try {
+          let marker: string | undefined;
+          do {
+            const res = await r2.send(new ListPartsCommand({ Bucket: BUCKET, Key: same.key, UploadId: same.uploadId, PartNumberMarker: marker }));
+            for (const p of res.Parts ?? []) {
+              const n = p.PartNumber ?? 0;
+              const expected = n === total ? size - (total - 1) * partSize : partSize;
+              if (n >= 1 && Number(p.Size) === expected) done.push(n);
+            }
+            marker = res.IsTruncated ? String(res.NextPartNumberMarker) : undefined;
+          } while (marker);
+          return NextResponse.json({ ok: true, videoId: same.id, partSize, parts: total, done, resumed: true });
+        } catch {
+          // wgrywanie wygasło po stronie magazynu – zaczynamy od nowa
+          videos.splice(videos.indexOf(same), 1);
+        }
+      }
       // Abonament Pro: film bez opłaty, ale liczony do puli miejsca
       if (meta.plan === "pro") {
         const owner = await galleryOwnerId(id);
@@ -94,10 +118,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         status: "uploading",
         createdAt: new Date().toISOString(),
         uploadId: up.UploadId,
+        partSize: PART,
       };
       videos.push(v);
       await saveMeta(id, meta);
-      return NextResponse.json({ ok: true, videoId: vid, partSize: PART, parts: Math.ceil(size / PART) });
+      return NextResponse.json({ ok: true, videoId: vid, partSize: PART, parts: Math.ceil(size / PART), done: [] });
     }
     case "parts": {
       if (!video?.uploadId) return NextResponse.json({ error: await E("Nie znaleziono filmu.") }, { status: 404 });

@@ -22,6 +22,7 @@ export type Video = {
   createdAt: string;
   paidAt?: string;
   uploadId?: string; // wieloczęściowe wgrywanie w toku
+  partSize?: number; // rozmiar części przy wgrywaniu (do wznawiania)
 };
 
 export const videoPrefix = (galleryId: string) => `videos/${galleryId}/`;
