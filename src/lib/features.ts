@@ -483,7 +483,7 @@ export const FIND_ME_CARD = {
   visual: "faces" as FeatureVisual,
   title: ["Znajdź siebie na zdjęciach", "Find yourself in the photos"] as L,
   text: ["Jedno selfie i każdy gość widzi tylko zdjęcia z wesela, na których jest.", "One selfie and every guest sees only the wedding photos they're in."] as L,
-  price: ["49 zł za galerię", "PLN 49 per gallery"] as L,
+  price: ["5 zł za galerię", "PLN 5 per gallery"] as L,
 };
 
 export const getFeature = (slug: string) => FEATURES.find((f) => f.slug === slug) ?? null;

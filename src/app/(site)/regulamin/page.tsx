@@ -161,7 +161,7 @@ function RegulaminPl() {
           osób na nich widocznych.
         </li>
         <li>
-          „Znajdź siebie na zdjęciach” kosztuje 49 zł brutto za Galerię, płatne jednorazowo. Fotograf, włączając funkcję,
+          „Znajdź siebie na zdjęciach” kosztuje 5 zł brutto za Galerię, płatne jednorazowo. Fotograf, włączając funkcję,
           potwierdza, że ma podstawę prawną do przetwarzania danych biometrycznych osób na zdjęciach (np. ich zgodę) i że
           zostały one poinformowane o funkcji. Szczegóły w Polityce prywatności.
         </li>
@@ -356,7 +356,7 @@ function TermsEn() {
       <ol>
         <li>Premium gallery themes cost PLN 19 gross per theme, paid once; a purchased theme can be used in all Galleries of the Account.</li>
         <li>The portfolio website costs PLN 24 gross per month or PLN 240 gross for 12 months, paid in advance. When the paid period ends, the website is no longer visible. The Photographer is responsible for the content and photos on the website, including the consent of the people in them.</li>
-        <li>“Find yourself in the photos” costs PLN 49 gross per Gallery, paid once. By turning it on, the Photographer confirms they have a legal basis to process biometric data of the people in the photos (e.g. their consent) and that they have been informed. See the Privacy policy for details.</li>
+        <li>“Find yourself in the photos” costs PLN 5 gross per Gallery, paid once. By turning it on, the Photographer confirms they have a legal basis to process biometric data of the people in the photos (e.g. their consent) and that they have been informed. See the Privacy policy for details.</li>
       </ol>
 
       <h2>§ 6e. Pro subscription</h2>

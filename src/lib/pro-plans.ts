@@ -67,7 +67,7 @@ export const COMPARE_ADDONS = [
   { pl: "Projektor albumów (rok)", en: "Album designer (year)", price: 290 },
   { pl: "Własna domena (rok)", en: "Custom domain (year)", price: 99 },
   { pl: "3 motywy galerii", en: "3 gallery themes", price: 57 },
-  { pl: "Znajdź siebie – 5 galerii", en: "Find me – 5 galleries", price: 245 },
+  { pl: "Znajdź siebie – 5 galerii", en: "Find me – 5 galleries", price: 25 },
   { pl: "Zdjęcia od gości – 2 wydarzenia", en: "Guest uploads – 2 events", price: 198 },
 ] as const;
 

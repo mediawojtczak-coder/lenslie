@@ -51,7 +51,7 @@ export default async function ZnajdzSiebie() {
               {t("Jak to działa ↓", "How it works ↓")}
             </a>
           </div>
-          <p className="fs-price">{t("49 zł jednorazowo za galerię · bez abonamentu", "PLN 49 one-off per gallery · no subscription")}</p>
+          <p className="fs-price">{t("5 zł jednorazowo za galerię · bez abonamentu", "PLN 5 one-off per gallery · no subscription")}</p>
         </div>
 
         <div className="fs-visual" aria-hidden="true">
@@ -112,7 +112,7 @@ export default async function ZnajdzSiebie() {
             <li>{t("Wyróżniasz się na tle konkurencji – to funkcja, której większość galerii nie ma.", "You stand out – most gallery platforms don't have this.")}</li>
             <li>{t("Koniec z pytaniami „gdzie są moje zdjęcia?” i wysyłaniem paczek zdjęć osobno każdemu gościowi.", "No more “where are my photos?” and sending separate sets to every guest.")}</li>
             <li>{t("Więcej pobrań i zamówień – goście szybciej znajdują to, co chcą kupić.", "More downloads and orders – guests find what they want to buy faster.")}</li>
-            <li>{t("Doliczasz to parze jako dodatek do pakietu – płacisz raz 49 zł, a sprzedajesz za tyle, ile chcesz.", "Add it to the couple's package – you pay PLN 49 once and charge what you like.")}</li>
+            <li>{t("Doliczasz to parze jako dodatek do pakietu – płacisz raz 5 zł, a sprzedajesz za tyle, ile chcesz.", "Add it to the couple's package – you pay PLN 5 once and charge what you like.")}</li>
           </ul>
         </div>
         <div>
@@ -152,7 +152,7 @@ export default async function ZnajdzSiebie() {
 
       <section className="fs-cta">
         <h2>{t("Pokaż gościom coś, czego jeszcze nie widzieli", "Show guests something they haven't seen before")}</h2>
-        <p>{t("49 zł jednorazowo za galerię. Konto i panel są bezpłatne.", "PLN 49 one-off per gallery. Your account and dashboard are free.")}</p>
+        <p>{t("5 zł jednorazowo za galerię. Konto i panel są bezpłatne.", "PLN 5 one-off per gallery. Your account and dashboard are free.")}</p>
         <div className="fs-ctas center">
           <Link href="/rejestracja" className="btn btn-dark">
             {t("Załóż konto", "Sign up")}

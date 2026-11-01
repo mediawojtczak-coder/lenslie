@@ -3,7 +3,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
 
 // Indeks twarzy galerii (opisy liczbowe, bez zdjęć twarzy). Zostaje na serwerze – klient wysyła tylko opis swojego selfie.
-export const FACES_PRICE = 49; // zł za galerię
+export const FACES_PRICE = 5; // zł za galerię
 const THRESHOLD = 0.5; // im mniej, tym ostrzej
 
 const key = (id: string) => `${galleryPrefix(id)}faces.json`;
