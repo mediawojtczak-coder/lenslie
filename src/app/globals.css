@@ -2759,3 +2759,73 @@ html.nav-busy body {
     width: 60%;
   }
 }
+
+/* ===== Panel administratora: rozwijane sekcje i zwarte wiersze ===== */
+.admin-sec > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.admin-sec > summary::-webkit-details-marker {
+  display: none;
+}
+.admin-sec > summary h2 {
+  margin: 0;
+}
+.admin-sec > summary::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-right: 1.5px solid var(--taupe);
+  border-bottom: 1.5px solid var(--taupe);
+  transform: rotate(45deg) translateY(-3px);
+  transition: transform 0.2s;
+  flex: 0 0 auto;
+}
+.admin-sec[open] > summary::after {
+  transform: rotate(-135deg) translateY(-2px);
+}
+.admin-sec[open] > summary {
+  margin-bottom: 16px;
+}
+.admin-sec:not([open]) {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+@media (max-width: 700px) {
+  /* w zwiniętym wierszu: nazwa + dwa najważniejsze pola */
+  .admin-table tbody tr:not(.open) td:nth-child(n + 4) {
+    display: none;
+  }
+  .admin-table tbody tr:has(td:nth-child(4)) {
+    cursor: pointer;
+    position: relative;
+  }
+  .admin-table tbody tr:has(td:nth-child(4))::after {
+    content: "więcej ▾";
+    display: block;
+    text-align: right;
+    font-size: 0.74rem;
+    color: var(--taupe);
+    padding-top: 4px;
+  }
+  .admin-table tbody tr.open:has(td:nth-child(4))::after {
+    content: "mniej ▴";
+  }
+  .admin .admin-sec:not([open]) {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+}
+@media (max-width: 700px) {
+  /* tabele z wyróżnionymi polami: w zwiniętym wierszu nazwa + pola oznaczone .key */
+  .admin-table.keys tbody tr:not(.open) td:nth-child(-n + 3):not(:first-child):not(.key) {
+    display: none;
+  }
+  .admin-table.keys tbody tr:not(.open) td.key {
+    display: flex;
+  }
+}

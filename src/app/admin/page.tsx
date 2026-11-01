@@ -26,6 +26,7 @@ function galleryProfit(m: GalleryMeta | null, bytes: number, paid?: number) {
 }
 const zlx = (n: number) => `${n < 0 ? "−" : ""}${Math.abs(n).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`;
 import ConfirmButton from "./ConfirmButton";
+import RowToggle from "./RowToggle";
 import { listOrders } from "@/lib/p24";
 import { getWallet, type WalletEntry } from "@/lib/wallet";
 import { getReminders } from "@/lib/reminders";
@@ -334,9 +335,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         ))}
       </div>
 
+      <RowToggle />
       {reminders.length > 0 && (
-        <section className="settings-card reminders">
-          <h2>Do zrobienia</h2>
+        <details className="settings-card admin-sec reminders" open>
+          <summary>
+            <h2>Do zrobienia</h2>
+          </summary>
           <ul>
             {reminders.map((r) => (
               <li key={r.id} className={`rem rem-${r.level}`}>
@@ -349,11 +353,13 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             ))}
           </ul>
           <p className="hint-inline">Te same przypomnienia przychodzą raz w tygodniu mailem.</p>
-        </section>
+        </details>
       )}
 
-      <section className="settings-card" id="sprzedaz">
-        <h2>Sprzedaż</h2>
+      <details className="settings-card admin-sec" id="sprzedaz" open>
+        <summary>
+          <h2>Sprzedaż</h2>
+        </summary>
         <div className="stat-tiles">
           <div className="stat-tile">
             <p className="stat-value">{gr(thisMonth.revenue)}</p>
@@ -412,10 +418,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         <p className="hint-inline">
           Przychód to wpłaty przez Przelewy24 (publikacje, zmiany pakietu, doładowania). Zakupy z salda nie są liczone drugi raz.
         </p>
-      </section>
+      </details>
 
-      <section className="settings-card" id="platnosci">
-        <h2>Płatności</h2>
+      <details className="settings-card admin-sec" id="platnosci">
+        <summary>
+          <h2>Płatności</h2>
+        </summary>
         {paidOrders.length === 0 ? <p className="hint-inline">Brak opłaconych płatności.</p> : ordersTable(paidOrders)}
         {pendingOrders.length > 0 && (
           <details className="pending-orders">
@@ -424,10 +432,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             {ordersTable(pendingOrders)}
           </details>
         )}
-      </section>
+      </details>
 
-      <section className="settings-card" id="gratis">
-        <h2>Gratis dla fotografa</h2>
+      <details className="settings-card admin-sec" id="gratis">
+        <summary>
+          <h2>Gratis dla fotografa</h2>
+        </summary>
         <p className="hint-inline">Dopisuje kwotę do salda konta – fotograf opłaca nią dowolny pakiet jednym kliknięciem („Zapłać z salda”).</p>
         {gratis && (
           <p className={gratis === "ok" ? "success-box" : "warn-inline"}>
@@ -465,10 +475,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </div>
           <button type="submit" className="btn">Dodaj gratis</button>
         </form>
-      </section>
+      </details>
 
-      <section className="settings-card" id="albumy">
-        <h2>Zamówienia wydruku albumów</h2>
+      <details className="settings-card admin-sec" id="albumy">
+        <summary>
+          <h2>Zamówienia wydruku albumów</h2>
+        </summary>
         {printOrders.length === 0 ? (
           <p className="hint-inline">Brak zamówień. Fotografowie zamawiają druk w zakładce „Album” galerii (15×15, 20×20, 25×25 cm).</p>
         ) : (
@@ -527,10 +539,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </div>
         )}
         <p className="hint-inline">Przy zmianie na „Wysłane” fotograf dostaje maila z numerem przesyłki. Link do plików jest ważny 7 dni od otwarcia tej strony.</p>
-      </section>
+      </details>
 
-      <section className="settings-card" id="pro">
-        <h2>Abonamenty Pro</h2>
+      <details className="settings-card admin-sec" id="pro">
+        <summary>
+          <h2>Abonamenty Pro</h2>
+        </summary>
         <p className="hint-inline">
           Aktywne: {proActiveSubs.length} · miesięcznie ok. {proMrr.toLocaleString("pl-PL", { maximumFractionDigits: 0 })} zł brutto · w okresie łaski:{" "}
           {proSubs.filter((s) => proInGrace(s)).length}
@@ -569,10 +583,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         ) : (
           <p className="hint-inline">Nikt jeszcze nie kupił abonamentu Pro.</p>
         )}
-      </section>
+      </details>
 
-      <section className="settings-card" id="dodatki">
-        <h2>Projektor albumów i wtyczka Lightroom</h2>
+      <details className="settings-card admin-sec" id="dodatki">
+        <summary>
+          <h2>Projektor albumów i wtyczka Lightroom</h2>
+        </summary>
         <div className="stat-tiles">
           <div className="stat-tile">
             <p className="stat-value">{albumPaid}</p>
@@ -628,10 +644,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         <p className="hint-inline">
           Zakupy abonamentu widać też w „Płatnościach” jako „projektor albumów”. Twoje konto admina pobiera albumy bez abonamentu, więc nie liczy się tutaj.
         </p>
-      </section>
+      </details>
 
-      <section className="settings-card" id="zrodla">
-        <h2>Skąd przychodzą fotografowie</h2>
+      <details className="settings-card admin-sec" id="zrodla">
+        <summary>
+          <h2>Skąd przychodzą fotografowie</h2>
+        </summary>
         {sourceRows.length ? (
           <div className="table-wrap">
             <table className="admin-table">
@@ -656,10 +674,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         ) : (
           <p className="hint-inline">Źródła zapisujemy od 29 października 2026 – pojawią się tu przy kolejnych rejestracjach.</p>
         )}
-      </section>
+      </details>
 
-      <section className="settings-card">
-        <h2>Fotografowie</h2>
+      <details className="settings-card admin-sec">
+        <summary>
+          <h2>Fotografowie</h2>
+        </summary>
         <div className="table-wrap">
           <table className="admin-table">
             <thead>
@@ -698,10 +718,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             </tbody>
           </table>
         </div>
-      </section>
+      </details>
 
-      <section className="settings-card">
-        <h2>Koszty utrzymania platformy</h2>
+      <details className="settings-card admin-sec">
+        <summary>
+          <h2>Koszty utrzymania platformy</h2>
+        </summary>
         <p className="hint-inline">
           Szacunek od początku tygodnia (poniedziałek), miesiąca i roku do dziś. Magazyn i podglądy liczone według obecnego stanu, proporcjonalnie do liczby dni.
           Koszty stałe ustawisz w pliku src/lib/platform-costs.ts. Wpłaty = płatności Przelewy24 (doładowania salda i zakupy), bez bonusów.
@@ -758,11 +780,13 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             </tfoot>
           </table>
         </div>
-      </section>
+      </details>
 
       {allVideos.length > 0 && (
-        <section className="settings-card">
-          <h2>Filmy – oglądanie i koszty</h2>
+        <details className="settings-card admin-sec">
+          <summary>
+            <h2>Filmy – oglądanie i koszty</h2>
+          </summary>
           <p className="hint-inline">
             Minuty obejrzane z Cloudflare Stream (dane próbkowane, mogą różnić się od faktury). Koszt oglądania: 1 USD za 1000 minut, przechowanie
             podglądu: 5 USD za 1000 minut filmu miesięcznie (kurs {USD_PLN} zł). „Pełne obejrzenia” = minuty obejrzane ÷ długość filmu.
@@ -774,7 +798,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             </p>
           )}
           <div className="table-wrap">
-            <table className="admin-table">
+            <table className="admin-table keys">
               <thead>
                 <tr>
                   <th>Film</th>
@@ -796,7 +820,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                   return (
                     <tr key={`${g.id}-${v.id}`}>
                       <td data-l="Film">{v.name}</td>
-                      <td data-l="Galeria">
+                      <td data-l="Galeria" className="key">
                         <a href={`/galeria/${g.id}`} target="_blank" rel="noreferrer">
                           {g.title}
                         </a>
@@ -805,7 +829,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                       <td data-l="Obejrzane 30 dni">{fmtMin(m30)}</td>
                       <td data-l="Obejrzane 90 dni">{fmtMin(m90)}</td>
                       <td data-l="Pełne obejrzenia">{m90 === null ? "–" : (m90 / min).toLocaleString("pl-PL", { maximumFractionDigits: 1 })}</td>
-                      <td data-l="Koszt oglądania">{m90 === null ? "–" : zlx(m90 * STREAM_MIN_VIEW * USD_PLN)}</td>
+                      <td data-l="Koszt oglądania" className="key">{m90 === null ? "–" : zlx(m90 * STREAM_MIN_VIEW * USD_PLN)}</td>
                       <td data-l="Podgląd / mies.">{v.streamUid ? zlx(min * STREAM_MIN_MONTH * USD_PLN) : "–"}</td>
                     </tr>
                   );
@@ -826,13 +850,15 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
               )}
             </table>
           </div>
-        </section>
+        </details>
       )}
 
-      <section className="settings-card">
-        <h2>Galerie</h2>
+      <details className="settings-card admin-sec">
+        <summary>
+          <h2>Galerie</h2>
+        </summary>
         <div className="table-wrap">
-          <table className="admin-table">
+          <table className="admin-table keys">
             <thead>
               <tr>
                 <th>Galeria</th>
@@ -862,6 +888,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                     <td data-l="Dostęp do" className={isExpired(m) ? "is-expired" : undefined}>{fmtDate(m?.expiresAt)}</td>
                     <td data-l="Miejsce">{formatBytes(usage.get(g.id) ?? 0)}</td>
                     <td
+                      className="key"
                       data-l="Zapłacono"
                       title={
                         paid
@@ -877,7 +904,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                       )}
                       {paid && paid.byClient > 0 && <small style={{ display: "block", color: "var(--taupe)" }}>w tym klient {zlx(paid.byClient)}</small>}
                     </td>
-                    <td data-l="Szac. zysk" title={pr ? `Przychód ${zlx(pr.revenue)} · koszty ${zlx(pr.cost)}` : undefined} className={pr && pr.profit < 0 ? "is-expired" : undefined}>
+                    <td data-l="Szac. zysk" title={pr ? `Przychód ${zlx(pr.revenue)} · koszty ${zlx(pr.cost)}` : undefined} className={pr && pr.profit < 0 ? "key is-expired" : "key"}>
                       {m?.plan === "pro" ? "w abonamencie" : pr ? zlx(pr.profit) : "–"}
                     </td>
                   </tr>
@@ -913,7 +940,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             </ul>
           </div>
         )}
-      </section>
+      </details>
     </main>
   );
 }
