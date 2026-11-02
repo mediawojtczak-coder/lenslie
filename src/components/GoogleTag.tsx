@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/components/LangProvider";
-import { ADS_ID, ADS_SIGNUP_LABEL, CONSENT_KEY } from "@/lib/ads";
+import { ADS_ID, ADS_SIGNUP_LABEL, CONSENT_KEY, CLARITY_ID } from "@/lib/ads";
 
 // gtag wymaga obiektu arguments, nie tablicy
 function gtag(..._args: unknown[]) {
@@ -24,15 +24,20 @@ const readConsent = () => {
 const granted = { ad_storage: "granted", ad_user_data: "granted", ad_personalization: "granted", analytics_storage: "granted" };
 
 // Tag Google z trybem zgody (domyślnie wszystko odrzucone) + baner cookie
-export default function GoogleTag({ conversion = false }: { conversion?: boolean }) {
+// clarity – Microsoft Clarity (mapy kliknięć, nagrania) – ładowany dopiero po zgodzie, tylko na stronach informacyjnych
+export default function GoogleTag({ conversion = false, clarity = false }: { conversion?: boolean; clarity?: boolean }) {
   const lang = useLang();
   const t = (pl: string, en: string) => (lang === "en" ? en : pl);
   const [ask, setAsk] = useState(false);
+  const [consented, setConsented] = useState(false);
   const sent = useRef(false);
 
   useEffect(() => {
     const c = readConsent();
-    if (c === "granted") gtag("consent", "update", granted);
+    if (c === "granted") {
+      gtag("consent", "update", granted);
+      setConsented(true);
+    }
     if (!c) setAsk(true);
     const reopen = () => setAsk(true);
     window.addEventListener("lenslie-cookies", reopen);
@@ -55,6 +60,7 @@ export default function GoogleTag({ conversion = false }: { conversion?: boolean
       ok ? granted : { ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied", analytics_storage: "denied" },
     );
     setAsk(false);
+    setConsented(ok);
   }
 
   return (
@@ -66,12 +72,18 @@ try{if(localStorage.getItem('${CONSENT_KEY}')==='granted')gtag('consent','update
 gtag('js',new Date());gtag('config','${ADS_ID}');`}
       </Script>
       <Script src={`https://www.googletagmanager.com/gtag/js?id=${ADS_ID}`} strategy="afterInteractive" />
+      {clarity && consented && (
+        <Script id="ms-clarity" strategy="afterInteractive">
+          {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","${CLARITY_ID}");
+window.clarity("consentv2",{ad_Storage:"granted",analytics_Storage:"granted"});`}
+        </Script>
+      )}
       {ask && (
         <div className="cookie-bar" role="dialog" aria-label={t("Pliki cookie", "Cookies")}>
           <p>
             {t(
-              "Używamy plików cookie Google, aby mierzyć skuteczność naszych reklam. Możesz się na to zgodzić albo zostać przy niezbędnych.",
-              "We use Google cookies to measure how our ads perform. You can accept them or keep only the necessary ones.",
+              "Używamy plików cookie Google i Microsoft Clarity, aby mierzyć skuteczność reklam i ulepszać stronę. Możesz się na to zgodzić albo zostać przy niezbędnych.",
+              "We use Google and Microsoft Clarity cookies to measure our ads and improve the website. You can accept them or keep only the necessary ones.",
             )}{" "}
             <a href="/polityka-prywatnosci">{t("Więcej", "More")}</a>
           </p>

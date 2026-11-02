@@ -3,3 +3,6 @@ export const ADS_ID = "AW-355053887";
 // etykieta konwersji „Rejestracja Lenslie” (część po ukośniku w send_to); pusta = konwersja nie jest wysyłana
 export const ADS_SIGNUP_LABEL = "RyMhCN3wg64dEL_ipqkB";
 export const CONSENT_KEY = "lenslie-consent";
+
+// Microsoft Clarity – mapy kliknięć i nagrania sesji na stronie Lenslie (tylko strony informacyjne, po zgodzie)
+export const CLARITY_ID = "z746cqm2u5";

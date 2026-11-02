@@ -38,7 +38,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         </nav>
         <p className="site-copy">© {new Date().getFullYear()} Lenslie. {t("Galerie zdjęć dla fotografów.", "Photo galleries for photographers.")}</p>
       </footer>
-      <GoogleTag />
+      <GoogleTag clarity />
     </>
   );
 }

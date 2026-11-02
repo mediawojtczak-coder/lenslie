@@ -97,6 +97,13 @@ function PolitykaPl() {
         ust. 1 lit. a RODO), którą możesz w każdej chwili zmienić przyciskiem „Ustawienia cookie” w stopce. Odbiorcą danych
         jest Google Ireland Ltd. Tagu nie ma w galeriach Klientów.
       </p>
+      <p>
+        Na stronach informacyjnych Lenslie (strona główna, cennik, opisy funkcji, rejestracja) – po kliknięciu „Akceptuję” –
+        używamy też Microsoft Clarity. Pokazuje nam, jak odwiedzający korzystają ze strony (kliknięcia, przewijanie,
+        zanonimizowane nagrania sesji), żebyśmy mogli ją ulepszać. Teksty wpisywane w formularze są maskowane. Podstawą jest
+        Twoja zgoda (art. 6 ust. 1 lit. a RODO), którą możesz zmienić przyciskiem „Ustawienia cookie” w stopce. Odbiorcą
+        danych jest Microsoft Ireland Operations Ltd. Clarity nie działa w panelu Fotografa ani w galeriach Klientów.
+      </p>
 
       <h2>6. Twoje prawa</h2>
       <p>
@@ -183,6 +190,13 @@ function PrivacyEn() {
         no cookies and only receives anonymous signals without identifiers. The legal basis is your consent (Art. 6(1)(a)
         GDPR), which you can change at any time with the “Cookie settings” button in the footer. The recipient is Google
         Ireland Ltd. The tag is not present in Client galleries.
+      </p>
+      <p>
+        On Lenslie’s information pages (home page, pricing, feature pages, sign-up) – after you click “Accept” – we also use
+        Microsoft Clarity. It shows us how visitors use the site (clicks, scrolling, anonymised session recordings) so we can
+        improve it. Text typed into forms is masked. The legal basis is your consent (Art. 6(1)(a) GDPR), which you can change
+        with the “Cookie settings” button in the footer. The recipient is Microsoft Ireland Operations Ltd. Clarity does not run
+        in the Photographer’s dashboard or in Client galleries.
       </p>
 
       <h2>6. Your rights</h2>
