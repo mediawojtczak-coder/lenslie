@@ -82,8 +82,8 @@ window.clarity("consentv2",{ad_Storage:"granted",analytics_Storage:"granted"});`
         <div className="cookie-bar" role="dialog" aria-label={t("Pliki cookie", "Cookies")}>
           <p>
             {t(
-              "Używamy plików cookie Google i Microsoft Clarity, aby mierzyć skuteczność reklam i ulepszać stronę. Możesz się na to zgodzić albo zostać przy niezbędnych.",
-              "We use Google and Microsoft Clarity cookies to measure our ads and improve the website. You can accept them or keep only the necessary ones.",
+              "Ta strona używa plików cookie.",
+              "This website uses cookies.",
             )}{" "}
             <a href="/polityka-prywatnosci">{t("Więcej", "More")}</a>
           </p>
