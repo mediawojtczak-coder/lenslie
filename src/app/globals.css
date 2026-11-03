@@ -489,7 +489,7 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 .btn-danger:hover { background: #f5ddd7; border-color: #f5ddd7; color: #a4483c; }
 
 @media (max-width: 860px) {
-  .g-side-cover { display: none; }
+  .g-side-cover, .g-side-cover-wrap { display: none; }
   .share-bar, .manager { padding: 16px; }
   .tool-search { max-width: none; flex-basis: 100%; }
   .photo-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
