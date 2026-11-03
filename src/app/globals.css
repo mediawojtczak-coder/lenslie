@@ -2842,3 +2842,9 @@ html.nav-busy body {
 .cover-pick:hover .cover-pick-label, .cover-pick:focus-visible .cover-pick-label { background: linear-gradient(transparent, rgba(30, 26, 24, .8)); }
 .cover-hint { margin: 0; font-size: .74rem; color: var(--taupe); line-height: 1.4; }
 .cover-hint .as-link { font-size: inherit; }
+
+/* Wiadomość powitalna w lewym pasku galerii */
+.g-side-welcome { display: grid; gap: 6px; margin-top: 4px; }
+.g-side-welcome label { font-size: .74rem; color: var(--taupe); margin: 0; }
+.g-side-welcome textarea { font-size: .82rem; line-height: 1.45; padding: 8px 10px; min-height: 92px; resize: vertical; margin: 0; }
+.g-side-welcome small { font-size: .72rem; color: var(--taupe); line-height: 1.4; }

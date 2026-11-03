@@ -17,7 +17,6 @@ export default function SettingsForm({
   hasPassword,
   layout: initialLayout,
   eventDate: initialDate,
-  welcome: initialWelcome,
   hasMusic,
   children,
   lang: initialLang,
@@ -34,7 +33,6 @@ export default function SettingsForm({
 }) {
   const [lang, setLang] = useState(initialLang);
   const [eventDate, setEventDate] = useState(initialDate);
-  const [welcome, setWelcome] = useState(initialWelcome);
   const musicRef = useRef<HTMLInputElement>(null);
   const [music, setMusic] = useState<"idle" | "busy">("idle");
   const [musicMsg, setMusicMsg] = useState("");
@@ -64,7 +62,6 @@ export default function SettingsForm({
           removePassword,
           layout,
           eventDate,
-          welcome,
           lang,
         }),
       });
@@ -158,16 +155,7 @@ export default function SettingsForm({
         <input id="s-date" type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
         <p className="hint">{t("Wyświetla się na okładce galerii pod tytułem.", "Shown on the gallery cover under the title.")}</p>
 
-        <label htmlFor="s-welcome">{t("Wiadomość powitalna", "Welcome message")}</label>
-        <textarea
-          id="s-welcome"
-          rows={4}
-          maxLength={1500}
-          value={welcome}
-          onChange={(e) => setWelcome(e.target.value)}
-          placeholder={t("np. Kochani, dziękuję, że mogłam być z Wami tego dnia. Miłego oglądania!", "e.g. Dear both, thank you for having me on your day. Enjoy the photos!")}
-        />
-        <p className="hint">{t("Klient zobaczy ją nad zdjęciami. Zostaw puste, jeśli nie chcesz jej pokazywać.", "Your client sees it above the photos. Leave empty to hide it.")}</p>
+        <p className="hint">{t("Wiadomość powitalną dla klienta ustawisz w lewym pasku, pod okładką.", "Set the welcome message for your client in the left sidebar, under the cover.")}</p>
 
         <label htmlFor="s-pass">{hasPassword ? t("Nowe hasło dla klienta", "New client password") : t("Hasło dla klienta", "Client password")}</label>
         <div className="pass-row">

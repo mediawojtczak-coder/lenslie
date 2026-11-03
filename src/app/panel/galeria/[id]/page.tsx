@@ -5,6 +5,7 @@ import { getUser } from "@/lib/supabase/server";
 import { isValidGalleryId, galleryPrefix } from "@/lib/r2";
 import { getGalleryPhotosAndUsage, pickCover, applyOrder, customCoverUrl, type Photo } from "@/lib/photos";
 import CoverCard from "./CoverCard";
+import WelcomeCard from "./WelcomeCard";
 import { getMeta, watermarkOn, draftDeleteDate } from "@/lib/galleries";
 import ShareBar from "./ShareBar";
 import PublishBar from "./PublishBar";
@@ -140,6 +141,7 @@ export default async function ZarzadzanieGalerii({
           <p className="g-side-meta">{L("Utworzona", "Created")} {dateFmt.format(new Date(gallery.created_at))}</p>
         </div>
         <CoverCard id={id} src={customCover ?? cover?.webUrl ?? null} custom={Boolean(customCover)} />
+        <WelcomeCard id={id} welcome={meta?.welcome ?? ""} />
         <nav aria-label={L("Sekcje galerii", "Gallery sections")}>
           {tabs.map((t) => (
             <Link
