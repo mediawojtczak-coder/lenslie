@@ -91,8 +91,8 @@ export default function SaleCard({
           {!watermark && (
             <p className="warn-inline">
               {t(
-                "Włącz znak wodny w „Ochronie zdjęć” powyżej – inaczej klient zobaczy zdjęcia bez zabezpieczenia jeszcze przed zapłatą. Pobieranie jest wyłączone do czasu dostarczenia zamówienia.",
-                "Turn on the watermark in “Photo protection” above – otherwise your client sees unprotected photos before paying. Downloads stay off until you deliver the order.",
+                "Włącz znak wodny w „Ochronie zdjęć” poniżej – inaczej klient zobaczy zdjęcia bez zabezpieczenia jeszcze przed zapłatą. Pobieranie jest wyłączone do czasu dostarczenia zamówienia.",
+                "Turn on the watermark in “Photo protection” below – otherwise your client sees unprotected photos before paying. Downloads stay off until you deliver the order.",
               )}
             </p>
           )}

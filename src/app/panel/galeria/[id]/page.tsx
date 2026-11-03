@@ -255,7 +255,17 @@ export default async function ZarzadzanieGalerii({
             );
           })()
         ) : tab === "sprzedaz" ? (
-          <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} />
+          <>
+            <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} />
+            {/* znak wodny i pobieranie – tu, żeby zabezpieczyć zdjęcia przed zapłatą (to samo jest w Ustawieniach) */}
+            <ProtectionCard
+              id={id}
+              downloads={meta?.downloads ?? "all"}
+              watermark={meta?.watermark ?? { enabled: false, text: "" }}
+              wmMissing={wmMissing}
+              photoCount={photos.length}
+            />
+          </>
         ) : tab === "powitanie" ? (
           <WelcomeCard id={id} welcome={meta?.welcome ?? ""} />
         ) : tab === "statystyki" ? (
