@@ -127,6 +127,7 @@ export default async function ZarzadzanieGalerii({
     { key: "zdjecia", label: L("Zdjęcia", "Photos"), count: photos.length },
     { key: "wybory", label: meta?.sale?.enabled ? L("Zamówienia klientów", "Client orders") : L("Wybory klientów", "Client selections"), count: selectionCount ?? 0 },
     ...(albumAllowed(user?.email) ? [{ key: "album", label: L("Album", "Album"), count: null }] : []),
+    { key: "sprzedaz", label: L("Sprzedaż zdjęć", "Photo sales"), count: null },
     { key: "powitanie", label: L("Wiadomość powitalna", "Welcome message"), count: null },
     { key: "statystyki", label: L("Statystyki", "Statistics"), count: null },
     { key: "ustawienia", label: L("Ustawienia", "Settings"), count: null },
@@ -253,6 +254,8 @@ export default async function ZarzadzanieGalerii({
               />
             );
           })()
+        ) : tab === "sprzedaz" ? (
+          <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} />
         ) : tab === "powitanie" ? (
           <WelcomeCard id={id} welcome={meta?.welcome ?? ""} />
         ) : tab === "statystyki" ? (
@@ -291,7 +294,6 @@ export default async function ZarzadzanieGalerii({
               balance={balance}
               billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
             />
-            <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} />
             <PickLimitCard id={id} limit={meta?.pickLimit ?? null} selling={Boolean(meta?.sale?.enabled)} />
             {ytAllowed(user?.email) && (
               <YouTubeCard id={id} enabled={Boolean(meta?.youtube?.enabled)} links={(meta?.youtube?.links ?? []).map((l) => l.url)} />
