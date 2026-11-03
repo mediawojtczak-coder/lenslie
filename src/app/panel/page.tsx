@@ -25,6 +25,7 @@ type Card = GalleryRow & {
   expiresAt: string | null;
   expired: boolean;
   views: number | null;
+  note: string | null;
 };
 
 
@@ -89,6 +90,7 @@ export default async function Panel({
         expiresAt: meta?.expiresAt ?? null,
         expired: isExpired(meta),
         views: viewsErr ? null : (views ?? 0),
+        note: meta?.note ?? null,
       };
     }),
   );
@@ -105,7 +107,7 @@ export default async function Panel({
     if (filtr === "haslo" && !c.protected) return false;
     if (filtr === "otwarte" && c.protected) return false;
     if (filtr === "puste" && c.count > 0) return false;
-    if (query && !c.title.toLowerCase().includes(query) && !c.id.includes(query)) return false;
+    if (query && !c.title.toLowerCase().includes(query) && !c.id.includes(query) && !(c.note ?? "").toLowerCase().includes(query)) return false;
     return true;
   });
 
@@ -216,6 +218,14 @@ export default async function Panel({
                       ? `${c.expired ? t("Wygasła", "Expired") : t("Dostęp do", "Available until")} ${dateFmt.format(new Date(c.expiresAt))}`
                       : `${t("Utworzona", "Created")} ${dateFmt.format(new Date(c.created_at))}`}
                   </p>
+                  {c.note && (
+                    <Link href={`/panel/galeria/${c.id}?tab=notatka`} className="g-note" title={c.note}>
+                      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+                        <path d="M4 20h4L19 9l-4-4L4 16v4Z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                      </svg>
+                      <span>{c.note}</span>
+                    </Link>
+                  )}
                   <div className="g-foot">
                     <a href={`/galeria/${c.id}`} className="g-action" target="_blank" rel="noreferrer">
                       {t("Podgląd dla klienta", "Client preview")}

@@ -129,6 +129,7 @@ export default async function ZarzadzanieGalerii({
     ...(albumAllowed(user?.email) ? [{ key: "album", label: L("Album", "Album"), count: null }] : []),
     { key: "sprzedaz", label: L("Sprzedaż zdjęć", "Photo sales"), count: null },
     { key: "powitanie", label: L("Wiadomość powitalna", "Welcome message"), count: null },
+    { key: "notatka", label: L("Notatka", "Note"), count: null },
     { key: "statystyki", label: L("Statystyki", "Statistics"), count: null },
     { key: "ustawienia", label: L("Ustawienia", "Settings"), count: null },
   ];
@@ -266,6 +267,8 @@ export default async function ZarzadzanieGalerii({
               photoCount={photos.length}
             />
           </>
+        ) : tab === "notatka" ? (
+          <WelcomeCard id={id} welcome={meta?.note ?? ""} field="note" />
         ) : tab === "powitanie" ? (
           <WelcomeCard id={id} welcome={meta?.welcome ?? ""} />
         ) : tab === "statystyki" ? (

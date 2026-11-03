@@ -24,6 +24,7 @@ export async function POST(req: Request) {
         period?: number;
         eventDate?: string;
         welcome?: string;
+        note?: string;
         lang?: string;
       }
     | null;
@@ -96,6 +97,10 @@ export async function POST(req: Request) {
   if (body?.lang === "pl" || body?.lang === "en") meta.lang = body.lang;
   if (typeof body?.welcome === "string") {
     meta.welcome = body.welcome.trim().slice(0, 1500) || undefined;
+  }
+  // prywatna notatka fotografa (nie trafia do galerii klienta)
+  if (typeof body?.note === "string") {
+    meta.note = body.note.trim().slice(0, 2000) || undefined;
   }
 
   // Pakiet (publikacja) tylko przez /api/galleries/[id]/plan – po opłaceniu. Tu nie da się go ustawić.

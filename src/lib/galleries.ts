@@ -27,6 +27,8 @@ export type GalleryMeta = {
   cover?: string;
   // Własna okładka wgrana osobno (nie jest zdjęciem galerii) – data wgrania; ma pierwszeństwo przed `cover`
   coverFile?: string;
+  // Prywatna notatka fotografa do galerii – widoczna tylko w panelu
+  note?: string;
   // Data wydarzenia (RRRR-MM-DD) i wiadomość powitalna dla klienta
   eventDate?: string;
   welcome?: string;
