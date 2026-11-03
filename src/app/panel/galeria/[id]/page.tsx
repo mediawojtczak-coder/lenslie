@@ -127,6 +127,7 @@ export default async function ZarzadzanieGalerii({
     { key: "zdjecia", label: L("Zdjęcia", "Photos"), count: photos.length },
     { key: "wybory", label: meta?.sale?.enabled ? L("Zamówienia klientów", "Client orders") : L("Wybory klientów", "Client selections"), count: selectionCount ?? 0 },
     ...(albumAllowed(user?.email) ? [{ key: "album", label: L("Album", "Album"), count: null }] : []),
+    { key: "powitanie", label: L("Wiadomość powitalna", "Welcome message"), count: null },
     { key: "statystyki", label: L("Statystyki", "Statistics"), count: null },
     { key: "ustawienia", label: L("Ustawienia", "Settings"), count: null },
   ];
@@ -141,7 +142,6 @@ export default async function ZarzadzanieGalerii({
           <p className="g-side-meta">{L("Utworzona", "Created")} {dateFmt.format(new Date(gallery.created_at))}</p>
         </div>
         <CoverCard id={id} src={customCover ?? cover?.webUrl ?? null} custom={Boolean(customCover)} />
-        <WelcomeCard id={id} welcome={meta?.welcome ?? ""} />
         <nav aria-label={L("Sekcje galerii", "Gallery sections")}>
           {tabs.map((t) => (
             <Link
@@ -253,6 +253,8 @@ export default async function ZarzadzanieGalerii({
               />
             );
           })()
+        ) : tab === "powitanie" ? (
+          <WelcomeCard id={id} welcome={meta?.welcome ?? ""} />
         ) : tab === "statystyki" ? (
           <StatsTab id={id} />
         ) : tab === "ustawienia" ? (

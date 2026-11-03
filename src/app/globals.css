@@ -2848,3 +2848,5 @@ html.nav-busy body {
 .g-side-welcome label { font-size: .74rem; color: var(--taupe); margin: 0; }
 .g-side-welcome textarea { font-size: .82rem; line-height: 1.45; padding: 8px 10px; min-height: 92px; resize: vertical; margin: 0; }
 .g-side-welcome small { font-size: .72rem; color: var(--taupe); line-height: 1.4; }
+.welcome-card textarea { width: 100%; min-height: 160px; resize: vertical; font-size: .92rem; line-height: 1.55; margin: 8px 0 6px; }
+.welcome-card small { font-size: .76rem; color: var(--taupe); }

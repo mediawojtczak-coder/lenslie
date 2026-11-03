@@ -155,7 +155,7 @@ export default function SettingsForm({
         <input id="s-date" type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
         <p className="hint">{t("Wyświetla się na okładce galerii pod tytułem.", "Shown on the gallery cover under the title.")}</p>
 
-        <p className="hint">{t("Wiadomość powitalną dla klienta ustawisz w lewym pasku, pod okładką.", "Set the welcome message for your client in the left sidebar, under the cover.")}</p>
+        <p className="hint">{t("Wiadomość powitalną dla klienta ustawisz w zakładce „Wiadomość powitalna” w lewym menu.", "Set the welcome message for your client in the “Welcome message” tab in the left menu.")}</p>
 
         <label htmlFor="s-pass">{hasPassword ? t("Nowe hasło dla klienta", "New client password") : t("Hasło dla klienta", "Client password")}</label>
         <div className="pass-row">

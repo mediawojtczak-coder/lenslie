@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTr } from "@/components/LangProvider";
 
-// Wiadomość powitalna dla klienta – w lewym pasku galerii, zapisuje się sama chwilę po wpisaniu
+// Wiadomość powitalna dla klienta – osobna zakładka galerii, zapisuje się sama chwilę po wpisaniu
 export default function WelcomeCard({ id, welcome }: { id: string; welcome: string }) {
   const t = useTr();
   const [text, setText] = useState(welcome);
@@ -31,11 +31,18 @@ export default function WelcomeCard({ id, welcome }: { id: string; welcome: stri
   }, [text, id]);
 
   return (
-    <div className="g-side-welcome">
-      <label htmlFor="side-welcome">{t("Wiadomość powitalna", "Welcome message")}</label>
+    <div className="settings-card welcome-card">
+      <h2>{t("Wiadomość powitalna", "Welcome message")}</h2>
+      <p className="hint-inline">
+        {t(
+          "Krótki tekst dla klienta, widoczny w galerii nad zdjęciami. Zostaw puste, jeśli nie chcesz go pokazywać.",
+          "A short note for your client, shown in the gallery above the photos. Leave empty to hide it.",
+        )}
+      </p>
       <textarea
-        id="side-welcome"
-        rows={4}
+        id="welcome-text"
+        aria-label={t("Wiadomość powitalna", "Welcome message")}
+        rows={7}
         maxLength={1500}
         value={text}
         onChange={(e) => {
@@ -51,7 +58,7 @@ export default function WelcomeCard({ id, welcome }: { id: string; welcome: stri
             ? `✓ ${t("Zapisano", "Saved")}`
             : state === "error"
               ? t("Nie udało się zapisać – spróbuj jeszcze raz.", "Could not save – try again.")
-              : t("Klient zobaczy ją nad zdjęciami. Zapisuje się sama.", "Your client sees it above the photos. Saves automatically.")}
+              : t("Zapisuje się sama chwilę po wpisaniu.", "Saves automatically as you type.")}
       </small>
     </div>
   );
