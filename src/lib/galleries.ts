@@ -25,6 +25,8 @@ export type GalleryMeta = {
   expiresAt?: string;
   // Zdjęcie główne (okładka) – nazwa zdjęcia bez rozszerzenia; brak = pierwsze zdjęcie
   cover?: string;
+  // Własna okładka wgrana osobno (nie jest zdjęciem galerii) – data wgrania; ma pierwszeństwo przed `cover`
+  coverFile?: string;
   // Data wydarzenia (RRRR-MM-DD) i wiadomość powitalna dla klienta
   eventDate?: string;
   welcome?: string;

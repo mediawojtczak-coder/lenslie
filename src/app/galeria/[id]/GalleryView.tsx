@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getGalleryPhotos, pickCover, applyOrder, getMusicUrl, type Photo } from "@/lib/photos";
+import { getGalleryPhotos, pickCover, applyOrder, getMusicUrl, customCoverUrl, type Photo } from "@/lib/photos";
 import { watermarkOn, type GalleryMeta, type Downloads } from "@/lib/galleries";
 import { getGalleryBrand } from "@/lib/profiles";
 import { adminClient } from "@/lib/supabase/admin";
@@ -170,6 +170,8 @@ export default async function GalleryView({
   }
   const musicUrl = meta?.music ? await getMusicUrl(id).catch(() => null) : null;
   const cover = pickCover(shown, meta?.cover) ?? pickCover(photos, meta?.cover);
+  // własna okładka wgrana przez fotografa ma pierwszeństwo
+  const customCover = meta?.coverFile ? await customCoverUrl(id).catch(() => null) : null;
 
   // Ulubione są dostępne dla klienta (nie dla gości), gdy działa baza wyborów
   let favorites: { name: string | null; photos: string[] } | null = null;
@@ -208,7 +210,7 @@ export default async function GalleryView({
         title={title}
         subtitle={subtitle}
         studio={brand.studioName}
-        coverUrl={cover?.webUrl ?? null}
+        coverUrl={customCover ?? cover?.webUrl ?? null}
         locked={false}
         error={false}
         lang={lang}

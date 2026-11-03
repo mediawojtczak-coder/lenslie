@@ -2829,3 +2829,16 @@ html.nav-busy body {
     display: flex;
   }
 }
+
+/* Okładka w panelu galerii: klik = wgranie własnej okładki */
+.g-side-cover-wrap { display: grid; gap: 6px; }
+.cover-pick { position: relative; padding: 0; border: 0; cursor: pointer; width: 100%; display: block; font: inherit; }
+.cover-pick:disabled { cursor: progress; opacity: .7; }
+.cover-pick .cover-pick-label {
+  position: absolute; left: 0; right: 0; bottom: 0; height: auto; display: block; padding: 18px 10px 8px;
+  background: linear-gradient(transparent, rgba(30, 26, 24, .65)); color: #fff; font-size: .74rem; text-align: left;
+  letter-spacing: .01em;
+}
+.cover-pick:hover .cover-pick-label, .cover-pick:focus-visible .cover-pick-label { background: linear-gradient(transparent, rgba(30, 26, 24, .8)); }
+.cover-hint { margin: 0; font-size: .74rem; color: var(--taupe); line-height: 1.4; }
+.cover-hint .as-link { font-size: inherit; }

@@ -74,7 +74,7 @@ export default async function Panel({
   const cards: Card[] = await Promise.all(
     rows.map(async (g) => {
       const meta = await getMeta(g.id).catch(() => null);
-      const summary = await getGallerySummary(g.id, meta?.cover).catch(() => ({ count: 0, coverUrl: null }));
+      const summary = await getGallerySummary(g.id, meta?.cover, meta?.coverFile).catch(() => ({ count: 0, coverUrl: null }));
       // Liczba otwarć galerii (klient i goście)
       const { count: views, error: viewsErr } = await supabase
         .from("gallery_events")

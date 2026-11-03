@@ -65,7 +65,7 @@ export async function ClientGallery({ id, blad, motyw }: { id: string; blad?: st
   const cookieStore = await cookies();
   if (!error && !preview && !hasAccess(id, meta, cookieStore.get(accessCookieName(id))?.value)) {
     const [summary, brand] = await Promise.all([
-      getGallerySummary(id, meta?.cover).catch(() => ({ count: 0, coverUrl: null })),
+      getGallerySummary(id, meta?.cover, meta?.coverFile).catch(() => ({ count: 0, coverUrl: null })),
       getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null })),
     ]);
     const th = isThemeId(meta?.theme) ? meta!.theme! : "classic";

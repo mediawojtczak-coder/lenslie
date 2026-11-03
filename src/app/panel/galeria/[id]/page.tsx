@@ -3,7 +3,8 @@ import SideLogout from "@/components/SideLogout";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { isValidGalleryId, galleryPrefix } from "@/lib/r2";
-import { getGalleryPhotosAndUsage, pickCover, applyOrder, type Photo } from "@/lib/photos";
+import { getGalleryPhotosAndUsage, pickCover, applyOrder, customCoverUrl, type Photo } from "@/lib/photos";
+import CoverCard from "./CoverCard";
 import { getMeta, watermarkOn, draftDeleteDate } from "@/lib/galleries";
 import ShareBar from "./ShareBar";
 import PublishBar from "./PublishBar";
@@ -117,6 +118,7 @@ export default async function ZarzadzanieGalerii({
   const metaExpired = Boolean(meta?.expiresAt && new Date(meta.expiresAt).getTime() < Date.now());
 
   const cover = pickCover(photos, meta?.cover);
+  const customCover = meta?.coverFile ? await customCoverUrl(id).catch(() => null) : null;
 
   const selectionCount = selCount.count;
 
@@ -137,14 +139,7 @@ export default async function ZarzadzanieGalerii({
           <h1 className="g-side-title">{gallery.title}</h1>
           <p className="g-side-meta">{L("Utworzona", "Created")} {dateFmt.format(new Date(gallery.created_at))}</p>
         </div>
-        <div className="g-side-cover">
-          {cover ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={cover.webUrl} alt="" />
-          ) : (
-            <span>{L("Okładką zostanie pierwsze zdjęcie. Zmienisz ją gwiazdką przy zdjęciu.", "The first photo will be the cover. Change it with the star on any photo.")}</span>
-          )}
-        </div>
+        <CoverCard id={id} src={customCover ?? cover?.webUrl ?? null} custom={Boolean(customCover)} />
         <nav aria-label={L("Sekcje galerii", "Gallery sections")}>
           {tabs.map((t) => (
             <Link

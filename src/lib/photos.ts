@@ -109,13 +109,21 @@ async function buildPhotos(prefix: string, webObjs: Obj[], originalObjs: Obj[], 
   );
 }
 
+// Własna okładka galerii wgrana osobno (galleries/<id>/cover/cover.jpg)
+export const customCoverKey = (id: string) => `${galleryPrefix(id)}cover/cover.jpg`;
+export async function customCoverUrl(id: string) {
+  return presignGet(customCoverKey(id), { expiresIn: 7200 });
+}
+
 // Okładka i liczba zdjęć galerii (do kafelków w panelu)
 export async function getGallerySummary(
   id: string,
   cover?: string,
+  coverFile?: string,
 ): Promise<{ count: number; coverUrl: string | null }> {
   if (!process.env.R2_ENDPOINT) return { count: 0, coverUrl: null };
   const keys = await listKeys(`${galleryPrefix(id)}web/`);
+  if (coverFile) return { count: keys.length, coverUrl: await customCoverUrl(id) };
   if (keys.length === 0) return { count: 0, coverUrl: null };
   keys.sort((a, b) => a.localeCompare(b, "pl", { numeric: true }));
   // Wybrana okładka, a jeśli jej nie ma (np. usunięta) – pierwsze zdjęcie
