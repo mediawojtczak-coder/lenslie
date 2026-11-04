@@ -1,6 +1,6 @@
 import { T, type Lang } from "@/lib/i18n";
 
-export type ClientVideo = { id: string; name: string; iframe?: string; src: string; poster?: string; download?: string; size: number; youtube?: boolean };
+export type ClientVideo = { id: string; name: string; iframe?: string; src: string; poster?: string; download?: string; size: number; youtube?: boolean; instagram?: boolean };
 
 const fmtSize = (b: number) => (b >= 1e9 ? `${(b / 1e9).toFixed(2).replace(".", ",")} GB` : `${Math.max(1, Math.round(b / 1e6))} MB`);
 
@@ -10,7 +10,7 @@ export default function VideoSection({ videos, lang }: { videos: ClientVideo[]; 
   return (
     <section className="g-videos" aria-label={t.videos}>
       {videos.map((v) => (
-        <figure key={v.id} className="g-video">
+        <figure key={v.id} className={v.instagram ? "g-video g-video-ig" : "g-video"}>
           <div className="g-video-frame">
             {v.iframe ? (
               <iframe

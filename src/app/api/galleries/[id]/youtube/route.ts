@@ -3,7 +3,7 @@ import { E } from "@/lib/api-lang";
 import { requireOwner } from "@/lib/owner";
 import { getUser } from "@/lib/supabase/server";
 import { getMeta, saveMeta } from "@/lib/galleries";
-import { ytAllowed, ytId, YT_MAX, type YtLink } from "@/lib/youtube";
+import { ytAllowed, parseVideoLink, YT_MAX, type YtLink } from "@/lib/youtube";
 
 export const runtime = "nodejs";
 
@@ -24,12 +24,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   for (const raw of body.links.slice(0, YT_MAX)) {
     const url = String(raw ?? "").trim().slice(0, 300);
     if (!url) continue;
-    const vid = ytId(url);
-    if (!vid) bad.push(url);
-    else if (!links.some((l) => l.id === vid)) links.push({ url, id: vid });
+    const link = parseVideoLink(url);
+    if (!link) bad.push(url);
+    else if (!links.some((l) => l.id === link.id)) links.push(link);
   }
   if (bad.length) {
-    return NextResponse.json({ error: `To nie wygląda na link do filmu z YouTube: ${bad[0]}`, bad }, { status: 400 });
+    return NextResponse.json({ error: `To nie wygląda na link do filmu z YouTube ani Instagrama: ${bad[0]}`, bad }, { status: 400 });
   }
   meta.youtube = { enabled: body.enabled, links };
   await saveMeta(id, meta);

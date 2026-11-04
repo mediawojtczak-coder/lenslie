@@ -2878,3 +2878,7 @@ html.nav-busy body {
 @media (max-width: 700px) {
   .g-note { font-size: .72rem; padding: 6px 8px; margin: -2px 0 8px; }
 }
+
+/* Rolka / post z Instagrama w galerii – pionowy, wyśrodkowany */
+.g-video-ig .g-video-frame { aspect-ratio: auto; height: min(78vh, 760px); max-width: 420px; margin: 0 auto; background: #fff; }
+.g-video-ig .g-video-frame iframe { background: #fff; }

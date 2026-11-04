@@ -5,7 +5,8 @@ export function ytAllowed(email?: string | null) {
 }
 
 export const YT_MAX = 10;
-export type YtLink = { url: string; id: string };
+// kind: brak/„yt” = YouTube, „ig” = Instagram (id = „reel/KOD” albo „p/KOD”)
+export type YtLink = { url: string; id: string; kind?: "yt" | "ig" };
 
 // Identyfikator filmu z linku: youtu.be/ID, youtube.com/watch?v=ID, /shorts/ID, /embed/ID, /live/ID
 export function ytId(raw: string): string | null {
@@ -29,3 +30,26 @@ export function ytId(raw: string): string | null {
 }
 
 export const ytEmbed = (id: string) => `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1`;
+
+// Instagram: instagram.com/reel/KOD, /reels/KOD, /p/KOD, /tv/KOD → „reel/KOD” albo „p/KOD”
+export function igId(raw: string): string | null {
+  let u: URL;
+  try {
+    u = new URL(/^https?:\/\//i.test(raw.trim()) ? raw.trim() : `https://${raw.trim()}`);
+  } catch {
+    return null;
+  }
+  if (!/(^|\.)instagram\.com$/.test(u.hostname) && u.hostname !== "instagr.am") return null;
+  const m = /^\/(?:[\w.]+\/)?(reels?|p|tv)\/([\w-]{5,40})/.exec(u.pathname);
+  if (!m) return null;
+  return `${m[1] === "p" ? "p" : "reel"}/${m[2]}`;
+}
+export const igEmbed = (id: string) => `https://www.instagram.com/${id}/embed/`;
+
+// Link z YouTube albo Instagrama → zapisany wpis (null = nierozpoznany)
+export function parseVideoLink(url: string): YtLink | null {
+  const y = ytId(url);
+  if (y) return { url, id: y };
+  const i = igId(url);
+  return i ? { url, id: i, kind: "ig" } : null;
+}

@@ -44,16 +44,16 @@ export default function YouTubeCard({ id, enabled: initialOn, links: initialLink
 
   return (
     <div className="settings-card yt-card">
-      <h2>{t("Filmy z YouTube", "YouTube videos")}</h2>
+      <h2>{t("Filmy z YouTube i Instagrama", "YouTube & Instagram videos")}</h2>
       <p>
         {t(
-          "Wklej link do filmu na YouTube (np. teledysku z wesela) – klient obejrzy go na samej górze galerii. Film może być niepubliczny („dostęp przez link”).",
-          "Paste a YouTube link (e.g. a wedding highlight film) – your client watches it at the very top of the gallery. The video can be unlisted.",
+          "Wklej link do filmu na YouTube albo rolki / posta z Instagrama – klient obejrzy go na samej górze galerii. Film z YouTube może być niepubliczny („dostęp przez link”); post z Instagrama musi być publiczny.",
+          "Paste a YouTube link or an Instagram reel / post – your client watches it at the very top of the gallery. YouTube videos can be unlisted; Instagram posts must be public.",
         )}
       </p>
       <label className="check">
         <input type="checkbox" checked={on} disabled={busy} onChange={(e) => toggle(e.target.checked)} />
-        {t("Pokazuj filmy z YouTube w galerii", "Show YouTube videos in the gallery")}
+        {t("Pokazuj filmy z YouTube i Instagrama w galerii", "Show YouTube and Instagram videos in the gallery")}
       </label>
       <div className="yt-links">
         {links.map((l, i) => (
@@ -61,7 +61,7 @@ export default function YouTubeCard({ id, enabled: initialOn, links: initialLink
             <input
               type="url"
               value={l}
-              placeholder="https://youtu.be/…"
+              placeholder="https://youtu.be/… albo https://www.instagram.com/reel/…"
               onChange={(e) => setAt(i, e.target.value)}
               aria-label={`${t("Link do filmu", "Video link")} ${i + 1}`}
             />
