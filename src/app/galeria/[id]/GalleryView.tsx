@@ -23,7 +23,7 @@ import FaceSearch from "./FaceSearch";
 import ExtendAccess from "./ExtendAccess";
 import { clientExtendOffer } from "@/lib/client-extend";
 import { refreshVideos, signedVideoUrl, iframeUrl } from "@/lib/videos";
-import { ytEmbed, igEmbed } from "@/lib/youtube";
+import { ytEmbed, igLink } from "@/lib/youtube";
 import { saveMeta } from "@/lib/galleries";
 
 const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
@@ -169,7 +169,7 @@ export default async function GalleryView({
     for (const l of meta.youtube.links ?? [])
       clientVideos.push(
         l.kind === "ig"
-          ? { id: `ig-${l.id}`, name: "Instagram", iframe: igEmbed(l.id), src: "", size: 0, youtube: true, instagram: true }
+          ? { id: `ig-${l.id}`, name: "Instagram", src: igLink(l.id), size: 0, instagram: true }
           : { id: `yt-${l.id}`, name: "YouTube", iframe: ytEmbed(l.id), src: "", size: 0, youtube: true },
       );
   }
@@ -177,6 +177,8 @@ export default async function GalleryView({
   const cover = pickCover(shown, meta?.cover) ?? pickCover(photos, meta?.cover);
   // własna okładka wgrana przez fotografa ma pierwszeństwo
   const customCover = meta?.coverFile ? await customCoverUrl(id).catch(() => null) : null;
+  // film z Instagrama pokazujemy jako elegancką kartę z okładką galerii (osadzony odtwarzacz Instagrama często nie gra na telefonach)
+  for (const v of clientVideos) if (v.instagram) v.poster = customCover ?? cover?.webUrl;
 
   // Ulubione są dostępne dla klienta (nie dla gości), gdy działa baza wyborów
   let favorites: { name: string | null; photos: string[] } | null = null;

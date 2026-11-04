@@ -45,6 +45,8 @@ export function igId(raw: string): string | null {
   return `${m[1] === "p" ? "p" : "reel"}/${m[2]}`;
 }
 export const igEmbed = (id: string) => `https://www.instagram.com/${id}/embed/`;
+// zwykły link do rolki / posta – otwiera aplikację Instagram na telefonie
+export const igLink = (id: string) => `https://www.instagram.com/${id}/`;
 
 // Link z YouTube albo Instagrama → zapisany wpis (null = nierozpoznany)
 export function parseVideoLink(url: string): YtLink | null {

@@ -11,6 +11,27 @@ export default function VideoSection({ videos, lang }: { videos: ClientVideo[]; 
     <section className="g-videos" aria-label={t.videos}>
       {videos.map((v) => (
         <figure key={v.id} className={v.instagram ? "g-video g-video-ig" : "g-video"}>
+          {v.instagram ? (
+            <a className="g-ig-card" href={v.src} target="_blank" rel="noreferrer">
+              {v.poster && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={v.poster} alt="" loading="lazy" />
+              )}
+              <span className="g-ig-play" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="30" height="30">
+                  <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
+                </svg>
+              </span>
+              <span className="g-ig-label">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                  <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                  <circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" />
+                </svg>
+                {lang === "en" ? "Watch the film on Instagram" : "Obejrzyj film na Instagramie"}
+              </span>
+            </a>
+          ) : (
           <div className="g-video-frame">
             {v.iframe ? (
               <iframe
@@ -25,6 +46,7 @@ export default function VideoSection({ videos, lang }: { videos: ClientVideo[]; 
               <video src={v.src} poster={v.poster} controls preload="metadata" playsInline />
             )}
           </div>
+          )}
           {v.download && (
             <figcaption>
               <a className="g-video-dl" href={v.download}>
