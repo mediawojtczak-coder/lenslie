@@ -63,25 +63,24 @@ export default async function Panel({
   const { supabase, user: me } = await getUser();
   const showLr = lrAllowed(me?.email);
   const showAlbum = albumAllowed(me?.email);
-  const proSub = me ? await getProSub(me.id).catch(() => null) : null;
+  const [proSub, { data }] = await Promise.all([
+    me ? getProSub(me.id).catch(() => null) : Promise.resolve(null),
+    supabase.from("galleries").select("id, title, created_at").order("created_at", { ascending: false }),
+  ]);
   const proOn = proActive(proSub);
-
-  const { data } = await supabase
-    .from("galleries")
-    .select("id, title, created_at")
-    .order("created_at", { ascending: false });
   const rows = (data ?? []) as GalleryRow[];
 
   const cards: Card[] = await Promise.all(
     rows.map(async (g) => {
+      // opis galerii i liczba otwarć (klient i goście) – naraz; okładka po opisie (potrzebuje wybranej okładki)
+      // zapytanie Supabase rusza dopiero przy „await” – uruchamiamy je od razu, równolegle z opisem
+      const viewsQ = (async () =>
+        await supabase.from("gallery_events").select("kind", { count: "exact", head: true }).eq("gallery_id", g.id).in("kind", ["view", "guest_view"]))();
       const meta = await getMeta(g.id).catch(() => null);
-      const summary = await getGallerySummary(g.id, meta?.cover, meta?.coverFile).catch(() => ({ count: 0, coverUrl: null }));
-      // Liczba otwarć galerii (klient i goście)
-      const { count: views, error: viewsErr } = await supabase
-        .from("gallery_events")
-        .select("kind", { count: "exact", head: true })
-        .eq("gallery_id", g.id)
-        .in("kind", ["view", "guest_view"]);
+      const [summary, { count: views, error: viewsErr }] = await Promise.all([
+        getGallerySummary(g.id, meta?.cover, meta?.coverFile).catch(() => ({ count: 0, coverUrl: null })),
+        viewsQ,
+      ]);
       return {
         ...g,
         ...summary,

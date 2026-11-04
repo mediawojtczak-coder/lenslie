@@ -9,10 +9,10 @@ export type Reminder = { id: string; level: "pilne" | "wkrótce" | "info"; title
 const TB = 1024 ** 4;
 const GB = 1024 ** 3;
 
-export async function getReminders(): Promise<Reminder[]> {
+// knownTotal – zajęte miejsce policzone już wcześniej (panel administratora), żeby nie przeglądać całego magazynu drugi raz
+export async function getReminders(knownTotal?: number): Promise<Reminder[]> {
   const out: Reminder[] = [];
-  const objs = await listObjects("").catch(() => []);
-  const total = objs.reduce((s, o) => s + o.size, 0);
+  const total = knownTotal ?? (await listObjects("").catch(() => [])).reduce((s, o) => s + o.size, 0);
   const now = new Date();
 
   if (process.env.HOSTING !== "cloudflare" && process.env.VERCEL_PLAN !== "pro") {

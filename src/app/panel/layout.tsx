@@ -22,11 +22,11 @@ export default async function PanelLayout({ children }: { children: React.ReactN
 
   const initial = (user.email ?? "?").charAt(0).toUpperCase();
   // nowe konto: 20 zł na start (raz; przy pierwszym wejściu do panelu, czyli po potwierdzeniu e-maila)
-  const welcomed = await grantWelcome(user.id, user.created_at).catch(() => null);
+  const [current, lang] = await Promise.all([getWallet(user.id).catch(() => ({ balance: 0, history: [] })), getLang()]);
+  const welcomed = await grantWelcome(user.id, user.created_at, current).catch(() => null);
   // pierwszy mail powitalny – razem z prezentem na start (raz)
-  if (welcomed && user.email) await sendOnboarding(user.id, user.email, "welcome", await getLang()).catch(() => undefined);
-  const wallet = welcomed ?? (await getWallet(user.id).catch(() => ({ balance: 0, history: [] })));
-  const lang = await getLang();
+  if (welcomed && user.email) await sendOnboarding(user.id, user.email, "welcome", lang).catch(() => undefined);
+  const wallet = welcomed ?? current;
   const t = (pl: string, en: string) => tr(lang, pl, en);
 
   return (

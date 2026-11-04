@@ -2,7 +2,7 @@ import { adminClient, isAdminEmail } from "@/lib/supabase/admin";
 import { listProSubs, proActive, proInGrace, proGraceEnd, proTier, proName } from "@/lib/pro";
 import { getSignupSource, sourceDetail, type SignupSource } from "@/lib/signup-source";
 import { visitCounts, sourceKind, emptyCounts, addTo, SEGMENTS, type Counts } from "@/lib/funnel";
-import { listObjects } from "@/lib/photos";
+import { listObjects, listPrefixes } from "@/lib/photos";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
 import { getPlan, formatBytes } from "@/lib/plans";
 import { videoCost, galleryVideoBytes, USD_PLN, R2_GB_MONTH, STREAM_MIN_MONTH, STREAM_MIN_VIEW } from "@/lib/videos";
@@ -60,29 +60,43 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     );
   }
 
-  const [usersRes, galleriesRes, profilesRes, objects, videoObjects] = await Promise.all([
+  // Etap 1: wszystko, co niezależne – równolegle
+  const [usersRes, galleriesRes, profilesRes, galleryDirs, videoObjects, allOrders, printOrders, proSubsRaw, funnelVisits] = await Promise.all([
     db.auth.admin.listUsers({ perPage: 1000 }),
     db.from("galleries").select("id, title, owner_id, created_at").order("created_at", { ascending: false }),
     db.from("profiles").select("id, studio_name"),
-    listObjects("galleries/").catch(() => []),
+    listPrefixes("galleries/").catch(() => [] as string[]),
     listObjects("videos/").catch(() => []),
+    listOrders(5000).catch(() => []),
+    listPrintOrders().catch(() => []),
+    listProSubs().catch(() => []),
+    visitCounts(30).catch(() => null),
   ]);
+  const users = usersRes.data?.users ?? [];
+  const galleries = (galleriesRes.data ?? []) as G[];
 
-  const reminders = await getReminders().catch(() => []);
-  const allOrders = await listOrders(5000).catch(() => []);
+  // Etap 2: pliki każdej galerii, opisy galerii i dane fotografów – też równolegle
+  // (pliki listujemy osobno dla każdej galerii naraz zamiast całego magazynu po kolei)
+  const galleryIds = [...new Set([...galleries.map((g) => g.id), ...galleryDirs.map((d) => d.split("/")[1]).filter(Boolean)])];
+  const ownerIds = [...new Set(galleries.map((g) => g.owner_id).filter((x): x is string => Boolean(x)))];
+  const [objectLists, metaList, addons, sourceList, walletList] = await Promise.all([
+    Promise.all(galleryIds.map((id) => listObjects(`galleries/${id}/`).catch(() => []))),
+    Promise.all(galleries.map(async (g) => [g.id, await getMeta(g.id).catch(() => null)] as const)),
+    Promise.all(
+      users.map(async (u) => {
+        const [sub, tokens] = await Promise.all([getAlbumSub(u.id).catch(() => ({})), listTokens(u.id).catch(() => [])]);
+        return { id: u.id, email: u.email ?? "", sub: sub as { paidUntil?: string; freeGallery?: string }, lr: tokens.length, lrLast: tokens[0]?.createdAt ?? null };
+      }),
+    ),
+    Promise.all(users.map(async (u): Promise<[string, SignupSource | null]> => [u.id, await getSignupSource(u.id).catch(() => null)])),
+    Promise.all(ownerIds.map(async (uid) => [uid, (await getWallet(uid).catch(() => ({ history: [] as WalletEntry[] }))).history] as const)),
+  ]);
+  const objects = objectLists.flat();
   const orders = allOrders.slice(0, 200);
   const paidOrders = orders.filter((o) => o.status === "paid").slice(0, 100);
   const pendingOrders = orders.filter((o) => o.status !== "paid" && Date.now() - new Date(o.createdAt).getTime() < 7 * 24 * 3600 * 1000);
-  const users = usersRes.data?.users ?? [];
-  // Dodatki fotografów: Projektor albumów i wtyczka Lightroom
-  const addons = await Promise.all(
-    users.map(async (u) => {
-      const [sub, tokens] = await Promise.all([getAlbumSub(u.id).catch(() => ({})), listTokens(u.id).catch(() => [])]);
-      return { id: u.id, email: u.email ?? "", sub: sub as { paidUntil?: string; freeGallery?: string }, lr: tokens.length, lrLast: tokens[0]?.createdAt ?? null };
-    }),
-  );
   // Skąd przyszli fotografowie (zapisywane przy rejestracji od 29.10.2026)
-  const sources = new Map<string, SignupSource | null>(await Promise.all(users.map(async (u): Promise<[string, SignupSource | null]> => [u.id, await getSignupSource(u.id)])));
+  const sources = new Map<string, SignupSource | null>(sourceList);
   const recent = Date.now() - 30 * 24 * 3600 * 1000;
   const sourceStats = new Map<string, { all: number; month: number }>();
   for (const u of users) {
@@ -94,9 +108,9 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     sourceStats.set(s.label, row);
   }
   const sourceRows = [...sourceStats.entries()].sort((a, b) => b[1].all - a[1].all);
-  const printOrders = await listPrintOrders().catch(() => []);
+
   // Abonamenty Pro
-  const proSubs = (await listProSubs().catch(() => [])).sort((a, b) => b.paidUntil.localeCompare(a.paidUntil));
+  const proSubs = [...proSubsRaw].sort((a, b) => b.paidUntil.localeCompare(a.paidUntil));
   const proActiveSubs = proSubs.filter((s) => proActive(s));
   const proMrr = proActiveSubs.reduce((sum, s) => {
     const tier = proTier(s.tier);
@@ -106,7 +120,6 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const albumPaid = addons.filter((a) => albumActive(a.sub)).length;
   const albumFree = addons.filter((a) => a.sub.freeGallery).length;
   const lrUsers = addons.filter((a) => a.lr > 0).length;
-  const galleries = (galleriesRes.data ?? []) as G[];
   const studios = new Map(((profilesRes.data ?? []) as { id: string; studio_name: string | null }[]).map((p) => [p.id, p.studio_name]));
   const emails = new Map(users.map((u) => [u.id, u.email ?? ""]));
 
@@ -117,13 +130,11 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     usage.set(gid, (usage.get(gid) ?? 0) + o.size);
   }
   const totalBytes = [...usage.values()].reduce((a, b) => a + b, 0);
-  const metas = new Map<string, GalleryMeta | null>(
-    await Promise.all(galleries.map(async (g) => [g.id, await getMeta(g.id).catch(() => null)] as const)),
-  );
+  const reminders = await getReminders(totalBytes).catch(() => []);
+  const metas = new Map<string, GalleryMeta | null>(metaList);
   const orphans = [...usage.keys()].filter((gid) => !galleries.some((g) => g.id === gid));
 
   // ===== Lejek: od wejścia na stronę do pierwszej płatności (ostatnie 30 dni) =====
-  const funnelVisits = await visitCounts(30).catch(() => null);
   const funnelFrom = Date.now() - 30 * 24 * 3600 * 1000;
   const newUsers = users.filter((u) => new Date(u.created_at).getTime() >= funnelFrom && !isAdminEmail(u.email));
   const ownGalleries = new Map<string, G[]>();
@@ -160,7 +171,6 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
 
   // Filmy: oglądanie (Cloudflare Stream) i koszty podglądu
   const allVideos = galleries.flatMap((g) => (metas.get(g.id)?.videos ?? []).map((v) => ({ g, v })));
-  const streamStats = allVideos.some(({ v }) => v.streamUid) ? await getStreamStats() : null;
 
   // ===== Koszty utrzymania platformy: bieżący tydzień, miesiąc i rok =====
   const nowD = new Date();
@@ -177,9 +187,11 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   ] as const;
   const daysOf = (start: Date) => Math.max(0, (nowD.getTime() - start.getTime()) / (24 * 3600 * 1000));
   const streamMinutesStored = allVideos.reduce((s, { v }) => s + (v.streamUid ? Math.max(1, Math.ceil(v.duration / 60)) : 0), 0);
-  const viewed = allVideos.some(({ v }) => v.streamUid)
-    ? await Promise.all(periods.map((p) => minutesViewedSince(p.start)))
-    : periods.map(() => ({ ok: true as const, minutes: 0, from: new Date() }));
+  // statystyki Cloudflare Stream – wszystkie zapytania naraz
+  const hasStream = allVideos.some(({ v }) => v.streamUid);
+  const [streamStats, viewed] = hasStream
+    ? await Promise.all([getStreamStats(), Promise.all(periods.map((p) => minutesViewedSince(p.start)))])
+    : [null, periods.map(() => ({ ok: true as const, minutes: 0, from: new Date() }))];
   const paidIn = (start: Date) =>
     allOrders.filter((o) => o.status === "paid" && new Date(o.paidAt ?? o.createdAt).getTime() >= start.getTime()).reduce((s, o) => s + o.amount / 100, 0);
   const costRows: { name: string; note?: string; values: (number | null)[] }[] = [
@@ -227,10 +239,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     const cat = ["choose", "upgrade", "extend"].includes(a.action) ? "plan" : a.product === "print" ? "print" : "addons";
     addPaid(o.galleryId, o.amount / 100, cat, o.byClient ? "client" : "p24");
   }
-  const owners = [...new Set(galleries.map((g) => g.owner_id).filter((x): x is string => Boolean(x)))];
-  const wallets = new Map<string, WalletEntry[]>(
-    await Promise.all(owners.map(async (uid) => [uid, (await getWallet(uid).catch(() => ({ history: [] as WalletEntry[] }))).history] as const)),
-  );
+  const wallets = new Map<string, WalletEntry[]>(walletList);
   for (const g of galleries) {
     if (!g.owner_id) continue;
     for (const h of wallets.get(g.owner_id) ?? []) {

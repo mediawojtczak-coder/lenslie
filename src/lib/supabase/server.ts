@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 // Klient Supabase po stronie serwera, działający w imieniu zalogowanego fotografa
 export async function createClient() {
@@ -24,11 +25,12 @@ export async function createClient() {
   );
 }
 
-// Zwraca zalogowanego fotografa albo null
-export async function getUser() {
+// Zwraca zalogowanego fotografa albo null.
+// cache(): w ramach jednego wyświetlenia strony (ramka panelu + strona) sprawdzamy sesję w Supabase tylko raz.
+export const getUser = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   return { supabase, user };
-}
+});

@@ -35,6 +35,18 @@ export async function listObjects(prefix: string): Promise<Obj[]> {
   return out;
 }
 
+// Podkatalogi pod prefiksem (np. galleries/<id>/) – jedno szybkie zapytanie zamiast listowania wszystkich plików
+export async function listPrefixes(prefix: string): Promise<string[]> {
+  const out: string[] = [];
+  let token: string | undefined;
+  do {
+    const res = await r2.send(new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefix, Delimiter: "/", ContinuationToken: token }));
+    for (const p of res.CommonPrefixes ?? []) if (p.Prefix) out.push(p.Prefix);
+    token = res.IsTruncated ? res.NextContinuationToken : undefined;
+  } while (token);
+  return out;
+}
+
 export async function listKeys(prefix: string) {
   return (await listObjects(prefix)).map((o) => o.key);
 }

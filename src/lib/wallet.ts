@@ -82,9 +82,9 @@ export const zlFromGr = (gr: number) =>
 export const WELCOME_BONUS = 2000; // grosze
 export const WELCOME_FROM = "2026-10-29T00:00:00Z";
 
-export async function grantWelcome(uid: string, createdAt?: string) {
+export async function grantWelcome(uid: string, createdAt?: string, known?: Wallet) {
   if (!createdAt || createdAt < WELCOME_FROM) return null;
-  const w = await getWallet(uid);
+  const w = known ?? (await getWallet(uid));
   if (w.history.some((h) => h.ref === `welcome-${uid}`)) return null;
   return addEntries(uid, [{ type: "bonus", amount: WELCOME_BONUS, description: "Prezent na start od Lenslie", ref: `welcome-${uid}` }]);
 }
