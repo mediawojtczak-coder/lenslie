@@ -1,11 +1,18 @@
 import { notFound } from "next/navigation";
 import { getDomainByHost, domainActive } from "@/lib/domains";
 import { isValidGalleryId } from "@/lib/r2";
+import { galleryShareMeta } from "@/lib/share-meta";
 import { adminClient } from "@/lib/supabase/admin";
 import { ClientGallery } from "@/app/galeria/[id]/ClientGallery";
 
 export const dynamic = "force-dynamic";
-export const metadata = { robots: { index: false, follow: false } };
+// Podgląd linku pod domeną fotografa – miniatura i adres z jego domeny
+export async function generateMetadata({ params }: { params: Promise<{ host: string; path?: string[] }> }) {
+  const { host, path = [] } = await params;
+  const id = path[0] === "galeria" ? path[1] : path[0];
+  if (!id || !isValidGalleryId(id)) return { robots: { index: false, follow: false } };
+  return galleryShareMeta(id, `https://${decodeURIComponent(host)}`);
+}
 
 // Galerie pod własną domeną fotografa: galerie.studio.pl/<galeria> (middleware kieruje tu ruch z obcych domen)
 export default async function DomenaFotografa({

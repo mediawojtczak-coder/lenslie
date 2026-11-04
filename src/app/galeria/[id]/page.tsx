@@ -1,10 +1,17 @@
 import Hero from "./Hero";
 import { ClientGallery } from "./ClientGallery";
+import { isValidGalleryId } from "@/lib/r2";
+import { galleryShareMeta } from "@/lib/share-meta";
 
 export const dynamic = "force-dynamic";
 
 // Galerie są prywatne – nie pokazujemy ich w wyszukiwarkach
-export const metadata = { robots: { index: false, follow: false } };
+// Podgląd linku: okładka galerii jako miniatura, „Nazwa studia – Lenslie.com”
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  if (id === "demo" || !isValidGalleryId(id)) return { robots: { index: false, follow: false } };
+  return galleryShareMeta(id, "https://www.lenslie.com");
+}
 
 const proporcje = ["r-tall", "r-wide", "r-sq", "r-wide", "r-tall", "r-sq", "r-tall", "r-wide", "r-sq"];
 const tony = ["", "b", "c", "d", "e"];
