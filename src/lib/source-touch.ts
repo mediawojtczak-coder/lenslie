@@ -1,7 +1,7 @@
 // Skąd przyszedł nowy fotograf: ciasteczko sesyjne z pierwszej strony wizyty (middleware) → zapis przy rejestracji
 export const SRC_COOKIE = "ll_src";
 
-export type Touch = { s?: string; m?: string; c?: string; g?: 1; f?: 1; r?: string; l?: string };
+export type Touch = { s?: string; m?: string; c?: string; g?: 1; f?: 1; r?: string; l?: string; d?: "m" | "d" };
 
 
 const cut = (v: string | null | undefined, n = 60) => (v ? v.trim().slice(0, n) : undefined);

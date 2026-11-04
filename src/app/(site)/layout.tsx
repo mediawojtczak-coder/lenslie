@@ -3,6 +3,7 @@ import { getLang } from "@/lib/lang-server";
 import { tr } from "@/lib/lang";
 import LangSwitch from "@/components/LangSwitch";
 import GoogleTag, { CookieSettings } from "@/components/GoogleTag";
+import FunnelBeacon from "@/components/FunnelBeacon";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const lang = await getLang();
@@ -39,6 +40,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         <p className="site-copy">© {new Date().getFullYear()} Lenslie. {t("Galerie zdjęć dla fotografów.", "Photo galleries for photographers.")}</p>
       </footer>
       <GoogleTag clarity />
+      <FunnelBeacon />
     </>
   );
 }

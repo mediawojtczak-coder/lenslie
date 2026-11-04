@@ -91,6 +91,11 @@ function PolitykaPl() {
         </li>
       </ul>
       <p>
+        Na stronach informacyjnych Lenslie zliczamy też anonimowo, ile wizyt dotarło do cennika i rejestracji (z podziałem na
+        reklamę Google, Facebooka, telefon i komputer). Nie używamy do tego plików cookie ani innych danych zapisywanych na
+        urządzeniu i nie zapisujemy adresu IP ani żadnych danych osobowych – tylko licznik.
+      </p>
+      <p>
         Na stronie Lenslie i w panelu Fotografa używamy też tagu Google Ads, aby mierzyć skuteczność naszych reklam (np. czy
         ktoś założył konto po kliknięciu reklamy). Działa on w trybie zgody: dopóki nie klikniesz „Akceptuję”, Google nie
         zapisuje plików cookie, a otrzymuje jedynie anonimowe sygnały bez identyfikatorów. Podstawą jest Twoja zgoda (art. 6
@@ -184,6 +189,11 @@ function PrivacyEn() {
           browser; we store it only if you create a Photographer account, to know where new users come from.
         </li>
       </ul>
+      <p>
+        On Lenslie’s information pages we also count anonymously how many visits reach pricing and sign-up (split by Google
+        ads, Facebook, phone and computer). We use no cookies or other data stored on your device for this, and we store no
+        IP address or personal data – only a counter.
+      </p>
       <p>
         On the Lenslie website and in the Photographer’s dashboard we also use the Google Ads tag to measure how our ads perform
         (e.g. whether someone signed up after clicking an ad). It runs in consent mode: until you click “Accept”, Google stores

@@ -29,7 +29,9 @@ export async function POST(req: Request) {
   if (password.length < 8) return back("haslo");
   if (!terms) return back("regulamin");
 
-  const touch = readTouch((await cookies()).get(SRC_COOKIE)?.value);
+  const rawTouch = readTouch((await cookies()).get(SRC_COOKIE)?.value);
+  // urządzenie przy rejestracji (do lejka w panelu administratora)
+  const touch = { ...(rawTouch ?? {}), d: (/Mobi|Android|iPhone|iPod/i.test(req.headers.get("user-agent") ?? "") ? "m" : "d") as "m" | "d" };
   const source = sourceLabel(touch, refCode);
   const remember = (uid: string) => saveSignupSource(uid, touch, refCode).catch(() => undefined);
 

@@ -1,6 +1,7 @@
-import { adminClient } from "@/lib/supabase/admin";
+import { adminClient, isAdminEmail } from "@/lib/supabase/admin";
 import { listProSubs, proActive, proInGrace, proGraceEnd, proTier, proName } from "@/lib/pro";
 import { getSignupSource, sourceDetail, type SignupSource } from "@/lib/signup-source";
+import { visitCounts, sourceKind, emptyCounts, addTo, SEGMENTS, type Counts } from "@/lib/funnel";
 import { listObjects } from "@/lib/photos";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
 import { getPlan, formatBytes } from "@/lib/plans";
@@ -120,6 +121,42 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     await Promise.all(galleries.map(async (g) => [g.id, await getMeta(g.id).catch(() => null)] as const)),
   );
   const orphans = [...usage.keys()].filter((gid) => !galleries.some((g) => g.id === gid));
+
+  // ===== Lejek: od wejścia na stronę do pierwszej płatności (ostatnie 30 dni) =====
+  const funnelVisits = await visitCounts(30).catch(() => null);
+  const funnelFrom = Date.now() - 30 * 24 * 3600 * 1000;
+  const newUsers = users.filter((u) => new Date(u.created_at).getTime() >= funnelFrom && !isAdminEmail(u.email));
+  const ownGalleries = new Map<string, G[]>();
+  for (const g of galleries) if (g.owner_id) ownGalleries.set(g.owner_id, [...(ownGalleries.get(g.owner_id) ?? []), g]);
+  const payers = new Set(allOrders.filter((o) => o.status === "paid" && !o.byClient && o.amount > 0).map((o) => o.ownerId));
+  const accStages: { label: string; test: (uid: string, confirmed: boolean) => boolean }[] = [
+    { label: "Założyli konto", test: () => true },
+    { label: "Potwierdzili e-mail", test: (_u, c) => c },
+    { label: "Utworzyli galerię", test: (uid) => (ownGalleries.get(uid) ?? []).length > 0 },
+    { label: "Wgrali zdjęcia lub film", test: (uid) => (ownGalleries.get(uid) ?? []).some((g) => (usage.get(g.id) ?? 0) > 0) },
+    { label: "Opublikowali galerię", test: (uid) => (ownGalleries.get(uid) ?? []).some((g) => Boolean(metas.get(g.id)?.plan)) },
+    { label: "Zapłacili (Przelewy24)", test: (uid) => payers.has(uid) },
+  ];
+  const accCounts: Counts[] = accStages.map(() => emptyCounts());
+  for (const u of newUsers) {
+    const s = sources.get(u.id);
+    const src = sourceKind(s?.label, s ?? undefined);
+    accStages.forEach((st, i) => {
+      if (st.test(u.id, Boolean(u.email_confirmed_at))) addTo(accCounts[i], src, s?.d);
+    });
+  }
+  const funnelRows: { label: string; c: Counts; note?: string }[] = [
+    ...(funnelVisits
+      ? [
+          { label: "Weszli na stronę", c: funnelVisits.counts.visit },
+          { label: "Obejrzeli cennik lub funkcje", c: funnelVisits.counts.pricing },
+          { label: "Otworzyli rejestrację", c: funnelVisits.counts.signup },
+        ]
+      : []),
+    ...accStages.map((st, i) => ({ label: st.label, c: accCounts[i] })),
+  ];
+  const funnelBase = funnelVisits?.counts.visit ?? emptyCounts();
+  const pct = (n: number, base: number) => (base > 0 ? ` (${Math.round((n / base) * 100)}%)` : "");
 
   // Filmy: oglądanie (Cloudflare Stream) i koszty podglądu
   const allVideos = galleries.flatMap((g) => (metas.get(g.id)?.videos ?? []).map((v) => ({ g, v })));
@@ -355,6 +392,45 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           <p className="hint-inline">Te same przypomnienia przychodzą raz w tygodniu mailem.</p>
         </details>
       )}
+
+      <details className="settings-card admin-sec" id="lejek" open>
+        <summary>
+          <h2>Lejek sprzedaży (ostatnie 30 dni)</h2>
+        </summary>
+        <div className="table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Etap</th>
+                <th>Wszyscy</th>
+                <th>z reklamy Google</th>
+                <th>z Facebooka</th>
+                <th>telefon</th>
+                <th>komputer</th>
+              </tr>
+            </thead>
+            <tbody>
+              {funnelRows.map((r) => (
+                <tr key={r.label}>
+                  <td data-l="Etap">{r.label}</td>
+                  {SEGMENTS.map((s) => (
+                    <td key={s} data-l={{ all: "Wszyscy", google: "Google", facebook: "Facebook", m: "telefon", d: "komputer" }[s]}>
+                      {r.c[s]}
+                      {pct(r.c[s], funnelBase[s])}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="hint-inline">
+          Wejścia, cennik i rejestracja: każdy etap liczony raz na wizytę, bez cookies i danych osobowych
+          {funnelVisits?.since ? ` – liczone od ${fmtDate(funnelVisits.since)}` : " – liczenie zacznie się po pierwszej wizycie"}. Dalsze etapy: konta założone w
+          ostatnich 30 dniach (bez kont administratora), źródło i urządzenie z chwili rejestracji – urządzenie zapisujemy od 4.11.2026. „Zapłacili” = co
+          najmniej jedna płatność Przelewy24 (bez bonusu 20 zł). Procent = część osób, które weszły na stronę.
+        </p>
+      </details>
 
       <details className="settings-card admin-sec" id="sprzedaz" open>
         <summary>
