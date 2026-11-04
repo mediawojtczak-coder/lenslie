@@ -2,6 +2,18 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { groupOf } from "@/lib/speed-groups";
+
+// Pomiar szybkości (bez cookies): czas pierwszego załadowania i przejść między stronami
+function sendSpeed(kind: "load" | "nav", path: string, ms: number, ttfb = 0) {
+  if (!(ms > 0) || ms > 120_000) return;
+  const body = JSON.stringify({ kind, group: groupOf(path), ms: Math.round(ms), ttfb: Math.round(ttfb) });
+  try {
+    if (navigator.sendBeacon?.("/api/speed", new Blob([body], { type: "application/json" }))) return;
+  } catch {}
+  fetch("/api/speed", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => undefined);
+}
+let navStart: number | null = null;
 
 // Cienki pasek u góry strony od razu po kliknięciu w link lub zakładkę – widać, że coś się dzieje,
 // zanim serwer odda nową stronę. Znika, gdy adres się zmieni.
@@ -11,8 +23,22 @@ function Bar() {
   const [state, setState] = useState<"idle" | "loading" | "done">("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // pierwsze wejście: czas do pełnego załadowania i odpowiedź serwera (raz na kartę)
+  useEffect(() => {
+    const measure = () => {
+      const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+      if (nav && nav.loadEventEnd > 0) sendSpeed("load", location.pathname, nav.loadEventEnd, nav.responseStart);
+    };
+    if (document.readyState === "complete") setTimeout(measure, 0);
+    else window.addEventListener("load", () => setTimeout(measure, 0), { once: true });
+  }, []);
+
   // nowa strona gotowa
   useEffect(() => {
+    if (navStart !== null) {
+      sendSpeed("nav", pathname, performance.now() - navStart);
+      navStart = null;
+    }
     setState((s) => (s === "loading" ? "done" : s));
     document.documentElement.classList.remove("nav-busy");
     if (timer.current) clearTimeout(timer.current);
@@ -21,6 +47,7 @@ function Bar() {
 
   useEffect(() => {
     const start = () => {
+      navStart = performance.now();
       if (timer.current) clearTimeout(timer.current);
       setState("loading");
       document.documentElement.classList.add("nav-busy");

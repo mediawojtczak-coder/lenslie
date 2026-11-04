@@ -1,6 +1,7 @@
 import { adminClient, isAdminEmail } from "@/lib/supabase/admin";
 import { listProSubs, proActive, proInGrace, proGraceEnd, proTier, proName } from "@/lib/pro";
 import { getSignupSource, sourceDetail, type SignupSource } from "@/lib/signup-source";
+import { speedKeys, speedFrom, grade, fmtMs } from "@/lib/speed";
 import { visitCounts, sourceKind, emptyCounts, addTo, SEGMENTS, type Counts } from "@/lib/funnel";
 import { listObjects, listPrefixes } from "@/lib/photos";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
@@ -61,7 +62,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   }
 
   // Etap 1: wszystko, co niezależne – równolegle
-  const [usersRes, galleriesRes, profilesRes, galleryDirs, videoObjects, allOrders, printOrders, proSubsRaw, funnelVisits] = await Promise.all([
+  const [usersRes, galleriesRes, profilesRes, galleryDirs, videoObjects, allOrders, printOrders, proSubsRaw, funnelVisits, speedAll] = await Promise.all([
     db.auth.admin.listUsers({ perPage: 1000 }),
     db.from("galleries").select("id, title, owner_id, created_at").order("created_at", { ascending: false }),
     db.from("profiles").select("id, studio_name"),
@@ -71,7 +72,11 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     listPrintOrders().catch(() => []),
     listProSubs().catch(() => []),
     visitCounts(30).catch(() => null),
+    speedKeys().catch(() => [] as string[]),
   ]);
+  // Szybkość stron: ostatnie 7 dni i tydzień wcześniej (do porównania)
+  const speedNow = speedFrom(speedAll, 7, 0);
+  const speedPrev = speedFrom(speedAll, 14, 7);
   const users = usersRes.data?.users ?? [];
   const galleries = (galleriesRes.data ?? []) as G[];
 
@@ -439,6 +444,56 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           {funnelVisits?.since ? ` – liczone od ${fmtDate(funnelVisits.since)}` : " – liczenie zacznie się po pierwszej wizycie"}. Dalsze etapy: konta założone w
           ostatnich 30 dniach (bez kont administratora), źródło i urządzenie z chwili rejestracji – urządzenie zapisujemy od 4.11.2026. „Z polecenia” = wejście przez link polecający
           fotografa (?polecenie=…) albo konto założone z kodem polecenia. „Zapłacili” = co najmniej jedna płatność Przelewy24 (bez bonusu 20 zł). Procent = część osób, które weszły na stronę.
+        </p>
+      </details>
+
+      <details className="settings-card admin-sec" id="szybkosc">
+        <summary>
+          <h2>Szybkość stron (ostatnie 7 dni)</h2>
+        </summary>
+        {speedNow.length === 0 ? (
+          <p className="hint-inline">Pomiary zbierają się od 4.11.2026 – pierwsze wyniki pojawią się po kilku wizytach.</p>
+        ) : (
+          <div className="table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Strona</th>
+                  <th title="Pełne załadowanie przy pierwszym wejściu – 75% wizyt mieści się w tym czasie">Pierwsze wejście</th>
+                  <th title="Kliknięcie linku lub zakładki do pokazania nowej strony">Przejście</th>
+                  <th title="Czas odpowiedzi serwera (część pierwszego wejścia)">Serwer</th>
+                  <th>Tydzień temu</th>
+                  <th>Pomiary</th>
+                </tr>
+              </thead>
+              <tbody>
+                {speedNow.map((r) => {
+                  const p = speedPrev.find((x) => x.group === r.group);
+                  const cls = (g: string) => (g === "wolna" ? "is-expired" : undefined);
+                  return (
+                    <tr key={r.group}>
+                      <td data-l="Strona">{r.label}</td>
+                      <td data-l="Pierwsze wejście" className={cls(grade(r.load.p75, "load"))}>
+                        {fmtMs(r.load.p75)} {r.load.n ? <small>· {grade(r.load.p75, "load")}</small> : null}
+                      </td>
+                      <td data-l="Przejście" className={cls(grade(r.nav.p75, "nav"))}>
+                        {fmtMs(r.nav.p75)} {r.nav.n ? <small>· {grade(r.nav.p75, "nav")}</small> : null}
+                      </td>
+                      <td data-l="Serwer">{fmtMs(r.ttfb.p75)}</td>
+                      <td data-l="Tydzień temu">
+                        {p ? `${fmtMs(p.load.p75)} / ${fmtMs(p.nav.p75)}` : "–"}
+                      </td>
+                      <td data-l="Pomiary">{r.load.n + r.nav.n}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p className="hint-inline">
+          Czasy u prawdziwych odwiedzających (fotografów i klientów), bez cookies i danych osobowych. Pokazujemy czas, w którym mieści się 75% wizyt.
+          Ocena: pierwsze wejście dobre do 2,5 s, przejście do 1 s. Raport przychodzi też mailem raz w tygodniu.
         </p>
       </details>
 

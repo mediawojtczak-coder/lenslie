@@ -15,6 +15,7 @@ import { getDomainByHost, saveDomain, vercelRemoveDomain, DOMAIN_PRICE } from "@
 import { getGuestEvent, saveGuestEvent, deleteGuestEvent, GUEST_DELETE_AFTER } from "@/lib/guest-events";
 import { getOnboarding, sendOnboarding, NUDGE_AFTER_DAYS, TIPS_AFTER_DAYS } from "@/lib/onboarding";
 import { WELCOME_FROM } from "@/lib/wallet";
+import { speedKeys, speedFrom, speedReport } from "@/lib/speed";
 import { getProSub, listProSubs, saveProSub, proGraceEnd, proTier, proName, type ProSub } from "@/lib/pro";
 
 export const runtime = "nodejs";
@@ -464,6 +465,14 @@ export async function GET(req: Request) {
       await markReminderMail();
     }
     log.push(`przypomnienia: ${rem.length}`);
+  }
+
+  // Raport szybkości stron – w każdy poniedziałek
+  if (new Date().getUTCDay() === 1) {
+    const keys = await speedKeys().catch(() => [] as string[]);
+    const report = speedReport(speedFrom(keys, 7, 0), speedFrom(keys, 14, 7));
+    if (!dry) await notifyAdmins("Lenslie: szybkość stron – raport tygodniowy", "Szybkość stron", report).catch(() => undefined);
+    log.push(`szybkość: ${report.length} linii`);
   }
 
   return NextResponse.json({ ok: true, dry, actions: log });
