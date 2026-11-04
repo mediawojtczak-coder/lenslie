@@ -9,7 +9,7 @@ import { listObjects } from "@/lib/photos";
 
 export const VISIT_STAGES = ["visit", "pricing", "signup"] as const;
 export type VisitStage = (typeof VISIT_STAGES)[number];
-export const SOURCES = ["google", "facebook", "other"] as const;
+export const SOURCES = ["google", "facebook", "ref", "other"] as const;
 export type FunnelSource = (typeof SOURCES)[number];
 export type Device = "m" | "d";
 
@@ -23,15 +23,16 @@ export async function recordVisit(stage: VisitStage, src: FunnelSource, dev: Dev
 }
 
 // Segmenty kolumn w panelu
-export type Segment = "all" | "google" | "facebook" | "m" | "d";
-export const SEGMENTS: Segment[] = ["all", "google", "facebook", "m", "d"];
+export type Segment = "all" | "google" | "facebook" | "ref" | "m" | "d";
+export const SEGMENTS: Segment[] = ["all", "google", "facebook", "ref", "m", "d"];
 export type Counts = Record<Segment, number>;
-export const emptyCounts = (): Counts => ({ all: 0, google: 0, facebook: 0, m: 0, d: 0 });
+export const emptyCounts = (): Counts => ({ all: 0, google: 0, facebook: 0, ref: 0, m: 0, d: 0 });
 
 export function addTo(c: Counts, src: string | undefined, dev: string | undefined) {
   c.all += 1;
   if (src === "google") c.google += 1;
   if (src === "facebook") c.facebook += 1;
+  if (src === "ref") c.ref += 1;
   if (dev === "m") c.m += 1;
   if (dev === "d") c.d += 1;
 }
@@ -53,7 +54,9 @@ export async function visitCounts(days = 30): Promise<{ counts: Record<VisitStag
 }
 
 // Źródło konta fotografa na podstawie zapisanego źródła rejestracji
-export function sourceKind(label: string | undefined, t?: { g?: 1; f?: 1; s?: string }): FunnelSource {
+export function sourceKind(label: string | undefined, t?: { g?: 1; f?: 1; s?: string; ref?: string }): FunnelSource {
+  // link polecający (afiliacyjny) ma pierwszeństwo – to on zdecydował o rejestracji
+  if (t?.ref || label === "Polecenie") return "ref";
   if (t?.g || label === "Reklama Google") return "google";
   if (t?.f || /facebook|instagram/i.test(label ?? "") || /facebook|instagram|fb|ig|meta/i.test(t?.s ?? "")) return "facebook";
   return "other";

@@ -405,6 +405,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                 <th>Wszyscy</th>
                 <th>z reklamy Google</th>
                 <th>z Facebooka</th>
+                <th>z polecenia</th>
                 <th>telefon</th>
                 <th>komputer</th>
               </tr>
@@ -414,7 +415,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                 <tr key={r.label}>
                   <td data-l="Etap">{r.label}</td>
                   {SEGMENTS.map((s) => (
-                    <td key={s} data-l={{ all: "Wszyscy", google: "Google", facebook: "Facebook", m: "telefon", d: "komputer" }[s]}>
+                    <td key={s} data-l={{ all: "Wszyscy", google: "Google", facebook: "Facebook", ref: "z polecenia", m: "telefon", d: "komputer" }[s]}>
                       {r.c[s]}
                       {pct(r.c[s], funnelBase[s])}
                     </td>
@@ -427,8 +428,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         <p className="hint-inline">
           Wejścia, cennik i rejestracja: każdy etap liczony raz na wizytę, bez cookies i danych osobowych
           {funnelVisits?.since ? ` – liczone od ${fmtDate(funnelVisits.since)}` : " – liczenie zacznie się po pierwszej wizycie"}. Dalsze etapy: konta założone w
-          ostatnich 30 dniach (bez kont administratora), źródło i urządzenie z chwili rejestracji – urządzenie zapisujemy od 4.11.2026. „Zapłacili” = co
-          najmniej jedna płatność Przelewy24 (bez bonusu 20 zł). Procent = część osób, które weszły na stronę.
+          ostatnich 30 dniach (bez kont administratora), źródło i urządzenie z chwili rejestracji – urządzenie zapisujemy od 4.11.2026. „Z polecenia” = wejście przez link polecający
+          fotografa (?polecenie=…) albo konto założone z kodem polecenia. „Zapłacili” = co najmniej jedna płatność Przelewy24 (bez bonusu 20 zł). Procent = część osób, które weszły na stronę.
         </p>
       </details>
 

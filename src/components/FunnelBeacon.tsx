@@ -4,12 +4,13 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 // Lejek odwiedzin: każdy etap liczony raz na wizytę (pamięć tylko w tej karcie – bez cookies i localStorage).
-// Źródło wizyty brane z pierwszego adresu (gclid / fbclid / utm_source) albo strony, z której ktoś przyszedł.
+// Źródło wizyty brane z pierwszego adresu (link polecający / gclid / fbclid / utm_source) albo strony, z której ktoś przyszedł.
 const seen = new Set<string>();
-let source: "google" | "facebook" | "other" | null = null;
+let source: "google" | "facebook" | "ref" | "other" | null = null;
 
-function detectSource(): "google" | "facebook" | "other" {
+function detectSource(): "google" | "facebook" | "ref" | "other" {
   const p = new URLSearchParams(location.search);
+  if (p.get("polecenie") || p.get("ref")) return "ref";
   const s = (p.get("utm_source") ?? "").toLowerCase();
   if (p.get("gclid") || p.get("gbraid") || p.get("wbraid") || (s === "google" && /cpc|paid|ads/.test(p.get("utm_medium") ?? ""))) return "google";
   if (p.get("fbclid") || /facebook|instagram|fb|ig|meta/.test(s)) return "facebook";

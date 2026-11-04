@@ -92,7 +92,7 @@ function PolitykaPl() {
       </ul>
       <p>
         Na stronach informacyjnych Lenslie zliczamy też anonimowo, ile wizyt dotarło do cennika i rejestracji (z podziałem na
-        reklamę Google, Facebooka, telefon i komputer). Nie używamy do tego plików cookie ani innych danych zapisywanych na
+        reklamę Google, Facebooka, link polecający, telefon i komputer). Nie używamy do tego plików cookie ani innych danych zapisywanych na
         urządzeniu i nie zapisujemy adresu IP ani żadnych danych osobowych – tylko licznik.
       </p>
       <p>
@@ -191,7 +191,7 @@ function PrivacyEn() {
       </ul>
       <p>
         On Lenslie’s information pages we also count anonymously how many visits reach pricing and sign-up (split by Google
-        ads, Facebook, phone and computer). We use no cookies or other data stored on your device for this, and we store no
+        ads, Facebook, referral links, phone and computer). We use no cookies or other data stored on your device for this, and we store no
         IP address or personal data – only a counter.
       </p>
       <p>
