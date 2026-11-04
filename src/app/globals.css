@@ -2887,4 +2887,9 @@ html.nav-busy body {
 .g-ig-play { position: absolute; z-index: 1; top: 50%; left: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: background .2s, transform .2s; }
 .g-ig-play svg { margin-left: 4px; }
 .g-ig-card:hover .g-ig-play { background: rgba(255, 255, 255, .3); transform: scale(1.05); }
-.g-ig-label { position: absolute; z-index: 1; left: 0; right: 0; bottom: 22px; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: .9rem; letter-spacing: .02em; }
+.g-ig-label { position: absolute; z-index: 1; left: 0; right: 0; bottom: 22px; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: .9rem; letter-spacing: .04em; }
+/* kolory na sztywno – globalne a:hover (różowe) zostaje na telefonie po dotknięciu */
+.g-ig-card, .g-ig-card:hover, .g-ig-card:focus, .g-ig-card:active { color: #fff; }
+.g-ig-card .g-ig-play { color: #fff; }
+.g-ig-card .g-ig-label { color: #e2c48c; font-weight: 500; text-shadow: 0 1px 10px rgba(0, 0, 0, .55); }
+.g-ig-card:hover .g-ig-label { color: #f0d6a2; }

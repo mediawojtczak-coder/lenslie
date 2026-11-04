@@ -28,7 +28,7 @@ export default function VideoSection({ videos, lang }: { videos: ClientVideo[]; 
                   <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="1.6" />
                   <circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" />
                 </svg>
-                {lang === "en" ? "Watch the film on Instagram" : "Obejrzyj film na Instagramie"}
+                {lang === "en" ? "Watch the Reel on Instagram" : "Zobacz Reels na Instagramie"}
               </span>
             </a>
           ) : (
