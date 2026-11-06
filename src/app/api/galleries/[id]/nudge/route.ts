@@ -6,7 +6,8 @@ import { getUser } from "@/lib/supabase/server";
 import { getMeta, saveMeta, isExpired } from "@/lib/galleries";
 import { getUserBrand } from "@/lib/profiles";
 import { getDomainByUser, domainActive } from "@/lib/domains";
-import { sendEmail, emailLayout } from "@/lib/email";
+import { sendEmail } from "@/lib/email";
+import { coupleReminderMail } from "@/lib/couple-mail";
 
 export const runtime = "nodejs";
 
@@ -44,26 +45,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const host = domainActive(dom) && dom!.verified ? dom!.host : null;
   const link = host ? `https://${host}/${id}` : `https://www.lenslie.com/galeria/${id}`;
   const en = meta.lang === "en";
-  const studio = brand.studioName?.trim() || (en ? "Your photographer" : "Twój fotograf");
   const until = meta.expiresAt
     ? new Intl.DateTimeFormat(en ? "en-GB" : "pl-PL", { day: "numeric", month: "long", year: "numeric" }).format(new Date(meta.expiresAt))
     : null;
 
-  const lines = en
-    ? [
-        `${studio} reminds you that your photos are waiting: ${title}.`,
-        "Open the gallery, mark your favourites with a heart and download the photos in full quality.",
-        ...(meta.password ? [`Password: ${meta.password}`] : []),
-        ...(until ? [`The gallery is available until ${until} – download your photos before then.`] : []),
-      ]
-    : [
-        `${studio} przypomina, że Wasze zdjęcia czekają: ${title}.`,
-        "Otwórzcie galerię, zaznaczcie ulubione serduszkiem i pobierzcie zdjęcia w pełnej jakości.",
-        ...(meta.password ? [`Hasło: ${meta.password}`] : []),
-        ...(until ? [`Galeria jest dostępna do ${until} – pobierzcie zdjęcia przed tym terminem.`] : []),
-      ];
-  const html = emailLayout(en ? "Your gallery is waiting" : "Wasza galeria czeka", lines, { label: en ? "Open the gallery" : "Otwórz galerię", url: link }, en ? "en" : "pl");
-  const subject = en ? `${title} – your photos are waiting` : `${title} – Wasze zdjęcia czekają`;
+  // okładka galerii (ten sam adres co miniatura w podglądzie linku)
+  const coverUrl = `https://www.lenslie.com/galeria/${id}/okladka.jpg?v=${encodeURIComponent(meta.coverFile ?? meta.cover ?? "1")}`;
+  const { subject, html } = coupleReminderMail({ studio: brand.studioName, title, coverUrl, link, password: meta.password, until, en });
 
   let sent = 0;
   for (const to of emails) {
