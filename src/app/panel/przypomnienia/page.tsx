@@ -117,7 +117,7 @@ export default async function PrzypomnieniaPanel() {
 
           <section className="rmp-mail">
             <p className="rmp-label">{t("Tak zobaczy go klient", "What your client will see")}</p>
-            <MailFrame html={mail.html} from={from} fromLabel={t("Od", "From")} subject={mail.subject} maxHeight={620} />
+            <MailFrame html={mail.html} from={from} fromLabel={t("Od", "From")} subject={mail.subject} />
           </section>
         </div>
 
