@@ -16,6 +16,7 @@ import { getGuestEvent, saveGuestEvent, deleteGuestEvent, GUEST_DELETE_AFTER } f
 import { getOnboarding, sendOnboarding, NUDGE_AFTER_DAYS, TIPS_AFTER_DAYS } from "@/lib/onboarding";
 import { WELCOME_FROM } from "@/lib/wallet";
 import { speedKeys, speedFrom, speedReport } from "@/lib/speed";
+import { coupleReminderMail } from "@/lib/couple-mail";
 import { getProSub, listProSubs, saveProSub, proGraceEnd, proTier, proName, type ProSub } from "@/lib/pro";
 
 export const runtime = "nodejs";
@@ -170,6 +171,23 @@ export async function GET(req: Request) {
         const left = Math.max(1, Math.ceil(daysLeft));
         for (const r of due) {
           const off = `${siteUrl()}/api/galleries/${id}/reminder?off=${r.token}`;
+          // adres wpisany przez fotografa na kafelku – elegancki mail dla pary (okładka, hasło, termin)
+          if (r.by === "photographer") {
+            const mail = coupleReminderMail({
+              studio: brand.studioName,
+              title: meta.title,
+              coverUrl: `${siteUrl()}/galeria/${id}/okladka.jpg?v=${encodeURIComponent(meta.coverFile ?? meta.cover ?? "1")}`,
+              link: `${siteUrl()}/galeria/${id}`,
+              password: meta.password,
+              until,
+              en,
+              daysLeft,
+              canExtend,
+              offUrl: off,
+            });
+            if (await sendEmail({ to: r.email, replyTo: owner?.email, subject: mail.subject, html: mail.html }).catch(() => false)) r.sentFor = meta.expiresAt;
+            continue;
+          }
           const ok = await sendEmail({
             to: r.email,
             replyTo: owner?.email,

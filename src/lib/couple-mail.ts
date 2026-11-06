@@ -1,6 +1,9 @@
 // Elegancki mail dla pary młodej: okładka galerii, nazwa studia, hasło, termin – w stylu albumu ślubnego.
 // HTML zgodny z programami pocztowymi (tabele, style w linii, czcionki z zapasem Georgia).
 
+// Przypomnienie dla pary – tyle dni przed końcem dostępu
+export const COUPLE_REMIND_DAYS = 7;
+
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 export type CoupleMail = {
@@ -11,6 +14,9 @@ export type CoupleMail = {
   password?: string | null;
   until?: string | null; // już sformatowana data
   en?: boolean;
+  daysLeft?: number; // przypomnienie o końcu dostępu (wysyłane automatycznie)
+  canExtend?: boolean; // klient może sam przedłużyć dostęp w galerii
+  offUrl?: string; // link „nie przypominaj”
 };
 
 const GOLD = "#b8975f";
@@ -23,7 +29,27 @@ export function coupleReminderMail(m: CoupleMail): { subject: string; html: stri
   const en = Boolean(m.en);
   const studio = m.studio?.trim() || "";
   const L = (pl: string, eng: string) => (en ? eng : pl);
-  const subject = en ? `${m.title} – your photos are waiting` : `${m.title} – Wasze zdjęcia czekają`;
+  const left = m.daysLeft ? Math.max(1, Math.ceil(m.daysLeft)) : 0;
+  const dni = (n: number) => (n === 1 ? "dzień" : "dni");
+  // „Został 1 dzień” / „Zostały 3 dni” / „Zostało 7 dni”
+  const zostalo = (n: number) => (n === 1 ? "Został 1 dzień" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? `Zostały ${n} dni` : `Zostało ${n} dni`);
+  const subject = left
+    ? en
+      ? `${m.title} – ${left} ${left === 1 ? "day" : "days"} left to download your photos`
+      : `${m.title} – ${zostalo(left).toLowerCase()} na pobranie zdjęć`
+    : en
+      ? `${m.title} – your photos are waiting`
+      : `${m.title} – Wasze zdjęcia czekają`;
+  const kicker = left ? L(zostalo(left), `${left} ${left === 1 ? "day" : "days"} left`) : L("Wasza galeria", "Your gallery");
+  const lead = left
+    ? L(
+        `Za ${left} ${dni(left)} kończy się dostęp do Waszej galerii. Zajrzyjcie jeszcze raz, zaznaczcie ulubione kadry serduszkiem i pobierzcie zdjęcia, które chcecie zachować na zawsze.${m.canExtend ? " Jeśli potrzebujecie więcej czasu, dostęp przedłużycie jednym kliknięciem w galerii." : ""}`,
+        `Access to your gallery ends in ${left} ${left === 1 ? "day" : "days"}. Have one more look, mark your favourite frames with a heart and download the photos you want to keep forever.${m.canExtend ? " If you need more time, you can extend access with one click in the gallery." : ""}`,
+      )
+    : L(
+        "Wasze zdjęcia czekają. Usiądźcie wygodnie, wróćcie do tego dnia, zaznaczcie ulubione kadry serduszkiem i pobierzcie je w pełnej jakości.",
+        "Your photos are waiting. Sit back, relive the day, mark your favourite frames with a heart and download them in full quality.",
+      );
 
   const cover = m.coverUrl
     ? `<tr><td style="padding:0"><a href="${esc(m.link)}" style="text-decoration:none"><img src="${esc(m.coverUrl)}" alt="${esc(m.title)}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0"></a></td></tr>`
@@ -67,13 +93,10 @@ export function coupleReminderMail(m: CoupleMail): { subject: string; html: stri
         ${cover}
         <tr><td align="center" style="padding:40px 40px 0">
           <div style="width:44px;height:1px;background:${GOLD};margin:0 auto 22px;line-height:1px;font-size:1px">&nbsp;</div>
-          <div style="font-family:${SANS};font-size:10px;letter-spacing:4px;text-transform:uppercase;color:${GOLD}">${L("Wasza galeria", "Your gallery")}</div>
+          <div style="font-family:${SANS};font-size:10px;letter-spacing:4px;text-transform:uppercase;color:${GOLD}">${kicker}</div>
         </td></tr>
         <tr><td align="center" style="padding:14px 40px 18px;font-family:${SERIF};font-size:36px;line-height:1.15;color:${INK};font-weight:400">${esc(m.title)}</td></tr>
-        <tr><td align="center" style="padding:0 52px 30px;font-family:${SANS};font-size:15px;line-height:1.75;color:#5d5650">${L(
-          "Wasze zdjęcia czekają. Usiądźcie wygodnie, wróćcie do tego dnia, zaznaczcie ulubione kadry serduszkiem i pobierzcie je w pełnej jakości.",
-          "Your photos are waiting. Sit back, relive the day, mark your favourite frames with a heart and download them in full quality.",
-        )}</td></tr>
+        <tr><td align="center" style="padding:0 52px 30px;font-family:${SANS};font-size:15px;line-height:1.75;color:#5d5650">${esc(lead)}</td></tr>
         ${password}
         <tr><td align="center" style="padding:0 40px 30px">
           <table role="presentation" cellpadding="0" cellspacing="0"><tr>
@@ -93,7 +116,7 @@ export function coupleReminderMail(m: CoupleMail): { subject: string; html: stri
     <tr><td align="center" style="padding:22px 30px 0;font-family:${SANS};font-size:11px;line-height:1.7;color:#a69c94">
       ${L("Jeśli przycisk nie działa, skopiujcie ten adres:", "If the button doesn't work, copy this address:")}<br>
       <a href="${esc(m.link)}" style="color:#a69c94">${esc(m.link)}</a><br><br>
-      <span style="letter-spacing:2px;text-transform:uppercase;font-size:9px">${L("Galeria online", "Online gallery")} · <a href="https://www.lenslie.com" style="color:#a69c94;text-decoration:none">Lenslie</a></span>
+      ${m.offUrl ? `<a href="${esc(m.offUrl)}" style="color:#a69c94">${L("Nie przypominaj mi o tej galerii", "Don't remind me about this gallery")}</a><br><br>` : ""}<span style="letter-spacing:2px;text-transform:uppercase;font-size:9px">${L("Galeria online", "Online gallery")} · <a href="https://www.lenslie.com" style="color:#a69c94;text-decoration:none">Lenslie</a></span>
     </td></tr>
   </table>
 </td></tr>

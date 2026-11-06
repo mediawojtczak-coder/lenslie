@@ -28,7 +28,8 @@ type Card = GalleryRow & {
   views: number | null;
   note: string | null;
   clientEmail: string | null;
-  nudgedAt: string | null;
+  reminderSent: boolean;
+  pro: boolean;
   published: boolean;
 };
 
@@ -95,7 +96,8 @@ export default async function Panel({
         views: viewsErr ? null : (views ?? 0),
         note: meta?.note ?? null,
         clientEmail: meta?.clientEmail ?? null,
-        nudgedAt: meta?.nudgedAt ?? null,
+        reminderSent: Boolean(meta?.expiresAt && (meta.reminders ?? []).some((r) => r.by === "photographer" && r.sentFor === meta.expiresAt)),
+        pro: meta?.plan === "pro",
         published: Boolean(meta?.plan),
       };
     }),
@@ -246,7 +248,7 @@ export default async function Panel({
                       </Link>
                     )}
                   </div>
-                  {c.published && !c.expired && <GalleryNudge id={c.id} email={c.clientEmail} sentAt={c.nudgedAt} />}
+                  {c.published && !c.expired && <GalleryNudge id={c.id} email={c.clientEmail} expiresAt={c.pro ? null : c.expiresAt} sent={c.reminderSent} />}
                 </div>
               </li>
             ))}

@@ -2894,32 +2894,14 @@ html.nav-busy body {
 .g-ig-card .g-ig-label { color: #e2c48c; font-weight: 500; text-shadow: 0 1px 10px rgba(0, 0, 0, .55); }
 .g-ig-card:hover .g-ig-label { color: #f0d6a2; }
 
-/* Przypomnienie dla pary – na kafelku galerii (oddzielone cienką linią, spokojna typografia) */
-.gn { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--hair); }
-.gn-open { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; flex: 0 0 auto; padding: 0; border: 0; background: none; cursor: pointer;
-  font: inherit; font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); transition: color .2s; }
-.gn-open svg { color: #b8975f; transition: transform .25s; }
-.gn-open:hover { color: #9c7a45; }
-.gn-open:hover svg { transform: translateY(-1px); }
-.gn-sent { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-display), Georgia, serif; font-style: italic; font-size: .86rem; color: var(--taupe); white-space: nowrap; }
-.gn-sent svg { color: #b8975f; }
-.gn-sent-new { animation: gn-in .6s ease; }
-@keyframes gn-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
-
-.gn-form { display: grid; gap: 8px; justify-content: stretch; }
-.gn-label { font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; color: var(--taupe); margin: 0; }
-.gn-form input { box-sizing: border-box; width: 100%; min-width: 0; margin: 0; padding: 6px 0 8px; border: 0; border-bottom: 1px solid #d9c9b0; border-radius: 0;
-  background: transparent; font-family: var(--font-display), Georgia, serif; font-size: 1.02rem; color: var(--ink); outline: none; transition: border-color .2s; }
-.gn-form input:focus { border-bottom-color: #b8975f; }
-.gn-form input::placeholder { color: #c8bdb5; font-style: italic; }
-.gn-hint { margin: 2px 0 0; font-size: .74rem; line-height: 1.5; color: var(--taupe); }
-.gn-error { margin: 0; font-size: .76rem; color: #a0473a; }
-.gn-actions { display: flex; align-items: center; justify-content: flex-end; gap: 18px; margin-top: 4px; }
-.gn-cancel { padding: 0; border: 0; background: none; cursor: pointer; font: inherit; font-size: .78rem; color: var(--taupe); }
-.gn-cancel:hover { color: var(--ink); }
-.gn-send { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border: 0; border-radius: 999px; cursor: pointer;
-  background: var(--ink); color: #fbf7f0; font: inherit; font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; transition: background .2s, transform .2s; }
-.gn-send:hover { background: #2a2522; }
-.gn-send:hover svg { transform: translateX(2px); }
-.gn-send svg { transition: transform .2s; }
-.gn-send:disabled { opacity: .45; cursor: default; }
+/* Przypomnienie dla pary – na kafelku galerii: samo pole (zapis automatyczny) i krótka informacja */
+.gn { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--hair); }
+.gn-field { display: flex; align-items: center; gap: 9px; margin: 0; padding-bottom: 5px; border-bottom: 1px solid transparent; transition: border-color .2s; cursor: text; }
+.gn-field:hover { border-bottom-color: var(--hair); }
+.gn-field:focus-within { border-bottom-color: #c9ab78; }
+.gn-field svg { flex: 0 0 auto; color: #b8975f; }
+.gn-field input { flex: 1; min-width: 0; margin: 0; padding: 2px 0; border: 0; border-radius: 0; background: transparent; outline: none; box-shadow: none;
+  font-family: var(--font-display), Georgia, serif; font-size: .98rem; color: var(--ink); }
+.gn-field input::placeholder { color: #bfb3aa; font-style: italic; }
+.gn-info { display: flex; align-items: center; gap: 5px; margin: 4px 0 0 24px; font-family: var(--font-display), Georgia, serif; font-style: italic; font-size: .86rem; color: var(--taupe); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gn-ok { color: #9c7a45; }
