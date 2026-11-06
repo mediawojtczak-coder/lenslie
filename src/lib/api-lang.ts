@@ -2,6 +2,11 @@ import { getLang } from "@/lib/lang-server";
 
 // Komunikaty błędów API po angielsku – dla fotografów, którzy mają serwis w wersji angielskiej
 const EN: Record<string, string> = {
+  "Najpierw opublikuj galerię.": "Publish the gallery first.",
+  "Podaj poprawny adres e-mail.": "Enter a valid e-mail address.",
+  "Dostęp do tej galerii już się skończył.": "Access to this gallery has already ended.",
+  "Przypomnienie zostało wysłane przed chwilą. Spróbuj ponownie za kilka minut.": "A reminder was just sent. Try again in a few minutes.",
+  "Nie udało się wysłać maila. Spróbuj ponownie.": "Could not send the e-mail. Please try again.",
   "Wybierz pakiet.": "Choose a plan.",
   "Abonament nie jest aktywny – wybierz pakiet i okres.": "Your subscription isn't active – choose a plan and period.",
   "Masz aktywny abonament – użyj „Zmień na większy”, a potem przedłuż.": "You have an active subscription – use “Upgrade” first, then extend.",

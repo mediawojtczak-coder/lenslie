@@ -1,4 +1,5 @@
 import Link from "next/link";
+import GalleryNudge from "./GalleryNudge";
 import InstallApp from "@/components/InstallApp";
 import { getProSub, proActive } from "@/lib/pro";
 import SideLogout from "@/components/SideLogout";
@@ -26,6 +27,9 @@ type Card = GalleryRow & {
   expired: boolean;
   views: number | null;
   note: string | null;
+  clientEmail: string | null;
+  nudgedAt: string | null;
+  published: boolean;
 };
 
 
@@ -90,6 +94,9 @@ export default async function Panel({
         expired: isExpired(meta),
         views: viewsErr ? null : (views ?? 0),
         note: meta?.note ?? null,
+        clientEmail: meta?.clientEmail ?? null,
+        nudgedAt: meta?.nudgedAt ?? null,
+        published: Boolean(meta?.plan),
       };
     }),
   );
@@ -239,6 +246,7 @@ export default async function Panel({
                       </Link>
                     )}
                   </div>
+                  {c.published && !c.expired && <GalleryNudge id={c.id} email={c.clientEmail} sentAt={c.nudgedAt} />}
                 </div>
               </li>
             ))}

@@ -13,6 +13,9 @@ export type GalleryMeta = {
   clientExtend?: boolean;
   // Przypomnienia mailowe dla klienta o końcu dostępu (sentFor = data wygaśnięcia, dla której już wysłano)
   reminders?: { email: string; days: number; token: string; sentFor?: string }[];
+  // E-mail pary / klienta wpisany przez fotografa i data ostatniego przypomnienia wysłanego z panelu
+  clientEmail?: string;
+  nudgedAt?: string;
   passwordHash?: string;
   // Hasło do udostępnienia klientowi (widoczne tylko dla fotografa w panelu)
   password?: string;
