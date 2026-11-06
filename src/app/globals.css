@@ -2894,14 +2894,16 @@ html.nav-busy body {
 .g-ig-card .g-ig-label { color: #e2c48c; font-weight: 500; text-shadow: 0 1px 10px rgba(0, 0, 0, .55); }
 .g-ig-card:hover .g-ig-label { color: #f0d6a2; }
 
-/* Przypomnienie dla pary – na kafelku galerii: samo pole (zapis automatyczny) i krótka informacja */
+/* Przypomnienie dla pary – na kafelku galerii: jedna linia (pole e-mail + data przypomnienia), zapis automatyczny */
 .gn { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--hair); }
-.gn-field { display: flex; align-items: center; gap: 9px; margin: 0; padding-bottom: 5px; border-bottom: 1px solid transparent; transition: border-color .2s; cursor: text; }
+.gn-field { display: flex; align-items: center; gap: 9px; margin: 0; padding-bottom: 4px; border-bottom: 1px solid transparent; transition: border-color .2s; cursor: text; }
 .gn-field:hover { border-bottom-color: var(--hair); }
 .gn-field:focus-within { border-bottom-color: #c9ab78; }
 .gn-field svg { flex: 0 0 auto; color: #b8975f; }
 .gn-field input { flex: 1; min-width: 0; margin: 0; padding: 2px 0; border: 0; border-radius: 0; background: transparent; outline: none; box-shadow: none;
-  font-family: var(--font-display), Georgia, serif; font-size: .98rem; color: var(--ink); }
+  font-family: var(--font-display), Georgia, serif; font-size: .95rem; color: var(--ink); text-overflow: ellipsis; }
 .gn-field input::placeholder { color: #bfb3aa; font-style: italic; }
-.gn-info { display: flex; align-items: center; gap: 5px; margin: 4px 0 0 24px; font-family: var(--font-display), Georgia, serif; font-style: italic; font-size: .86rem; color: var(--taupe); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gn-ok { color: #9c7a45; }
+.gn-tag { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; font-variant-numeric: tabular-nums; color: var(--taupe); white-space: nowrap; }
+.gn-tag.gn-ok { color: #9c7a45; }
+.gn-tag.gn-ok svg { color: #b8975f; }
+.gn-tag.gn-warn { color: #a0473a; }
