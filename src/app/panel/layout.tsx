@@ -59,6 +59,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <InstallApp className="account-link" />
             <Link href="/panel/strona" className="account-link">{t("Moja strona", "My website")}</Link>
             <Link href="/panel/znajdz-siebie" className="account-link">{t("Znajdź siebie", "Find me")}</Link>
+            <Link href="/panel/przypomnienia" className="account-link">{t("Przypomnienie dla klienta", "Client reminder")}</Link>
             <Link href="/panel/goscie" className="account-link">{t("Zdjęcia od gości", "Guest uploads")}</Link>
             {albumAllowed(user.email) && <Link href="/panel/albumy" className="account-link">{t("Projektor albumów", "Album designer")}</Link>}
             <Link href="/panel/rezerwacje" className="account-link">{t("Rezerwacje sesji", "Session bookings")}</Link>

@@ -1,7 +1,10 @@
 // Wysyłka e-maili przez Resend (https://resend.com). Bez klucza RESEND_API_KEY nic nie wysyła i zwraca false.
-export async function sendEmail({ to, subject, html, replyTo }: { to: string; subject: string; html: string; replyTo?: string }) {
+export async function sendEmail({ to, subject, html, replyTo, fromName }: { to: string; subject: string; html: string; replyTo?: string; fromName?: string | null }) {
   const key = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM ?? "Lenslie <powiadomienia@lenslie.com>";
+  let from = process.env.EMAIL_FROM ?? "Lenslie <powiadomienia@lenslie.com>";
+  // nadawca widoczny jako studio fotografa (np. „Studio Aurora przez Lenslie”) – adres zostaje nasz
+  const name = fromName?.replace(/[<>"\\\r\n,;]/g, "").trim().slice(0, 80);
+  if (name) from = `"${name}" <${from.match(/<([^>]+)>/)?.[1] ?? from}>`;
   if (!key || !to) return false;
   try {
     const res = await fetch("https://api.resend.com/emails", {

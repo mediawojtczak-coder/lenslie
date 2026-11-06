@@ -185,7 +185,7 @@ export async function GET(req: Request) {
               canExtend,
               offUrl: off,
             });
-            if (await sendEmail({ to: r.email, replyTo: owner?.email, subject: mail.subject, html: mail.html }).catch(() => false)) r.sentFor = meta.expiresAt;
+            if (await sendEmail({ to: r.email, replyTo: owner?.email, subject: mail.subject, html: mail.html, fromName: brand.studioName ? `${brand.studioName} ${en ? "via" : "przez"} Lenslie` : null }).catch(() => false)) r.sentFor = meta.expiresAt;
             continue;
           }
           const ok = await sendEmail({

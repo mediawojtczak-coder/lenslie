@@ -155,6 +155,9 @@ export default async function Panel({
           <Link href="/panel/znajdz-siebie" className="side-link">
             <span>{t("Znajdź siebie", "Find me")}</span>
           </Link>
+          <Link href="/panel/przypomnienia" className="side-link">
+            <span>{t("Przypomnienie dla klienta", "Client reminder")}</span>
+          </Link>
           {showAlbum && (
             <Link href="/panel/albumy" className="side-link">
               <span>{t("Projektor albumów", "Album designer")}</span>
