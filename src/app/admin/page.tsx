@@ -412,7 +412,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           <h2>Lejek sprzedaży (ostatnie 30 dni)</h2>
         </summary>
         <div className="table-wrap">
-          <table className="admin-table">
+          <table className="admin-table keys">
             <thead>
               <tr>
                 <th>Etap</th>
@@ -429,7 +429,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                 <tr key={r.label}>
                   <td data-l="Etap">{r.label}</td>
                   {SEGMENTS.map((s) => (
-                    <td key={s} data-l={{ all: "Wszyscy", google: "Google", facebook: "Facebook", ref: "z polecenia", m: "telefon", d: "komputer" }[s]}>
+                    <td key={s} className={s === "all" || s === "google" || s === "facebook" ? "key" : undefined} data-l={{ all: "Wszyscy", google: "Google", facebook: "Facebook", ref: "z polecenia", m: "telefon", d: "komputer" }[s]}>
                       {r.c[s]}
                       {pct(r.c[s], funnelBase[s])}
                     </td>
