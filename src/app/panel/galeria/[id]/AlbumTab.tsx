@@ -722,10 +722,20 @@ export default function AlbumTab({
         </>
       )}
       {editing && (() => {
-        const sp = project.spreads.find((x) => x.id === editing);
+        const at = project.spreads.findIndex((x) => x.id === editing);
+        const sp = project.spreads[at];
         if (!sp) return null;
+        const prev = project.spreads[at - 1];
+        const next = project.spreads[at + 1];
         return (
           <SpreadEditor
+            key={sp.id}
+            nav={{
+              index: at,
+              total: project.spreads.length,
+              onPrev: prev ? () => setEditing(prev.id) : undefined,
+              onNext: next ? () => setEditing(next.id) : undefined,
+            }}
             spread={sp}
             project={project}
             byName={byName}

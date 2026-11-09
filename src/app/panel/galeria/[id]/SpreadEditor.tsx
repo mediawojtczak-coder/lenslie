@@ -25,6 +25,7 @@ export default function SpreadEditor({
   onChange,
   onClose,
   onRemovePhoto,
+  nav,
 }: {
   spread: Spread;
   project: AlbumProject;
@@ -33,6 +34,8 @@ export default function SpreadEditor({
   onChange: (s: Spread) => void;
   onClose: () => void;
   onRemovePhoto: (index: number) => void;
+  // przejście do poprzedniej / następnej rozkładówki bez zamykania edytora
+  nav?: { index: number; total: number; onPrev?: () => void; onNext?: () => void };
 }) {
   const lang = useLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
@@ -47,10 +50,14 @@ export default function SpreadEditor({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      const tg = e.target as HTMLElement | null;
+      if (tg?.closest?.("input, textarea, select")) return;
+      if ((e.key === "ArrowLeft" || e.key === "PageUp") && nav?.onPrev) nav.onPrev();
+      if ((e.key === "ArrowRight" || e.key === "PageDown") && nav?.onNext) nav.onNext();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, nav]);
 
   const setSlot = (i: number, patch: Partial<Slot>) =>
     onChange({ ...cur.current, slots: cur.current.slots.map((s, k) => (k === i ? { ...s, ...patch } : s)) });
@@ -260,12 +267,35 @@ export default function SpreadEditor({
             {t("Usuń zdjęcie", "Remove photo")}
           </button>
         </div>
+        {nav && (
+          <div className="spe-pager">
+            <button type="button" onClick={nav.onPrev} disabled={!nav.onPrev} aria-label={t("Poprzednia rozkładówka", "Previous spread")} title={t("Poprzednia (←)", "Previous (←)")}>
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+            <span>
+              {t("Rozkładówka", "Spread")} {nav.index + 1} / {nav.total}
+            </span>
+            <button type="button" onClick={nav.onNext} disabled={!nav.onNext} aria-label={t("Następna rozkładówka", "Next spread")} title={t("Następna (→)", "Next (→)")}>
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+          </div>
+        )}
         <button type="button" className="btn btn-dark spe-done" onClick={onClose}>
           {t("Gotowe", "Done")}
         </button>
       </div>
 
       <div className="spe-stage" onPointerDown={() => setSel(null)}>
+        {nav?.onPrev && (
+          <button type="button" className="spe-side prev" onPointerDown={(e) => e.stopPropagation()} onClick={nav.onPrev} aria-label={t("Poprzednia rozkładówka", "Previous spread")}>
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+        )}
+        {nav?.onNext && (
+          <button type="button" className="spe-side next" onPointerDown={(e) => e.stopPropagation()} onClick={nav.onNext} aria-label={t("Następna rozkładówka", "Next spread")}>
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+        )}
         <div
           ref={box}
           className={`spe-box${cropMode ? " crop" : ""}`}

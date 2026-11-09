@@ -2365,7 +2365,16 @@ main.pf { max-width: none; margin: 0; padding: 0; min-height: 100vh; }
 .spe-zoom { display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; color: #cfc6be; padding: 0 6px; }
 .spe-zoom input { width: 120px; accent-color: #c9a87c; margin: 0; padding: 0; border: 0; }
 .spe-done { margin: 0; background: #c9a87c; border-color: #c9a87c; color: #231e1b; }
-.spe-stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 28px; min-height: 0; overflow: auto; }
+.spe-stage { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; padding: 28px 64px; min-height: 0; overflow: auto; }
+/* przejście do poprzedniej / następnej rozkładówki */
+.spe-pager { display: flex; align-items: center; gap: 6px; margin-left: auto; margin-right: 14px; font-size: .85rem; color: rgba(243, 238, 233, .75); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.spe-pager button { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(243, 238, 233, .25); background: none; color: inherit; cursor: pointer; }
+.spe-pager button:hover:not(:disabled) { border-color: #c9a87c; color: #fff; }
+.spe-pager button:disabled { opacity: .3; cursor: default; }
+.spe-side { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 0; background: rgba(243, 238, 233, .08); color: rgba(243, 238, 233, .8); cursor: pointer; }
+.spe-side:hover { background: rgba(201, 168, 124, .3); color: #fff; }
+.spe-side.prev { left: 10px; }
+.spe-side.next { right: 10px; }
 .spe-box { position: relative; width: min(100%, calc((100vh - 200px) * 2)); max-height: 100%; touch-action: none; user-select: none; }
 .spe-box .alb-canvas { width: 100%; box-shadow: 0 40px 80px -40px rgba(0, 0, 0, .8); }
 .spe-box .alb-slot { cursor: move; }
