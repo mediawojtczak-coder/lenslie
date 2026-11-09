@@ -40,7 +40,7 @@ import { isAdminEmail } from "@/lib/supabase/admin";
 import ProGalleryBar from "./ProGalleryBar";
 import YouTubeCard from "./YouTubeCard";
 import { ytAllowed } from "@/lib/youtube";
-import { getProSub, proActive, proTier, proName, proBytes, proUsage } from "@/lib/pro";
+import { getProSub, proActive, proTier, proName, proBytes, proUsedBytes } from "@/lib/pro";
 import type { PlanId } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
@@ -115,11 +115,15 @@ export default async function ZarzadzanieGalerii({
     wmMissing = photos.filter((p) => !wm.has(`${galleryPrefix(id)}wm/${p.name}.jpg`)).map((p) => p.name);
   }
 
-  const pool = proT && user && (proOn || meta?.plan === "pro") ? await proUsage(user.id).catch(() => null) : null;
+  // Pula miejsca Pro: wynik zapamiętany na 10 minut (pełne liczenie przegląda pliki wszystkich galerii fotografa)
+  const [poolBytes, customCover] = await Promise.all([
+    proT && user && (proOn || meta?.plan === "pro") ? proUsedBytes(user.id).catch(() => null) : Promise.resolve(null),
+    meta?.coverFile ? customCoverUrl(id).catch(() => null) : Promise.resolve(null),
+  ]);
+  const pool = poolBytes === null ? null : { bytes: poolBytes };
   const metaExpired = Boolean(meta?.expiresAt && new Date(meta.expiresAt).getTime() < Date.now());
 
   const cover = pickCover(photos, meta?.cover);
-  const customCover = meta?.coverFile ? await customCoverUrl(id).catch(() => null) : null;
 
   const selectionCount = selCount.count;
 

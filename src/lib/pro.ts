@@ -168,6 +168,9 @@ async function cachedUsage(uid: string): Promise<number> {
   return bytes;
 }
 
+// Zajęte miejsce do wyświetlenia w panelu (z pamięci na 10 minut – bez przeglądania wszystkich galerii przy każdym otwarciu)
+export const proUsedBytes = (uid: string) => cachedUsage(uid);
+
 const saveUsage = (uid: string, c: CachedUsage) =>
   r2.send(new PutObjectCommand({ Bucket: BUCKET, Key: usageKey(uid), Body: JSON.stringify(c), ContentType: "application/json" })).catch(() => undefined);
 

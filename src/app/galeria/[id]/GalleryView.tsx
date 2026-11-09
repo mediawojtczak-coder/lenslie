@@ -60,25 +60,26 @@ export default async function GalleryView({
   const theme: ThemeId = themeOverride ?? (isThemeId(meta?.theme) ? meta!.theme! : "classic");
   const watermark = watermarkOn(meta) ? meta!.watermark!.text : null;
 
-  const brand = await getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null }));
-
-  let error = false;
-  let photos: Photo[] = [];
-  try {
-    photos = applyOrder(await getGalleryPhotos(id, { watermark: Boolean(watermark) }), meta?.order);
-    // Zdjęcie bez nałożonego znaku wodnego (np. świeżo z Lightrooma) czeka, aż panel je zabezpieczy
-    if (watermark && !preview) photos = photos.filter((p) => p.watermarked !== false);
-  } catch {
-    error = true;
-  }
-
-  // Sprzedaż zdjęć: klient pobiera tylko zdjęcia z dostarczonego zamówienia
+  // Studio fotografa, zdjęcia i ulubione klienta pobieramy równolegle (wcześniej po kolei)
   const selling = saleOn(meta);
   const store = await cookies();
-  const sel =
+  const [brand, photosRes, sel] = await Promise.all([
+    getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null })),
+    getGalleryPhotos(id, { watermark: Boolean(watermark) }).then(
+      (list) => ({ ok: true as const, list }),
+      () => ({ ok: false as const, list: [] as Photo[] }),
+    ),
     mode === "client" && !preview && adminClient()
-      ? await getSelection(id, store.get(selectionCookie(id))?.value).catch(() => null)
-      : null;
+      ? getSelection(id, store.get(selectionCookie(id))?.value).catch(() => null)
+      : Promise.resolve(null),
+  ]);
+
+  const error = !photosRes.ok;
+  let photos: Photo[] = applyOrder(photosRes.list, meta?.order);
+  // Zdjęcie bez nałożonego znaku wodnego (np. świeżo z Lightrooma) czeka, aż panel je zabezpieczy
+  if (watermark && !preview) photos = photos.filter((p) => p.watermarked !== false);
+
+  // Sprzedaż zdjęć: klient pobiera tylko zdjęcia z dostarczonego zamówienia
   const order: SaleOrder | null = selling && sel ? await getSaleOrder(id, sel.id).catch(() => null) : null;
   const unlocked = new Set(order?.status === "delivered" ? order.photos : []);
   const clean = new Map<string, Photo>();
