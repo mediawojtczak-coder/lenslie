@@ -41,9 +41,21 @@ export default function Lightbox({
   const [drag, setDrag] = useState({ x: 0, y: 0 });
   const [anim, setAnim] = useState(false);
   // powiększenie: skala + przesunięcie obrazu (px)
-  const [zoom, setZoomState] = useState({ s: 1, x: 0, y: 0 });
+  const [zoom, setZoomRaw] = useState({ s: 1, x: 0, y: 0 });
+  // płynne przejście tylko przy powiększeniu stuknięciem / przyciskiem (przy szczypaniu obraz idzie za palcami)
+  const [zAnim, setZAnim] = useState(false);
+  const zTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setZoomState = setZoomRaw;
+  const setZoomSmooth = useCallback((z: { s: number; x: number; y: number }) => {
+    setZAnim(true);
+    setZoomRaw(z);
+    if (zTimer.current) clearTimeout(zTimer.current);
+    zTimer.current = setTimeout(() => setZAnim(false), 280);
+  }, []);
   const [ui, setUi] = useState(true);
   const [ready, setReady] = useState<Set<string>>(() => new Set());
+  // po powiększeniu podmieniamy zdjęcie na pełną rozdzielczość (jeśli klient może ją pobierać) – ostre szczegóły
+  const [hi, setHi] = useState<Set<string>>(() => new Set());
   const busy = useRef(false);
   const lastTouch = useRef(0);
   const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -77,9 +89,9 @@ export default function Lightbox({
       const r = img.getBoundingClientRect();
       const ox = cx - (r.left + r.width / 2);
       const oy = cy - (r.top + r.height / 2);
-      setZoomState(clampZoom(s, -ox * (s - 1), -oy * (s - 1)));
+      setZoomSmooth(clampZoom(s, -ox * (s - 1), -oy * (s - 1)));
     },
-    [clampZoom],
+    [clampZoom, setZoomSmooth],
   );
 
   // przejście do sąsiedniego zdjęcia z animacją przesunięcia
@@ -148,6 +160,18 @@ export default function Lightbox({
     if (playing) a.play().catch(() => undefined);
     else a.pause();
   }, [playing]);
+
+  // pełna rozdzielczość dociąga się w tle dopiero przy powiększeniu
+  useEffect(() => {
+    if (!zoomed || !allowDownload || !item?.downloadUrl || hi.has(item.url)) return;
+    const img = new Image();
+    const key = item.url;
+    img.onload = () => setHi((h) => new Set(h).add(key));
+    img.src = item.downloadUrl;
+    return () => {
+      img.onload = null;
+    };
+  }, [zoomed, allowDownload, item, hi]);
 
   if (!item) return null;
 
@@ -228,7 +252,7 @@ export default function Lightbox({
       if (prev && now - prev.t < 300 && Math.hypot(end.clientX - prev.x, end.clientY - prev.y) < 40) {
         if (tapTimer.current) clearTimeout(tapTimer.current);
         lastTap.current = null;
-        if (zoomed) setZoomState({ s: 1, x: 0, y: 0 });
+        if (zoomed) setZoomSmooth({ s: 1, x: 0, y: 0 });
         else zoomAt(end.clientX, end.clientY);
       } else {
         lastTap.current = { t: now, x: end.clientX, y: end.clientY };
@@ -242,7 +266,7 @@ export default function Lightbox({
   // komputer: kliknięcie w zdjęcie powiększa w tym miejscu, ponowne – pomniejsza
   function onImgClick(e: React.MouseEvent<HTMLImageElement>) {
     if (Date.now() - lastTouch.current < 700) return;
-    if (zoomed) setZoomState({ s: 1, x: 0, y: 0 });
+    if (zoomed) setZoomSmooth({ s: 1, x: 0, y: 0 });
     else zoomAt(e.clientX, e.clientY, 2.2);
   }
 
@@ -297,7 +321,7 @@ export default function Lightbox({
               lang={lang}
             />
           )}
-          <button type="button" className="lb-btn" onClick={() => (zoomed ? setZoomState({ s: 1, x: 0, y: 0 }) : zoomAt(window.innerWidth / 2, window.innerHeight / 2, 2.2))} aria-label={zoomed ? t.shrink : t.enlarge} title={zoomed ? t.shrink : t.enlarge}>
+          <button type="button" className="lb-btn" onClick={() => (zoomed ? setZoomSmooth({ s: 1, x: 0, y: 0 }) : zoomAt(window.innerWidth / 2, window.innerHeight / 2, 2.2))} aria-label={zoomed ? t.shrink : t.enlarge} title={zoomed ? t.shrink : t.enlarge}>
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
               <path d={zoomed ? "M8.5 11h5M20 20l-4.5-4.5" : "M8.5 11h5M11 8.5v5M20 20l-4.5-4.5"} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -324,11 +348,11 @@ export default function Lightbox({
               <div key={n >= 3 ? it.url : `p${pos}`} className={cur ? "lb-slide cur" : "lb-slide"} style={{ transform: `translateX(${pos * 100}%)` }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={it.url}
+                  src={allowDownload && it.downloadUrl && hi.has(it.url) ? it.downloadUrl : it.url}
                   alt={cur ? it.name : ""}
                   aria-hidden={cur ? undefined : true}
-                  className={ready.has(it.url) ? "lb-img ready" : "lb-img"}
-                  style={cur && zoomed ? { transform: `translate3d(${zoom.x}px, ${zoom.y}px, 0) scale(${zoom.s})` } : undefined}
+                  className={`lb-img${ready.has(it.url) ? " ready" : ""}${cur && zAnim ? " zanim" : ""}`}
+                  style={cur && zoomed ? { transform: `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.s})` } : undefined}
                   onLoad={() => setReady((r) => (r.has(it.url) ? r : new Set(r).add(it.url)))}
                   onClick={cur ? onImgClick : undefined}
                   onContextMenu={allowDownload ? undefined : (e) => e.preventDefault()}

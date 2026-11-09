@@ -611,14 +611,15 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
 .lb-btn:hover { background: rgba(255, 255, 255, .1); color: #fff; }
 .lb-stage { position: absolute; inset: 0; overflow: hidden; }
 /* taśma: poprzednie, bieżące i następne zdjęcie obok siebie – przesuwa się za palcem */
-.lb-track { position: absolute; inset: 0; will-change: transform; }
+.lb-track { position: absolute; inset: 0; }
 .lb-track.anim { transition: transform .26s cubic-bezier(.2, .8, .2, 1); }
 .lb-slide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 64px 72px; }
 .lb-img {
   max-width: 100%; max-height: 100%; object-fit: contain; cursor: zoom-in; user-select: none; -webkit-user-drag: none;
-  opacity: 0; transition: opacity .3s ease-out, transform .25s ease-out;
+  opacity: 0; transition: opacity .3s ease-out;
 }
 .lb-img.ready { opacity: 1; }
+.lb-img.zanim { transition: opacity .3s ease-out, transform .26s cubic-bezier(.2, .8, .2, 1); }
 .lb-stage.zoomed .lb-slide.cur .lb-img { cursor: zoom-out; }
 .lb-nav {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
