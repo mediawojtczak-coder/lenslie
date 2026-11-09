@@ -1,7 +1,7 @@
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
 import type { AlbumProject } from "@/lib/album-layout";
-import { ALBUM_SIZES, ALBUM_STYLES, ALBUM_BGS, ALBUM_FRAMES } from "@/lib/album-layout";
+import { ALBUM_SIZES, ALBUM_STYLES, ALBUM_BGS, ALBUM_FRAMES, ALBUM_LINE_COLORS } from "@/lib/album-layout";
 
 // Projektor albumów – abonament (miesiąc albo rok, z góry) i projekty zapisane przy galerii
 export const ALBUM_PRICES: Record<number, number> = { 1: 39, 12: 290 };
@@ -86,6 +86,7 @@ export async function saveAlbumProject(galleryId: string, raw: unknown): Promise
     style: p.style,
     bg: p.bg,
     frame: ALBUM_FRAMES.includes(p.frame as never) ? p.frame : "none",
+    ...(ALBUM_LINE_COLORS.includes(p.lineColor as never) && p.lineColor !== "auto" ? { lineColor: p.lineColor } : {}),
     blur: num(p.blur) ? Math.min(1, Math.max(0, p.blur!)) : 0.5,
     source: String(p.source ?? "all").slice(0, 80),
     title: String(p.title ?? "").slice(0, 120),

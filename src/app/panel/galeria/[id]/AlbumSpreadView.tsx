@@ -2,7 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 type RPointerEvent<T> = React.PointerEvent<T>;
-import { BG_COLORS, backgroundPhoto, isBlurBg, touches, type AlbumProject, type Spread } from "@/lib/album-layout";
+import { LINE_HEX, BG_COLORS, backgroundPhoto, isBlurBg, touches, type AlbumProject, type Spread } from "@/lib/album-layout";
 
 type Photo = { name: string; url: string };
 
@@ -43,7 +43,7 @@ export default function AlbumSpreadView({
   return (
     <div
       className={`alb-canvas fr-${frameStyle} ${className}`}
-      style={{ background: colors.bg, aspectRatio: `${2 * ratio}`, ["--u" as string]: `${u}cqw`, ["--muted" as string]: colors.muted } as CSSProperties}
+      style={{ background: colors.bg, aspectRatio: `${2 * ratio}`, ["--u" as string]: `${u}cqw`, ["--muted" as string]: colors.muted, ["--line" as string]: project.lineColor && project.lineColor !== "auto" ? LINE_HEX[project.lineColor] : colors.muted } as CSSProperties}
     >
       {isBlurBg(project.bg) && (
         <>

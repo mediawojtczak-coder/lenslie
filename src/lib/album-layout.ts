@@ -9,6 +9,10 @@ export type AlbumStyle = "atelier" | "minimal" | "editorial" | "classic";
 export type AlbumBg = "white" | "ivory" | "black" | "blur-light" | "blur-dark";
 // Wykończenie zdjęć: bez ramki, biała ramka z cieniem (jak odbitka), cienka linia
 export type AlbumFrame = "none" | "white" | "line";
+// Kolor cienkiej linii: stonowany (w kolorze tekstu), biały, złoty, beżowy
+export type AlbumLineColor = "auto" | "white" | "gold" | "beige";
+export const ALBUM_LINE_COLORS: AlbumLineColor[] = ["auto", "white", "gold", "beige"];
+export const LINE_HEX: Record<Exclude<AlbumLineColor, "auto">, string> = { white: "#ffffff", gold: "#c5a46a", beige: "#d8c6aa" };
 
 export type Frame = { x: number; y: number; w: number; h: number };
 // fx, fy – punkt kadru (0–1), gdy zdjęcie jest przycięte; domyślnie środek
@@ -28,6 +32,7 @@ export type AlbumProject = {
   style: AlbumStyle;
   bg: AlbumBg;
   frame?: AlbumFrame;
+  lineColor?: AlbumLineColor;
   blur?: number; // siła rozmycia tła ze zdjęcia, 0–1 (domyślnie 0.5)
   source: string; // id wyboru klienta albo "all"
   title: string;

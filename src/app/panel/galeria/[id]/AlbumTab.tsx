@@ -4,6 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/components/LangProvider";
 import { tr } from "@/lib/lang";
 import {
+  ALBUM_LINE_COLORS,
+  LINE_HEX,
+  type AlbumLineColor,
   ALBUM_FORMATS,
   albumFormat,
   pageRatio,
@@ -291,6 +294,12 @@ export default function AlbumTab({
     none: t("Bez ramki", "No border"),
   };
   const frameStyle = project.frame ?? "none";
+  const lineName: Record<AlbumLineColor, string> = {
+    auto: t("Stonowana", "Subtle"),
+    white: t("Biała", "White"),
+    gold: t("Złota", "Gold"),
+    beige: t("Beżowa", "Beige"),
+  };
   // nowy format: te same zdjęcia na tych samych rozkładówkach, układy dopasowane do proporcji strony
   function changeFormat(size: string) {
     const r = pageRatio(size);
@@ -455,6 +464,22 @@ export default function AlbumTab({
                 </button>
               ))}
             </div>
+            {frameStyle === "line" && (
+              <div className="alb-swatches alb-lines">
+                {ALBUM_LINE_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    title={lineName[c]}
+                    aria-label={lineName[c]}
+                    className={(project.lineColor ?? "auto") === c ? "on" : ""}
+                    style={{ borderColor: c === "auto" ? BG_COLORS[project.bg].muted : LINE_HEX[c], background: c === "white" ? "#3a3532" : "#fff" }}
+                    onClick={() => update({ lineColor: c })}
+                  />
+                ))}
+                <span>{lineName[project.lineColor ?? "auto"]}</span>
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 // Projektor albumów: rozkładówki do druku (JPEG 300 dpi, sRGB, opcjonalnie 3 mm spadu) – generowane w przeglądarce fotografa
-import { BG_COLORS, touches, albumFormat, isBlurBg, backgroundPhoto, type AlbumProject, type Spread } from "@/lib/album-layout";
+import { LINE_HEX, BG_COLORS, touches, albumFormat, isBlurBg, backgroundPhoto, type AlbumProject, type Spread } from "@/lib/album-layout";
 
 export const DPI = 300;
 export const BLEED_CM = 0.3;
@@ -204,7 +204,7 @@ export async function drawSpread(
     // cienka linia w kolorze tekstu, odsunięta od zdjęcia
     if (frame === "line" && !edge) {
       const gap = Math.round(unit * 0.008);
-      ctx.strokeStyle = colors.muted;
+      ctx.strokeStyle = p.lineColor && p.lineColor !== "auto" ? LINE_HEX[p.lineColor] : colors.muted;
       ctx.lineWidth = Math.max(1, unit * 0.0011);
       ctx.strokeRect(X - gap, Y - gap, Wd + 2 * gap, Ht + 2 * gap);
     }
