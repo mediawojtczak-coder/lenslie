@@ -39,6 +39,7 @@ export type AlbumProject = {
   subtitle: string;
   titlePage: boolean;
   bleed: boolean;
+  printPx?: { w: number; h: number } | null; // wymiary pliku wymagane przez drukarnię (px), zamiast spadu 3 mm
   pages?: number | null; // docelowa liczba stron albumu (null = automatycznie)
   spreads: Spread[];
   aspects: Record<string, number>; // szerokość / wysokość zdjęć

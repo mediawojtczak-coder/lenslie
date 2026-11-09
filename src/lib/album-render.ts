@@ -6,15 +6,27 @@ export const BLEED_CM = 0.3;
 
 const pxPerCm = DPI / 2.54;
 
-export function spreadPixels(p: Pick<AlbumProject, "size" | "bleed">) {
-  const b = p.bleed ? BLEED_CM : 0;
+export function spreadPixels(p: Pick<AlbumProject, "size" | "bleed" | "printPx">) {
   const f = albumFormat(p.size);
+  const tw = f.w * 2 * pxPerCm; // rozkładówka bez spadu
+  const th = f.h * pxPerCm;
+  // wymiary pliku podane przez drukarnię (np. nPhoto 7086×3578 px): rozkładówka wpasowana w środek,
+  // nadmiar po bokach i u góry/dołu to spad (osobno w poziomie i w pionie)
+  const px = p.printPx;
+  if (px && px.w > 100 && px.h > 100) {
+    const s = Math.min(px.w / tw, px.h / th);
+    const ux = (tw * s) / 2;
+    const uy = th * s;
+    return { width: px.w, height: px.h, ux, uy, offX: Math.max(0, (px.w - 2 * ux) / 2), offY: Math.max(0, (px.h - uy) / 2) };
+  }
+  const b = p.bleed ? BLEED_CM * pxPerCm : 0;
   return {
-    width: Math.round((f.w * 2 + b * 2) * pxPerCm),
-    height: Math.round((f.h + b * 2) * pxPerCm),
+    width: Math.round(tw + 2 * b),
+    height: Math.round(th + 2 * b),
     ux: f.w * pxPerCm, // piksele na 1 jednostkę w poziomie (= szerokość strony)
     uy: f.h * pxPerCm, // piksele na 1 jednostkę w pionie (= wysokość strony)
-    bleed: Math.round(b * pxPerCm),
+    offX: Math.round(b),
+    offY: Math.round(b),
   };
 }
 
@@ -46,10 +58,10 @@ export function monogram(title: string) {
 }
 
 // Strona tytułowa: na prawej stronie monogram w cienkim kole, imiona i data
-function drawTitle(ctx: CanvasRenderingContext2D, p: AlbumProject, ux: number, uy: number, off: number, font: string) {
+function drawTitle(ctx: CanvasRenderingContext2D, p: AlbumProject, ux: number, uy: number, offX: number, offY: number, font: string) {
   const c = BG_COLORS[p.bg];
-  const cx = off + ux * 1.5;
-  const cy = off + uy * 0.5;
+  const cx = offX + ux * 1.5;
+  const cy = offY + uy * 0.5;
   const unit = Math.min(ux, uy);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -146,7 +158,8 @@ export async function drawSpread(
   const colors = BG_COLORS[p.bg];
   ctx.fillStyle = colors.bg;
   ctx.fillRect(0, 0, dims.width, dims.height);
-  const off = dims.bleed;
+  const offX = dims.offX;
+  const offY = dims.offY;
   const ux = dims.ux;
   const uy = dims.uy;
   const unit = Math.min(ux, uy);
@@ -158,7 +171,7 @@ export async function drawSpread(
   }
 
   if (spread.kind === "title") {
-    drawTitle(ctx, p, ux, uy, off, displayFont());
+    drawTitle(ctx, p, ux, uy, offX, offY, displayFont());
     return;
   }
 
@@ -169,10 +182,10 @@ export async function drawSpread(
     const t = touches(s.frame);
     const edge = t.left || t.top || t.right || t.bottom;
     // zdjęcia przy krawędzi wychodzą na spad
-    const x0 = off + s.frame.x * ux - (t.left ? off : 0);
-    const y0 = off + s.frame.y * uy - (t.top ? off : 0);
-    const x1 = off + (s.frame.x + s.frame.w) * ux + (t.right ? off : 0);
-    const y1 = off + (s.frame.y + s.frame.h) * uy + (t.bottom ? off : 0);
+    const x0 = offX + s.frame.x * ux - (t.left ? offX : 0);
+    const y0 = offY + s.frame.y * uy - (t.top ? offY : 0);
+    const x1 = offX + (s.frame.x + s.frame.w) * ux + (t.right ? offX : 0);
+    const y1 = offY + (s.frame.y + s.frame.h) * uy + (t.bottom ? offY : 0);
     const X = Math.round(x0);
     const Y = Math.round(y0);
     const Wd = Math.round(x1 - x0);
@@ -274,11 +287,11 @@ export async function exportAlbum(
     files.push({ name: `${name}-${fmt.id}-${pad(i + 1)}.jpg`, input: await withDpi(await toJpeg(canvas)) });
     onProgress(i + 1, total);
   }
-  const b = p.bleed ? `, ze spadem ${BLEED_CM * 10} mm z każdej strony` : ", bez spadu";
+  const b = p.printPx ? ", wymiary wg drukarni" : p.bleed ? `, ze spadem ${BLEED_CM * 10} mm z każdej strony` : ", bez spadu";
   const info = [
     `Album ${fmt.w}×${fmt.h} cm – ${total} rozkładówek (${total * 2} stron).`,
     `Każdy plik to rozkładówka ${fmt.w * 2}×${fmt.h} cm${b}: ${dims.width}×${dims.height} px, ${DPI} dpi, sRGB, JPEG.`,
-    p.bleed ? "Spad zostanie obcięty w drukarni – nie umieszczaj ważnych elementów przy samej krawędzi." : "",
+    p.bleed || p.printPx ? "Spad zostanie obcięty w drukarni – nie umieszczaj ważnych elementów przy samej krawędzi." : "",
     "Przygotowano w Lenslie – www.lenslie.com",
   ]
     .filter(Boolean)

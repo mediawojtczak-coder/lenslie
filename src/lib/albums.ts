@@ -93,6 +93,9 @@ export async function saveAlbumProject(galleryId: string, raw: unknown): Promise
     subtitle: String(p.subtitle ?? "").slice(0, 120),
     titlePage: Boolean(p.titlePage),
     bleed: Boolean(p.bleed),
+    ...(p.printPx && num(p.printPx.w) && num(p.printPx.h) && p.printPx.w >= 500 && p.printPx.h >= 500 && p.printPx.w <= 20000 && p.printPx.h <= 20000
+      ? { printPx: { w: Math.round(p.printPx.w), h: Math.round(p.printPx.h) } }
+      : {}),
     pages: num(p.pages) && p.pages! >= 2 && p.pages! <= 400 ? Math.round(p.pages!) : null,
     spreads: p.spreads.map((s) => ({
       id: String(s.id).slice(0, 40),

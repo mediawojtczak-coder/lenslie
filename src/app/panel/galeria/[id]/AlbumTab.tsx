@@ -41,6 +41,13 @@ type Pick = { spread: string; slot: number } | null;
 const MAX_SLOTS = 8;
 
 // Projektor albumów w galerii: projekt z wyboru klienta, prosta edycja i pliki do druku
+// rozkładówka w px przy 300 dpi (z opcjonalnym spadem 3 mm) – punkt wyjścia do wpisania wymiarów z drukarni
+function spreadPx(size: string, bleed: boolean) {
+  const f = albumFormat(size);
+  const b = bleed ? 0.3 : 0;
+  return { w: Math.round(((f.w * 2 + 2 * b) * 300) / 2.54), h: Math.round(((f.h + 2 * b) * 300) / 2.54) };
+}
+
 export default function AlbumTab({
   id,
   galleryTitle,
@@ -294,6 +301,23 @@ export default function AlbumTab({
     none: t("Bez ramki", "No border"),
   };
   const frameStyle = project.frame ?? "none";
+  // wymiary pliku z drukarni: pola tekstowe (żeby dało się wpisywać) i podpowiedź, ile wyjdzie spadu
+  const [labW, setLabW] = useState(String(project.printPx?.w ?? ""));
+  const [labH, setLabH] = useState(String(project.printPx?.h ?? ""));
+  const labNote = (() => {
+    const px = project.printPx;
+    if (!px) return "";
+    const f = albumFormat(project.size);
+    const mm = (v: number) => (v * 25.4) / 300;
+    const s = Math.min(px.w / ((f.w * 2 * 300) / 2.54), px.h / ((f.h * 300) / 2.54));
+    const bx = Math.max(0, (mm(px.w) - f.w * 20 * s) / 2);
+    const by = Math.max(0, (mm(px.h) - f.h * 10 * s) / 2);
+    const r = (v: number) => (Math.round(v * 10) / 10).toLocaleString(lang === "en" ? "en-GB" : "pl-PL");
+    return t(
+      `${r(mm(px.w))}×${r(mm(px.h))} mm przy 300 dpi · spad ${r(bx)} mm po bokach, ${r(by)} mm u góry i dołu`,
+      `${r(mm(px.w))}×${r(mm(px.h))} mm at 300 dpi · bleed ${r(bx)} mm at the sides, ${r(by)} mm top and bottom`,
+    );
+  })();
   const lineName: Record<AlbumLineColor, string> = {
     auto: t("Stonowana", "Subtle"),
     white: t("Biała", "White"),
@@ -509,10 +533,54 @@ export default function AlbumTab({
               <input className="alb-text" value={project.subtitle} maxLength={120} onChange={(e) => update({ subtitle: e.target.value })} placeholder={t("np. 14 września 2026", "e.g. 14 September 2026")} />
             </>
           )}
-          <label className="check alb-check">
-            <input type="checkbox" checked={project.bleed} onChange={(e) => update({ bleed: e.target.checked })} />
-            {t("Spad 3 mm", "3 mm bleed")}
+          {!project.printPx && (
+            <label className="check alb-check">
+              <input type="checkbox" checked={project.bleed} onChange={(e) => update({ bleed: e.target.checked })} />
+              {t("Spad 3 mm", "3 mm bleed")}
+            </label>
+          )}
+          <label className="check alb-check" title={t("Wpisz wymiary pliku podane przez drukarnię, np. nPhoto 7086×3578 px", "Enter the file size required by your lab")}>
+            <input
+              type="checkbox"
+              checked={Boolean(project.printPx)}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  const d = spreadPx(project.size, true);
+                  update({ printPx: { w: d.w, h: d.h } });
+                  setLabW(String(d.w));
+                  setLabH(String(d.h));
+                } else update({ printPx: null });
+              }}
+            />
+            {t("Wymiary z drukarni", "Lab file size")}
           </label>
+          {project.printPx && (
+            <span className="alb-labpx">
+              <input
+                inputMode="numeric"
+                value={labW || String(project.printPx.w)}
+                aria-label={t("Szerokość pliku (px)", "File width (px)")}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 5);
+                  setLabW(v);
+                  if (Number(v) >= 500) update({ printPx: { w: Number(v), h: project.printPx!.h } });
+                }}
+              />
+              ×
+              <input
+                inputMode="numeric"
+                value={labH || String(project.printPx.h)}
+                aria-label={t("Wysokość pliku (px)", "File height (px)")}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 5);
+                  setLabH(v);
+                  if (Number(v) >= 500) update({ printPx: { w: project.printPx!.w, h: Number(v) } });
+                }}
+              />
+              px
+              <small>{labNote}</small>
+            </span>
+          )}
         </div>
 
         <div className="alb-actions">
@@ -667,8 +735,8 @@ export default function AlbumTab({
             <h2>{t("Pliki do drukarni", "Print files")}</h2>
             <p className="hint-inline">
               {t(
-                `Każda rozkładówka jako osobny plik JPEG ${fmt.w * 2}×${fmt.h} cm, 300 dpi, sRGB${project.bleed ? ", ze spadem 3 mm" : ""} – z oryginałów zdjęć, w jednym pliku ZIP.`,
-                `Each spread as a separate ${fmt.w * 2}×${fmt.h} cm JPEG, 300 dpi, sRGB${project.bleed ? ", with 3 mm bleed" : ""} – from the original photos, in one ZIP file.`,
+                `Każda rozkładówka jako osobny plik JPEG ${fmt.w * 2}×${fmt.h} cm, 300 dpi, sRGB${project.printPx ? `, ${project.printPx.w}×${project.printPx.h} px wg drukarni` : project.bleed ? ", ze spadem 3 mm" : ""} – z oryginałów zdjęć, w jednym pliku ZIP.`,
+                `Each spread as a separate ${fmt.w * 2}×${fmt.h} cm JPEG, 300 dpi, sRGB${project.printPx ? `, ${project.printPx.w}×${project.printPx.h} px as required by the lab` : project.bleed ? ", with 3 mm bleed" : ""} – from the original photos, in one ZIP file.`,
               )}
             </p>
             {active ? (
