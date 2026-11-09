@@ -2967,3 +2967,11 @@ html.nav-busy body {
   .rmp-how, .rmp-list { padding: 24px 20px; }
   .rmp-rows .fsp-thumb { width: 56px; height: 56px; }
 }
+
+/* Zapis zdjęcia do galerii telefonu (systemowe „Zapisz obraz”) */
+.dl-spin { animation: dl-spin .8s linear infinite; }
+@keyframes dl-spin { to { transform: rotate(360deg); } }
+.lb-btn.dl-ready { position: relative; background: #c9ab78; color: #1d1a18; animation: dl-pulse 1.4s ease-in-out infinite; }
+.pa-btn.dl-ready { color: #9c7a45; }
+@keyframes dl-pulse { 50% { box-shadow: 0 0 0 6px rgba(201, 171, 120, .25); } }
+.dl-ready-tip { position: absolute; top: calc(100% + 8px); right: 0; white-space: nowrap; padding: 6px 10px; border-radius: 8px; background: #fff; color: #1d1a18; font-size: .78rem; box-shadow: 0 8px 24px rgba(0, 0, 0, .3); }

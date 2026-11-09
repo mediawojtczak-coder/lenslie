@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { T, type Lang } from "@/lib/i18n";
+import { canSaveToPhone, cachedPhoto, loadPhoto, sharePhoto } from "@/lib/save-photo";
 
 // Przycisk „Pobierz” z wyborem: pełna rozdzielczość albo lżejsza wersja do internetu
 export default function DownloadMenu({
@@ -21,6 +22,10 @@ export default function DownloadMenu({
   const t = T[lang];
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  // telefon: jedno dotknięcie = zapis do galerii zdjęć (systemowe „Zapisz obraz”)
+  const [phone, setPhone] = useState(false);
+  const [state, setState] = useState<"idle" | "loading" | "ready">("idle");
+  useEffect(() => setPhone(canSaveToPhone()), []);
 
   useEffect(() => {
     if (!open) return;
@@ -40,6 +45,60 @@ export default function DownloadMenu({
       window.removeEventListener("keydown", onKey, true);
     };
   }, [open]);
+
+  if (phone) {
+    const url = fullUrl ?? webUrl;
+    const size = variant === "tile" ? 22 : 20;
+    async function save() {
+      const ready = cachedPhoto(url);
+      if (ready) {
+        const r = await sharePhoto(ready);
+        setState(r === "needs-tap" ? "ready" : "idle");
+        if (r === "failed") window.location.href = url;
+        return;
+      }
+      if (state === "loading") return;
+      setState("loading");
+      try {
+        const file = await loadPhoto(url, fileName);
+        const r = await sharePhoto(file);
+        setState(r === "needs-tap" ? "ready" : "idle");
+        if (r === "failed") window.location.href = url;
+      } catch {
+        // plik nie dał się pobrać w tle – zwykłe pobieranie jak dotąd
+        setState("idle");
+        window.location.href = url;
+      }
+    }
+    const label = state === "ready" ? t.tapToSave : t.saveToPhone;
+    return (
+      <div className={`dl-menu dl-${variant}`}>
+        <button
+          type="button"
+          className={`${variant === "tile" ? "pa-btn" : "lb-btn"}${state === "loading" ? " dl-busy" : ""}${state === "ready" ? " dl-ready" : ""}`}
+          onClick={save}
+          data-track={state === "ready" ? undefined : "download"}
+          data-photo={fileName}
+          aria-label={`${label}: ${fileName}`}
+          aria-busy={state === "loading"}
+          title={label}
+        >
+          {state === "loading" ? (
+            <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="dl-spin">
+              <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeOpacity=".25" strokeWidth="1.6" />
+              <path d="M12 4a8 8 0 0 1 8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+              <path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+          {variant === "tile" && <span>{state === "ready" ? t.tapToSave : t.download}</span>}
+          {variant === "lightbox" && state === "ready" && <span className="dl-ready-tip">{t.tapToSave}</span>}
+        </button>
+      </div>
+    );
+  }
 
   if (!fullUrl) {
     return (
