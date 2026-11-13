@@ -32,7 +32,7 @@ import ClientExtendCard from "./ClientExtendCard";
 import ThemeCard from "./ThemeCard";
 import FacesCard from "./FacesCard";
 import { FACES_PRICE } from "@/lib/faces";
-import { THEMES, getOwnedThemes, type ThemeId } from "@/lib/themes";
+import { THEMES, getOwnedThemes, themesFreeFor, type ThemeId } from "@/lib/themes";
 import { getPayout } from "@/lib/sales";
 import AlbumTab from "./AlbumTab";
 import { getAlbumProject, getAlbumSub, albumActive, albumAllowed, freeAlbumFor } from "@/lib/albums";
@@ -87,7 +87,7 @@ export default async function ZarzadzanieGalerii({
   // Abonament Pro: galerie bez opłat, wspólna pula miejsca, dodatki w cenie
   const proOn = proActive(proSub);
   const proT = proSub ? proTier(proSub.tier) : undefined;
-  const ownedThemes = proOn ? THEMES.map((th) => th.id) : ownedThemesRaw;
+  const ownedThemes = proOn || themesFreeFor(user?.email) ? THEMES.map((th) => th.id) : ownedThemesRaw;
   const hasPayout = Boolean(payout);
   const data = galleryRow.data;
   if (!data) notFound();

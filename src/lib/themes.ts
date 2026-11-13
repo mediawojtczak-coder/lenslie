@@ -12,6 +12,10 @@ export const THEMES: Theme[] = [
   { id: "rustic", name: "Rustykalny ślubny", nameEn: "Rustic wedding", desc: "Kremowy papier, odręczne litery, szałwia", descEn: "Cream paper, handwritten type, sage", price: 19, swatch: ["#f5eee3", "#4a3b2e", "#a9b39a"] },
 ];
 
+// Konta, które mają wszystkie motywy za darmo (prezent od Lenslie)
+const FREE_THEME_EMAILS = ["damian.sikora.fotograf@gmail.com"];
+export const themesFreeFor = (email?: string | null) => Boolean(email && FREE_THEME_EMAILS.includes(email.trim().toLowerCase()));
+
 export const isThemeId = (v: unknown): v is ThemeId => THEMES.some((t) => t.id === v);
 export const getTheme = (id?: string) => THEMES.find((t) => t.id === id) ?? THEMES[0];
 
@@ -33,8 +37,8 @@ export async function addOwnedTheme(uid: string, id: ThemeId) {
   await r2.send(new PutObjectCommand({ Bucket: BUCKET, Key: key(uid), Body: JSON.stringify({ owned: [...owned, id] }), ContentType: "application/json" }));
 }
 
-export async function ownsTheme(uid: string, id: ThemeId) {
-  if (getTheme(id).price === 0 || (await getOwnedThemes(uid)).includes(id)) return true;
+export async function ownsTheme(uid: string, id: ThemeId, email?: string | null) {
+  if (getTheme(id).price === 0 || themesFreeFor(email) || (await getOwnedThemes(uid)).includes(id)) return true;
   // abonament Pro: wszystkie motywy w cenie
   const { activePro } = await import("@/lib/pro");
   return Boolean(await activePro(uid));

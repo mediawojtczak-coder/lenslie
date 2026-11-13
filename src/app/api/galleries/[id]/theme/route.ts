@@ -20,13 +20,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const theme = getTheme(body.theme);
 
   if (body.action === "set") {
-    if (!(await ownsTheme(user.id, theme.id))) return NextResponse.json({ error: await E("Najpierw kup ten motyw.") }, { status: 402 });
+    if (!(await ownsTheme(user.id, theme.id, user.email))) return NextResponse.json({ error: await E("Najpierw kup ten motyw.") }, { status: 402 });
     meta.theme = theme.id;
     await saveMeta(id, meta);
     return NextResponse.json({ ok: true });
   }
   if (body.action === "buy") {
-    if (await ownsTheme(user.id, theme.id)) {
+    if (await ownsTheme(user.id, theme.id, user.email)) {
       meta.theme = theme.id;
       await saveMeta(id, meta);
       return NextResponse.json({ ok: true });
