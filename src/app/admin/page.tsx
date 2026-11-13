@@ -600,15 +600,15 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             </datalist>
           </div>
           <div>
-            <label htmlFor="gift-amount">Kwota</label>
-            <select id="gift-amount" name="amount" className="plain-select" defaultValue="25">
-              <option value="12">12 zł – galeria Mała na rok</option>
-              <option value="18">18 zł – galeria Średnia na rok</option>
-              <option value="25">25 zł – galeria Duża na rok</option>
-              <option value="99">99 zł – Zdjęcia od gości</option>
-              <option value="50">50 zł</option>
-              <option value="100">100 zł</option>
-            </select>
+            <label htmlFor="gift-amount">Kwota (zł)</label>
+            {/* dowolna kwota; podpowiedzi: 12 Mała, 18 Średnia, 25 Duża na rok, 99 Zdjęcia od gości */}
+            <input id="gift-amount" name="amount" type="text" inputMode="decimal" required placeholder="np. 25 albo 37,50" pattern="[0-9]+([.,][0-9]{1,2})?" list="gift-amounts" autoComplete="off" />
+            <datalist id="gift-amounts">
+              <option value="12">galeria Mała na rok</option>
+              <option value="18">galeria Średnia na rok</option>
+              <option value="25">galeria Duża na rok</option>
+              <option value="99">Zdjęcia od gości</option>
+            </datalist>
           </div>
           <div>
             <label htmlFor="gift-note">Opis w historii salda</label>
