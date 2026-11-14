@@ -13,6 +13,7 @@ import LangSwitch from "@/components/LangSwitch";
 import MenuAutoClose from "@/components/MenuAutoClose";
 import GoogleTag from "@/components/GoogleTag";
 import LookSwitch from "@/components/LookSwitch";
+import PullRefresh from "@/components/PullRefresh";
 import { cookies } from "next/headers";
 import type { Viewport } from "next";
 import "./panel-dark.css";
@@ -89,6 +90,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           </div>
         </details>
       </header>
+      <PullRefresh />
       {children}
       {/* konwersja „Rejestracja Lenslie” – raz, przy przyznaniu prezentu na start */}
       <GoogleTag conversion={Boolean(welcomed)} />

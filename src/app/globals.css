@@ -2994,3 +2994,7 @@ html.nav-busy body {
 .alb-labpx { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: .85rem; color: var(--ink); }
 .alb-labpx input { width: 72px; padding: 6px 8px; border: 1px solid var(--hair); border-radius: 8px; font: inherit; text-align: center; font-variant-numeric: tabular-nums; background: #fff; }
 .alb-labpx small { flex-basis: 100%; color: var(--taupe); font-size: .76rem; }
+
+/* Odświeżanie przeciągnięciem w dół (aplikacja na ekranie głównym) */
+.ptr { position: fixed; top: env(safe-area-inset-top, 0); left: 50%; z-index: 200; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--card, #fff); color: var(--brass); box-shadow: 0 6px 20px rgba(0, 0, 0, .18); pointer-events: none; }
+.ptr-spin { animation: dl-spin .8s linear infinite; }
