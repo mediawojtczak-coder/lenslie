@@ -12,6 +12,9 @@ import { tr, money } from "@/lib/lang";
 import LangSwitch from "@/components/LangSwitch";
 import MenuAutoClose from "@/components/MenuAutoClose";
 import GoogleTag from "@/components/GoogleTag";
+import LookSwitch from "@/components/LookSwitch";
+import { cookies } from "next/headers";
+import "./panel-dark.css";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +25,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
 
   const initial = (user.email ?? "?").charAt(0).toUpperCase();
   // nowe konto: 20 zł na start (raz; przy pierwszym wejściu do panelu, czyli po potwierdzeniu e-maila)
-  const [current, lang] = await Promise.all([getWallet(user.id).catch(() => ({ balance: 0, history: [] })), getLang()]);
+  const [current, lang, jar] = await Promise.all([getWallet(user.id).catch(() => ({ balance: 0, history: [] })), getLang(), cookies()]);
+  const look = jar.get("lenslie_look")?.value === "dark" ? "dark" : "classic";
   const welcomed = await grantWelcome(user.id, user.created_at, current).catch(() => null);
   // pierwszy mail powitalny – razem z prezentem na start (raz)
   if (welcomed && user.email) await sendOnboarding(user.id, user.email, "welcome", lang).catch(() => undefined);
@@ -30,7 +34,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   const t = (pl: string, en: string) => tr(lang, pl, en);
 
   return (
-    <div className="app">
+    <div className={look === "dark" ? "app ui-dark" : "app"}>
       <header className="app-bar">
         <Link href="/panel" className="wordmark">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -68,6 +72,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             {isAdminEmail(user.email) && (
               <Link href="/admin" className="account-link">{t("Panel administratora", "Admin")}</Link>
             )}
+            <LookSwitch initial={look} />
             <div className="account-lang">
               <LangSwitch />
             </div>

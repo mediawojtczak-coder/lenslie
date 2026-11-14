@@ -1,0 +1,180 @@
+/* Panel fotografa – ciemny luksusowy wygląd (przełącznik w menu konta).
+   Część ręczna: paleta i elementy wspólne. Część generowana niżej: jasne tła kart i ciemne napisy z globals.css
+   zamienione na ciemne odpowiedniki (skrypt: zamienia białe tła na --card, pastelowe na przyciemnione,
+   ciemne przyciski na złote). Po większych zmianach w globals.css warto ją odświeżyć. */
+.app.ui-dark {
+  color-scheme: dark;
+  --paper: #11100e;
+  --card: #1a1715;
+  --card-2: #221e1b;
+  --ink: #ede6dd;
+  --taupe: #9b9087;
+  --hair: #2c2723;
+  --brass: #c9a87c;
+  --accent: #c9a87c;
+  --blush: #231f1c;
+  --blush-deep: #2f2925;
+  --tile-1: #221d1a; --tile-2: #1d211c; --tile-3: #1c1f22; --tile-4: #221f1a; --tile-5: #201d22;
+  min-height: 100vh;
+  background: radial-gradient(1200px 600px at 85% -10%, rgba(201, 168, 124, .07), transparent 60%), var(--paper);
+  color: var(--ink);
+}
+body:has(.app.ui-dark) { background: #11100e; }
+.ui-dark ::selection { background: rgba(201, 168, 124, .35); color: #fff; }
+
+/* górny pasek i boczne menu */
+.ui-dark .app-bar { background: rgba(17, 16, 14, .92); border-bottom-color: var(--hair); backdrop-filter: blur(12px); }
+.ui-dark .wordmark, .ui-dark .wordmark:hover { color: #f4ede4; }
+.ui-dark .app-side { background: transparent; border-right-color: var(--hair); }
+.ui-dark .side-link { color: #cfc5bb; }
+.ui-dark .side-link:hover { background: var(--card-2); color: #fff; }
+.ui-dark .side-link.active { background: linear-gradient(90deg, rgba(201, 168, 124, .16), rgba(201, 168, 124, .04)); color: #f1d9b0; box-shadow: inset 2px 0 0 var(--accent); }
+.ui-dark .wallet-chip { border-color: rgba(201, 168, 124, .45); color: #e8cfa3; }
+.ui-dark .wallet-chip:hover { background: rgba(201, 168, 124, .12); }
+.ui-dark .avatar { background: linear-gradient(135deg, #d8bb8b, #a88452); color: #17130f; }
+.ui-dark .account-menu { border: 1px solid var(--hair); box-shadow: 0 24px 60px -20px rgba(0, 0, 0, .8); }
+.ui-dark .account-link:hover { color: #e3c796; }
+
+/* karty, pola, przyciski */
+.ui-dark .settings-card, .ui-dark .g-card, .ui-dark .empty-state, .ui-dark .stat-tile { border: 1px solid var(--hair); box-shadow: 0 1px 0 rgba(255, 255, 255, .02) inset, 0 18px 40px -28px rgba(0, 0, 0, .9); }
+.ui-dark h1, .ui-dark h2, .ui-dark h3 { color: #f4ede4; }
+.ui-dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .ui-dark select, .ui-dark textarea {
+  background-color: #151311; color: var(--ink); border-color: var(--hair);
+}
+.ui-dark input::placeholder, .ui-dark textarea::placeholder { color: #6f665f; }
+.ui-dark input:focus, .ui-dark select:focus, .ui-dark textarea:focus { border-color: rgba(201, 168, 124, .6); outline: none; }
+.ui-dark input[type="checkbox"], .ui-dark input[type="radio"], .ui-dark input[type="range"] { accent-color: var(--accent); }
+.ui-dark .btn { background: var(--card-2); border-color: var(--hair); color: var(--ink); }
+.ui-dark .btn:hover { background: #2a2521; border-color: #3a332d; color: #fff; }
+.ui-dark .btn-ghost { background: transparent; border-color: #3a332d; }
+.ui-dark .btn-dark, .ui-dark .btn-dark:hover { background: linear-gradient(180deg, #d4b588, #bb9764); border-color: #c9a87c; color: #17130f; }
+.ui-dark .btn-dark:hover { filter: brightness(1.06); }
+.ui-dark .as-link, .ui-dark .link-quiet { color: #d9bf93; }
+.ui-dark hr { border-color: var(--hair); }
+
+/* Wybór wyglądu w menu konta */
+.ui-look { margin: 10px 0 4px; padding-top: 10px; border-top: 1px solid var(--hair); }
+.ui-look p { margin: 0 0 6px !important; font-size: .72rem !important; letter-spacing: .14em; text-transform: uppercase; color: var(--taupe) !important; }
+.ui-look-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ui-look-opts button { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border: 1px solid var(--hair); border-radius: 8px; background: transparent; font: inherit; font-size: .82rem; color: var(--ink); cursor: pointer; text-align: left; }
+.ui-look-opts button i { flex: 0 0 auto; width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .15); }
+.ui-look-opts .lk-classic i { background: linear-gradient(135deg, #fdfcfa 50%, #f4e8e3 50%); }
+.ui-look-opts .lk-dark i { background: linear-gradient(135deg, #11100e 50%, #c9a87c 50%); border-color: #c9a87c; }
+.ui-look-opts button.on { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass) inset; }
+/* ===== generowane ===== */
+.ui-dark .photo-dl { background-color: var(--card); }
+.ui-dark .print { background-color: var(--card); }
+.ui-dark .app { background-color: var(--card); }
+.ui-dark .account-menu { background-color: var(--card); }
+.ui-dark .side-link:hover { background-color: var(--card); }
+.ui-dark .g-card { background-color: var(--card); }
+.ui-dark .g-badge { background-color: var(--card); }
+.ui-dark .empty-state { background-color: var(--card); }
+.ui-dark .pick { background-color: var(--card); }
+.ui-dark .share-bar { background-color: var(--card); }
+.ui-dark .dot { background-color: color-mix(in srgb, #9db39a 14%, var(--card)); }
+.ui-dark .manager { background-color: var(--card); }
+.ui-dark .dropzone { background-color: var(--card); }
+.ui-dark .p-tile { background-color: var(--card); }
+.ui-dark .p-del:hover { background-color: var(--card); }
+.ui-dark .settings-card { background-color: var(--card); }
+.ui-dark .btn-danger { background-color: var(--card); border-color: var(--hair); }
+.ui-dark .btn-danger:hover { background-color: color-mix(in srgb, #f5ddd7 14%, var(--card)); border-color: var(--hair); }
+.ui-dark .share-card { background-color: var(--card); }
+.ui-dark .dl-pop { background-color: var(--card); }
+.ui-dark .plan { background-color: var(--card); }
+.ui-dark .period-switch { background-color: var(--card); }
+.ui-dark .side-logout button:hover { background-color: var(--card); }
+.ui-dark .laptop-base::before { background-color: color-mix(in srgb, #a8a098 14%, var(--card)); }
+.ui-dark .plan-bar { background-color: var(--card); }
+.ui-dark .usage-bar span { background-color: color-mix(in srgb, #9db39a 14%, var(--card)); }
+.ui-dark .usage.warn .usage-bar span { background-color: color-mix(in srgb, #d6a56f 14%, var(--card)); }
+.ui-dark .section-nav { background-color: var(--card); }
+.ui-dark .chip { background-color: var(--card); }
+.ui-dark .select-bar { background-color: var(--card); }
+.ui-dark .p-check span { background-color: var(--card); }
+.ui-dark .warn-inline { background-color: color-mix(in srgb, #fbf3e9 14%, var(--card)); }
+.ui-dark .fav-mark { background-color: var(--card); }
+.ui-dark .fav-bar { background-color: var(--accent); color: #17130f; }
+.ui-dark .fav-bar .fav-send { background-color: var(--card); }
+.ui-dark .selection-note { background-color: var(--card); }
+.ui-dark .stat-tile { background-color: var(--card); }
+.ui-dark .badge-soft { background-color: color-mix(in srgb, #fbf3e9 14%, var(--card)); }
+.ui-dark .legal-draft { background-color: color-mix(in srgb, #fbf3e9 14%, var(--card)); }
+.ui-dark .upload-panel { background-color: var(--card); }
+.ui-dark .up-x { background-color: color-mix(in srgb, #ece7e3 14%, var(--card)); }
+.ui-dark .up-ok { background-color: color-mix(in srgb, #e3ece1 14%, var(--card)); }
+.ui-dark .up-bar { background-color: color-mix(in srgb, #f1ece8 14%, var(--card)); }
+.ui-dark .up-row.done .up-bar span { background-color: color-mix(in srgb, #a9bca5 14%, var(--card)); }
+.ui-dark .btn-dark:hover { background-color: var(--accent); color: #17130f; border-color: var(--accent); }
+.ui-dark .g-badge-draft { background-color: color-mix(in srgb, #f9dfe0 14%, var(--card)); }
+.ui-dark .pub-summary { background-color: var(--card); }
+.ui-dark .pub-plan { background-color: var(--card); }
+.ui-dark .pub-period { background-color: var(--card); }
+.ui-dark .pub-badge { background-color: color-mix(in srgb, #f3e3b8 14%, var(--card)); }
+.ui-dark .pub-line { background-color: var(--card); }
+.ui-dark .preview-banner { background-color: color-mix(in srgb, #f9dfe0 14%, var(--card)); }
+.ui-dark .success-box { background-color: var(--card); color: color-mix(in srgb, #3f5a3b 55%, #f2ece6); }
+.ui-dark .inv-btn { background-color: var(--card); }
+.ui-dark .inv-btn.done { background-color: var(--card); color: color-mix(in srgb, #3f5a3b 55%, #f2ece6); }
+.ui-dark .topup { background-color: var(--card); }
+.ui-dark .pay-short { background-color: color-mix(in srgb, #c98e86 14%, var(--card)); }
+.ui-dark .rem { background-color: var(--card); }
+.ui-dark .rem-tag { background-color: var(--card); }
+.ui-dark .rem-pilne { background-color: var(--card); }
+.ui-dark .rem-wkrótce { background-color: color-mix(in srgb, #fbf3e9 14%, var(--card)); }
+.ui-dark .ref-banner { background-color: var(--card); color: color-mix(in srgb, #3f5a3b 55%, #f2ece6); }
+.ui-dark .domain-box { background-color: var(--card); }
+.ui-dark .sale-card { background-color: var(--card); }
+.ui-dark .order-status { background-color: color-mix(in srgb, #f3e3dc 14%, var(--card)); }
+.ui-dark .order-status.paid { background-color: color-mix(in srgb, #e8eee3 14%, var(--card)); }
+.ui-dark .fav-toast { background-color: var(--card); }
+.ui-dark .qc { background-color: var(--card); }
+.ui-dark .qc-frame { color: var(--ink); }
+.ui-dark .qc-names { color: var(--ink); }
+.ui-dark .qc-date span { background-color: color-mix(in srgb, #c7ad8f 14%, var(--card)); }
+.ui-dark .qc-lead { color: var(--ink); }
+.ui-dark .video-thumb { background-color: var(--accent); color: #17130f; }
+.ui-dark .lx-contact .pf-send { color: var(--ink); }
+.ui-dark .pf-viewport { background-color: var(--card); }
+.ui-dark .fsp-intro { background-color: var(--card); }
+.ui-dark .dom-table code,
+.ui-dark .dom-guide code { background-color: var(--card); }
+.ui-dark .qo-card { background-color: var(--card); }
+.ui-dark .qo-card-frame { color: var(--ink); }
+.ui-dark .qo-names { color: var(--ink); }
+.ui-dark .qo-btn { background-color: var(--accent); color: #17130f; }
+.ui-dark .qo-included { background-color: var(--card); }
+.ui-dark .qo-sell { background-color: var(--accent); color: #17130f; }
+.ui-dark .qo-sell .btn-dark { background-color: color-mix(in srgb, #c9a87c 14%, var(--card)); color: var(--ink); }
+.ui-dark .g-expiry.soon { background-color: color-mix(in srgb, #fbf3ea 14%, var(--card)); }
+.ui-dark .g-expiry.soon .g-expiry-btn { background-color: var(--accent); color: #17130f; border-color: var(--accent); }
+.ui-dark .ext-box { background-color: var(--card); }
+.ui-dark .ext-period { background-color: var(--card); }
+.ui-dark .ext-expired { background-color: var(--card); }
+.ui-dark .lr-steps li { background-color: var(--card); }
+.ui-dark .seg { background-color: var(--card); }
+.ui-dark .prn-prices li { background-color: var(--card); }
+.ui-dark .prn-sum { background-color: var(--card); }
+.ui-dark .feat-more a { background-color: var(--card); }
+.ui-dark .pro-table { background-color: var(--card); }
+.ui-dark .pro-table thead th { background-color: var(--card); }
+.ui-dark .pro-row-pro td,
+.ui-dark .pro-row-pro th { background-color: var(--card); }
+.ui-dark .pro-tier { background-color: var(--card); }
+.ui-dark .pro-move { background-color: var(--card); }
+.ui-dark .g-ig-card { background-color: var(--accent); color: #17130f; }
+.ui-dark .g-ig-play { border-color: var(--hair); }
+.ui-dark .gn-tag.gn-warn { color: color-mix(in srgb, #a0473a 55%, #f2ece6); }
+.ui-dark .mf { background-color: var(--card); }
+.ui-dark .rmp-how { background-color: var(--card); }
+.ui-dark .rmp-warn { background-color: color-mix(in srgb, #fbf4e8 14%, var(--card)); }
+.ui-dark .rmp-list { background-color: var(--card); }
+
+/* poprawki po podglądzie */
+.ui-dark .gn-field input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) { background: transparent; border: 0; }
+.ui-dark .g-action { color: #d9bf93; }
+.ui-dark .g-badge-draft { color: #e9c9b8; }
+.ui-dark .app-search input { background-color: #151311; }
+.account-menu .ui-look-opts button { width: auto; margin: 0; padding: 7px 9px; border: 1px solid var(--hair); text-decoration: none; letter-spacing: 0; text-transform: none; }
+.account-menu .ui-look-opts button.on { border-color: var(--brass); }
