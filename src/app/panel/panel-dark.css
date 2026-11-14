@@ -19,7 +19,7 @@
   background: radial-gradient(1200px 600px at 85% -10%, rgba(201, 168, 124, .07), transparent 60%), var(--paper);
   color: var(--ink);
 }
-body:has(.app.ui-dark) { background: #11100e; }
+html:has(.app.ui-dark), body:has(.app.ui-dark) { background: #11100e; }
 .ui-dark ::selection { background: rgba(201, 168, 124, .35); color: #fff; }
 
 /* górny pasek i boczne menu */

@@ -15,6 +15,8 @@ export default function LookSwitch({ initial }: { initial: "classic" | "dark" })
     if (l === look) return;
     setLook(l);
     document.querySelector(".app")?.classList.toggle("ui-dark", l === "dark");
+    // pasek u góry telefonu od razu w kolorze wyglądu
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", l === "dark" ? "#11100e" : "#fdfcfa"));
     await fetch("/api/ui-look", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ look: l }) }).catch(() => undefined);
     router.refresh();
   }

@@ -14,9 +14,16 @@ import MenuAutoClose from "@/components/MenuAutoClose";
 import GoogleTag from "@/components/GoogleTag";
 import LookSwitch from "@/components/LookSwitch";
 import { cookies } from "next/headers";
+import type { Viewport } from "next";
 import "./panel-dark.css";
 
 export const dynamic = "force-dynamic";
+
+// kolor paska telefonu (aplikacja na ekranie głównym i Safari) zgodny z wybranym wyglądem panelu
+export async function generateViewport(): Promise<Viewport> {
+  const jar = await cookies();
+  return { themeColor: jar.get("lenslie_look")?.value === "dark" ? "#11100e" : "#fdfcfa" };
+}
 
 // Wspólna rama panelu fotografa: górny pasek z wyszukiwarką i kontem
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
