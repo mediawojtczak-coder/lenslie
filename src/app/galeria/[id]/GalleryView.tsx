@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getGalleryPhotos, pickCover, applyOrder, getMusicUrl, customCoverUrl, type Photo } from "@/lib/photos";
 import { watermarkOn, type GalleryMeta, type Downloads } from "@/lib/galleries";
-import { getGalleryBrand } from "@/lib/profiles";
+import { getGalleryBrandOnce } from "@/lib/gallery-cache";
 import { adminClient } from "@/lib/supabase/admin";
 import { getSelection, selectionCookie } from "@/lib/selections";
 import { cookies } from "next/headers";
@@ -64,7 +64,7 @@ export default async function GalleryView({
   const selling = saleOn(meta);
   const store = await cookies();
   const [brand, photosRes, sel] = await Promise.all([
-    getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null })),
+    getGalleryBrandOnce(id).catch(() => ({ studioName: null, logoUrl: null })),
     getGalleryPhotos(id, { watermark: Boolean(watermark) }).then(
       (list) => ({ ok: true as const, list }),
       () => ({ ok: false as const, list: [] as Photo[] }),

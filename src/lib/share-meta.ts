@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import { adminClient } from "@/lib/supabase/admin";
-import { getMeta } from "@/lib/galleries";
-import { getGalleryBrand } from "@/lib/profiles";
+import { getMetaOnce, getGalleryBrandOnce } from "@/lib/gallery-cache";
 
 // Podgląd linku do galerii (Instagram, Messenger, WhatsApp, Facebook, SMS):
 // miniatura = okładka galerii, tytuł = „Nazwa studia – Lenslie.com”, opis = nazwa galerii
 export async function galleryShareMeta(id: string, origin: string): Promise<Metadata> {
   const db = adminClient();
   const [meta, brand, row] = await Promise.all([
-    getMeta(id).catch(() => null),
-    getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null })),
+    getMetaOnce(id).catch(() => null),
+    getGalleryBrandOnce(id).catch(() => ({ studioName: null, logoUrl: null })),
     db ? db.from("galleries").select("title").eq("id", id).maybeSingle().then((r) => r.data as { title?: string } | null) : Promise.resolve(null),
   ]);
   const galleryTitle = row?.title?.trim() || "Galeria zdjęć";

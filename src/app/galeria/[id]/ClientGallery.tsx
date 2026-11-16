@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { getGallerySummary } from "@/lib/photos";
 import { isValidGalleryId } from "@/lib/r2";
-import { getMeta, hasAccess, accessCookieName, isExpired, type GalleryMeta } from "@/lib/galleries";
-import { getGalleryBrand } from "@/lib/profiles";
+import { hasAccess, accessCookieName, isExpired, type GalleryMeta } from "@/lib/galleries";
+import { getMetaOnce, getGalleryBrandOnce } from "@/lib/gallery-cache";
 import { getUser } from "@/lib/supabase/server";
 import { T } from "@/lib/i18n";
 import { isThemeId, type ThemeId } from "@/lib/themes";
@@ -25,7 +25,7 @@ export async function ClientGallery({ id, blad, motyw }: { id: string; blad?: st
   let meta: GalleryMeta | null = null;
   let error = false;
   try {
-    meta = await getMeta(id);
+    meta = await getMetaOnce(id);
   } catch {
     error = true;
   }
@@ -66,7 +66,7 @@ export async function ClientGallery({ id, blad, motyw }: { id: string; blad?: st
   if (!error && !preview && !hasAccess(id, meta, cookieStore.get(accessCookieName(id))?.value)) {
     const [summary, brand] = await Promise.all([
       getGallerySummary(id, meta?.cover, meta?.coverFile).catch(() => ({ count: 0, coverUrl: null })),
-      getGalleryBrand(id).catch(() => ({ studioName: null, logoUrl: null })),
+      getGalleryBrandOnce(id).catch(() => ({ studioName: null, logoUrl: null })),
     ]);
     const th = isThemeId(meta?.theme) ? meta!.theme! : "classic";
     return (
