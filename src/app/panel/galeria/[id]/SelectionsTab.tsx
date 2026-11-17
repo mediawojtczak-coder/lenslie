@@ -101,20 +101,53 @@ export default async function SelectionsTab({
             </header>
             {o && (
               <div className="order-box">
-                <p>
-                  <span className={`order-status ${o.status}`}>{statusLabel(o)}</span>
-                  {t("Zamówienie", "Order")} {o.ref}
-                  {" · "}
-                  {o.total > 0 ? `${t("do zapłaty", "to pay")} ${cash(o.total)}` : t("bez dopłaty", "no extra payment")}
-                  <small>
-                    {o.photos.length} {t("zdjęć", "photos")}
-                    {o.included > 0 && ` · ${Math.min(o.photos.length, o.included)} ${t("w pakiecie", "included")}`}
-                    {o.extra > 0 && ` · ${o.extra} × ${cash(o.extraPrice)}`}
-                    {o.total > 0 && ` · ${t("tytuł przelewu kończy się na", "transfer title ends with")} ${o.ref}`}
-                  </small>
-                </p>
-                <OrderActions galleryId={id} selection={r.id} status={o.status} total={o.total} />
-                <ClientLink url={`${siteUrl()}/galeria/${id}/moje/${r.id}`} />
+                <div className="ob-top">
+                  <div className="ob-title">
+                    <span className={`order-status ${o.status}`}>{statusLabel(o)}</span>
+                    <b>
+                      {t("Zamówienie", "Order")} {o.ref}
+                    </b>
+                  </div>
+                  <div className="ob-sum">
+                    <strong>{o.total > 0 ? cash(o.total) : t("bez dopłaty", "no extra payment")}</strong>
+                    {o.total > 0 && <span>{o.status === "ordered" ? t("do zapłaty", "to pay") : t("opłacone", "paid")}</span>}
+                  </div>
+                </div>
+                <dl className="ob-facts">
+                  <div>
+                    <dt>{t("Zdjęcia", "Photos")}</dt>
+                    <dd>{o.photos.length}</dd>
+                  </div>
+                  {o.deliveredPhotos?.length ? (
+                    <div>
+                      <dt>{t("Już udostępnione", "Already delivered")}</dt>
+                      <dd>{o.deliveredPhotos.length}</dd>
+                    </div>
+                  ) : o.included > 0 ? (
+                    <div>
+                      <dt>{t("W pakiecie", "Included")}</dt>
+                      <dd>{Math.min(o.photos.length, o.included)}</dd>
+                    </div>
+                  ) : null}
+                  {o.extra > 0 && (
+                    <div>
+                      <dt>{t("Dodatkowe", "Extra")}</dt>
+                      <dd>
+                        {o.extra} × {cash(o.extraPrice)}
+                      </dd>
+                    </div>
+                  )}
+                  {o.total > 0 && (
+                    <div>
+                      <dt>{t("Tytuł przelewu", "Transfer title")}</dt>
+                      <dd>…{o.ref}</dd>
+                    </div>
+                  )}
+                </dl>
+                <div className="ob-bottom">
+                  <OrderActions galleryId={id} selection={r.id} status={o.status} total={o.total} />
+                  <ClientLink url={`${siteUrl()}/galeria/${id}/moje/${r.id}`} />
+                </div>
               </div>
             )}
             {items.length > 0 && <ReplaceEdited galleryId={id} photos={items.map((p) => ({ name: p.name, fileName: p.fileName }))} edited={edited} />}

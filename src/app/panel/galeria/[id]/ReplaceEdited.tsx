@@ -104,6 +104,9 @@ export default function ReplaceEdited({ galleryId, photos, edited }: { galleryId
           <span>
             {done} / {photos.length} {t("podmienione", "replaced")}
           </span>
+          <i className="rep-mini" aria-hidden="true">
+            <i style={{ width: `${photos.length ? Math.round((done / photos.length) * 100) : 0}%` }} />
+          </i>
         </div>
         <button type="button" className="btn btn-small" disabled={busy || photos.length === 0} onClick={() => input.current?.click()}>
           {t("Podmień na obrobione", "Replace with edited")}
@@ -123,8 +126,8 @@ export default function ReplaceEdited({ galleryId, photos, edited }: { galleryId
       {!plan && done < photos.length && (
         <p className="hint-inline">
           {t(
-            "Wyeksportuj wybrane zdjęcia po obróbce w pełnej rozdzielczości i wskaż je tutaj – dopasujemy je po nazwie pliku. Klient pobierze obrobione wersje.",
-            "Export the selected photos after editing in full resolution and pick them here – we match them by file name. Your client will download the edited versions.",
+            "Wskaż obrobione pliki w pełnej rozdzielczości – dopasujemy je po nazwie.",
+            "Pick the edited full-resolution files – we match them by name.",
           )}
         </p>
       )}

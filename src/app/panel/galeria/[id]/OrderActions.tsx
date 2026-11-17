@@ -50,12 +50,12 @@ export default function OrderActions({
         </button>
       )}
       {status !== "delivered" && (
-        <button type="button" className="btn btn-small" disabled={busy} onClick={() => run("deliver")}>
+        <button type="button" className="btn btn-dark btn-small" disabled={busy} onClick={() => run("deliver")}>
           {t("Udostępnij zdjęcia", "Deliver photos")}
         </button>
       )}
       {status !== "delivered" && (
-        <button type="button" className="as-link" disabled={busy} onClick={() => run("reopen")}>
+        <button type="button" className="as-link ob-undo" disabled={busy} onClick={() => run("reopen")}>
           {t("Cofnij zamówienie", "Undo order")}
         </button>
       )}

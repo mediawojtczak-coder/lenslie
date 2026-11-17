@@ -3043,3 +3043,35 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 /* ciemny motyw: linki w kartach galerii (np. „Pokaż moje”) czytelne na ciemnym tle */
 .gtheme-noir .as-link { color: #d9bf93; text-decoration-color: rgba(217, 191, 147, .5); }
 .gtheme-noir .as-link:hover { color: #f1d9b0; }
+
+/* Zamówienia klientów: uporządkowana karta zamówienia */
+.selection-head { align-items: center; padding-bottom: 16px; margin-bottom: 18px; border-bottom: 1px solid var(--hair); }
+.selection-head .hint-inline { margin: 0; }
+.selection-actions { gap: 8px 18px; }
+.selection-actions .btn-small { padding: 7px 14px; }
+.order-box { display: block; padding: 18px 20px; border: 1px solid var(--hair); background: #fdfbf8; }
+.ob-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ob-title { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.ob-title b { font-weight: 500; font-size: .98rem; }
+.ob-sum { display: flex; align-items: baseline; gap: 8px; }
+.ob-sum strong { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 1.45rem; }
+.ob-sum span { font-size: .78rem; color: var(--taupe); }
+.ob-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px 18px; margin: 14px 0 0; padding: 14px 0 0; border-top: 1px solid var(--hair); }
+.ob-facts div { min-width: 0; }
+.ob-facts dt { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--taupe); }
+.ob-facts dd { margin: 3px 0 0; font-size: .95rem; font-variant-numeric: tabular-nums; }
+.ob-bottom { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--hair); }
+.ob-bottom .order-actions { gap: 10px 14px; }
+.ob-bottom .as-link, .ob-bottom .client-link { margin: 0; font-size: .84rem; color: var(--taupe); }
+.ob-bottom .client-link:hover, .ob-bottom .as-link:hover { color: var(--ink); }
+/* Obrobione zdjęcia: jedna równa linia z postępem */
+.rep { margin: 0 0 18px; padding: 14px 20px; background: #fdfbf8; }
+.rep-head span { display: inline-block; margin-top: 2px; }
+.ui-dark .order-box, .ui-dark .rep { background: var(--card-2); }
+@media (max-width: 700px) {
+  .ob-bottom { flex-direction: column; align-items: flex-start; }
+}
+.rep-head > div { display: grid; gap: 2px; min-width: 200px; }
+.rep-mini { display: block; width: 180px; height: 3px; margin-top: 6px; border-radius: 3px; background: var(--hair); overflow: hidden; }
+.rep-mini i { display: block; height: 100%; background: var(--brass); }
+.rep .hint-inline { font-size: .82rem; margin-top: 8px; }
