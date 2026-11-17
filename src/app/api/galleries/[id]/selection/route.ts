@@ -6,7 +6,7 @@ import { adminClient } from "@/lib/supabase/admin";
 import { getSelection, selectionCookie } from "@/lib/selections";
 import { getOwnerContact } from "@/lib/profiles";
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
-import { saleOn, priceFor, getSaleOrder, saveSaleOrder, getPayoutForGallery, orderRef, type SaleOrder } from "@/lib/sales";
+import { saleOn, priceFor, unlockedPhotos, getSaleOrder, saveSaleOrder, getPayoutForGallery, orderRef, type SaleOrder } from "@/lib/sales";
 import { mailOrderPlaced, paymentLines } from "@/lib/sales-mail";
 
 export const runtime = "nodejs";
@@ -62,7 +62,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const en = meta.lang === "en";
   const existing = saleOn(meta) ? await getSaleOrder(id, sel.id) : null;
-  if (existing && (body.action === "toggle" || body.action === "order")) {
+  // Po udostępnieniu zdjęć klient może domówić kolejne (już pobrane zostają zaznaczone na stałe)
+  const done = new Set(unlockedPhotos(existing));
+  if (existing && existing.status !== "delivered" && (body.action === "toggle" || body.action === "order")) {
     return NextResponse.json(
       { error: en ? "Your order has already been placed." : "Zamówienie zostało już złożone.", code: "ORDERED" },
       { status: 409 },
@@ -72,14 +74,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // Zamówienie zdjęć w galerii ze sprzedażą
   if (body.action === "order") {
     if (!saleOn(meta)) return NextResponse.json({ error: en ? "Ordering is not enabled." : "Zamawianie nie jest włączone." }, { status: 400 });
-    const photos = sel.photos ?? [];
-    if (photos.length === 0) return NextResponse.json({ error: en ? "Choose at least one photo." : "Wybierz co najmniej jedno zdjęcie." }, { status: 400 });
+    const photos = [...new Set([...done, ...(sel.photos ?? [])])];
+    const fresh = photos.filter((p) => !done.has(p));
+    if (fresh.length === 0) {
+      return NextResponse.json(
+        { error: done.size ? (en ? "Choose new photos to order." : "Zaznacz nowe zdjęcia do domówienia.") : en ? "Choose at least one photo." : "Wybierz co najmniej jedno zdjęcie." },
+        { status: 400 },
+      );
+    }
     const sale = meta.sale!;
-    const { extra, total } = priceFor(photos.length, sale);
+    // przy domówieniu płaci się tylko za nowe zdjęcia (pakiet liczy się od pierwszego zamówienia)
+    const all = priceFor(photos.length, sale);
+    const before = priceFor(done.size, sale);
+    const extra = all.extra - before.extra;
+    const total = Math.round((all.total - before.total) * 100) / 100;
+    const round = existing ? (existing.round ?? 1) + 1 : 1;
     const note = String(body.note ?? "").trim().slice(0, 2000) || null;
     const order: SaleOrder = {
       selection: sel.id,
-      ref: orderRef(sel.id),
+      ref: round > 1 ? `${orderRef(sel.id)}-${round}` : orderRef(sel.id),
       status: "ordered",
       clientName: sel.client_name,
       clientEmail: sel.client_email,
@@ -90,6 +103,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       total,
       note,
       createdAt: new Date().toISOString(),
+      ...(done.size ? { deliveredPhotos: [...done], round } : {}),
     };
     // zapis zamówienia, notatki i dane do wpłaty równolegle; maile wysyłamy już po odpowiedzi dla klienta
     const [, , payout] = await Promise.all([
@@ -112,6 +126,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         { status: 409 },
       );
     }
+    if (done.has(photo)) return NextResponse.json({ ok: true, photos: [...set] });
     if (set.has(photo)) set.delete(photo);
     else if (set.size < 5000) set.add(photo);
     const photos = [...set];

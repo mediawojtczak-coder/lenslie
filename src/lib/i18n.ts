@@ -133,6 +133,13 @@ export const T = {
     readyLead: (n: number) => `${photosPl(n)} w pełnej rozdzielczości, bez znaku wodnego.`,
     downloadMine: "Pobierz moje zdjęcia",
     showMine: "Pokaż moje",
+    addMore: "Domów zdjęcia",
+    addTitle: "Domów kolejne zdjęcia",
+    addLead: (price: string, free: boolean) =>
+      free ? "Zaznacz kolejne zdjęcia i kliknij „Zamów”. Zdjęcia, które już masz, zostają zaznaczone." : `Zaznacz kolejne zdjęcia – każde kosztuje ${price}. Zdjęcia, które już masz, zostają zaznaczone.`,
+    addCount: (n: number) => `Nowe: ${n}`,
+    addCancel: "Anuluj",
+    downloadEarlier: "Pobierz wcześniejsze zdjęcia",
     emailNotify: "E-mail – damy znać, gdy zdjęcia będą gotowe",
     limitLead: (max: number, label: string) =>
       `Zaznacz serduszkiem do ${max} zdjęć${label ? ` ${label}` : ""}. Licznik na dole pokaże, ile jeszcze możesz wybrać. Fotograf zobaczy Twój wybór.`,
@@ -259,6 +266,13 @@ export const T = {
     readyLead: (n: number) => `${n === 1 ? "1 photo" : `${n} photos`} in full resolution, without the watermark.`,
     downloadMine: "Download my photos",
     showMine: "Show mine",
+    addMore: "Order more photos",
+    addTitle: "Order more photos",
+    addLead: (price: string, free: boolean) =>
+      free ? "Select more photos and click “Order”. Photos you already have stay selected." : `Select more photos – each costs ${price}. Photos you already have stay selected.`,
+    addCount: (n: number) => `New: ${n}`,
+    addCancel: "Cancel",
+    downloadEarlier: "Download earlier photos",
     emailNotify: "Email – we'll let you know when your photos are ready",
     limitLead: (max: number, label: string) =>
       `Tap the heart on up to ${max} photos${label ? ` ${label}` : ""}. The counter at the bottom shows how many you can still choose. Your photographer will see your selection.`,

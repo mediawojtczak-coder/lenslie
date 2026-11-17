@@ -24,7 +24,13 @@ export type SaleOrder = {
   createdAt: string;
   paidAt?: string;
   deliveredAt?: string;
+  // Domówienie: zdjęcia z wcześniejszych, już udostępnionych zamówień (klient dalej je pobiera) i numer rundy
+  deliveredPhotos?: string[];
+  round?: number;
 };
+
+// Zdjęcia, które klient może już pobrać bez znaku wodnego
+export const unlockedPhotos = (o: SaleOrder | null) => (o ? (o.status === "delivered" ? o.photos : (o.deliveredPhotos ?? [])) : []);
 // Dane, na które klient wpłaca pieniądze fotografowi
 export type Payout = { holder: string; account: string; blik: string };
 

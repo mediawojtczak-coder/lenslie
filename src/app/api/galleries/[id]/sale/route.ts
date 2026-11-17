@@ -61,6 +61,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   if (body.action === "reopen") {
+    // cofnięcie domówienia przywraca poprzednie, już udostępnione zamówienie
+    if (order.deliveredPhotos?.length && order.status !== "delivered") {
+      order.photos = order.deliveredPhotos;
+      order.deliveredPhotos = undefined;
+      order.status = "delivered";
+      order.round = Math.max(1, (order.round ?? 2) - 1);
+      order.extra = 0;
+      order.total = 0;
+      await saveSaleOrder(id, order);
+      return NextResponse.json({ ok: true });
+    }
     await deleteSaleOrder(id, selection);
     return NextResponse.json({ ok: true });
   }

@@ -16,7 +16,7 @@ import { isThemeId, type ThemeId } from "@/lib/themes";
 
 // Odręczne pismo dla motywu rustykalnego
 const scriptFont = Great_Vibes({ weight: "400", subsets: ["latin", "latin-ext"], variable: "--font-script", display: "swap", preload: false });
-import { saleOn, getSaleOrder, getPayoutForGallery, type SaleOrder } from "@/lib/sales";
+import { unlockedPhotos, saleOn, getSaleOrder, getPayoutForGallery, type SaleOrder } from "@/lib/sales";
 import type { SaleInfo } from "./PhotoGrid";
 import VideoSection, { type ClientVideo } from "./VideoSection";
 import FaceSearch from "./FaceSearch";
@@ -81,7 +81,7 @@ export default async function GalleryView({
 
   // Sprzedaż zdjęć: klient pobiera tylko zdjęcia z dostarczonego zamówienia
   const order: SaleOrder | null = selling && sel ? await getSaleOrder(id, sel.id).catch(() => null) : null;
-  const unlocked = new Set(order?.status === "delivered" ? order.photos : []);
+  const unlocked = new Set(unlockedPhotos(order));
   const clean = new Map<string, Photo>();
   if (unlocked.size > 0) {
     for (const p of await getGalleryPhotos(id).catch(() => [] as Photo[])) if (unlocked.has(p.name)) clean.set(p.name, p);
@@ -196,6 +196,7 @@ export default async function GalleryView({
       title,
       payout: await getPayoutForGallery(id).catch(() => null),
       order: order ? { status: order.status, total: order.total, extra: order.extra, count: order.photos.length, ref: order.ref } : null,
+      done: unlockedPhotos(order),
       delivered: [...clean.values()].map((c) => ({ url: c.downloadUrl, fileName: c.fileName, webUrl: c.webDownloadUrl, webFileName: c.webFileName })),
     };
   }

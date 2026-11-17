@@ -31,6 +31,8 @@ export type SaleInfo = {
   payout: Payout | null;
   order: { status: OrderStatus; total: number; extra: number; count: number; ref: string } | null;
   delivered: ZipItem[];
+  // zdjęcia już udostępnione klientowi (przy domówieniu zostają zaznaczone na stałe)
+  done?: string[];
 };
 
 function Check({ on, size = 20 }: { on: boolean; size?: number }) {
@@ -92,7 +94,10 @@ export default function PhotoGrid({
   const limitMax = !sale && limit && limit.max > 0 ? limit.max : 0;
   const t = T[lang];
   const [order, setOrder] = useState(sale?.order ?? null);
-  const locked = Boolean(order);
+  // domówienie: po udostępnieniu zdjęć klient może zaznaczyć kolejne
+  const [adding, setAdding] = useState(false);
+  const done = new Set(sale?.done ?? []);
+  const locked = Boolean(order) && !(adding && order?.status === "delivered");
   const Mark = sale ? Check : Heart;
   const L = sale
     ? { add: t.pick, remove: t.unpick, name: t.picked, showOnly: t.showPicked, none: t.noPicked }
@@ -161,7 +166,7 @@ export default function PhotoGrid({
   }
 
   async function toggleFav(name: string) {
-    if (!favorites || locked) return;
+    if (!favorites || locked || done.has(name)) return;
     if (!who) {
       setPending(name);
       setFavError("");
@@ -219,8 +224,11 @@ export default function PhotoGrid({
     }
   }
 
-  const extra = sale ? Math.max(0, favs.size - sale.included) : 0;
+  // przy domówieniu liczą się tylko nowe zdjęcia (pakiet został wykorzystany w pierwszym zamówieniu)
+  const over = (n: number) => (sale ? Math.max(0, n - sale.included) : 0);
+  const extra = over(favs.size) - over(done.size);
   const extraSum = sale ? Math.round(extra * sale.extraPrice * 100) / 100 : 0;
+  const fresh = [...favs].filter((n) => !done.has(n)).length;
 
   async function placeOrder(form: HTMLFormElement) {
     const fd = new FormData(form);
@@ -229,6 +237,7 @@ export default function PhotoGrid({
     try {
       const data = await favApi({ action: "order", note: fd.get("note") });
       setOrder(data.order);
+      setAdding(false);
       orderRef.current?.close();
       if (data.order.total > 0) payRef.current?.showModal();
     } catch (err) {
@@ -302,7 +311,7 @@ export default function PhotoGrid({
         </span>
       )}
       {favorites && favs.has(p.name) &&
-        (locked ? (
+        (locked || done.has(p.name) ? (
           <span className={sale ? "fav-mark pick" : "fav-mark"} aria-label={L.name}>
             <Mark on size={18} />
           </span>
@@ -312,7 +321,7 @@ export default function PhotoGrid({
           </button>
         ))}
       <div className="photo-actions">
-        {favorites && !locked && (
+        {favorites && !locked && !done.has(p.name) && (
           <button
             type="button"
             className={favs.has(p.name) ? "pa-btn fav on" : "pa-btn fav"}
@@ -368,7 +377,19 @@ export default function PhotoGrid({
 
       {sale && (
         <section className="sale-card" aria-live="polite">
-          {order?.status === "delivered" ? (
+          {adding ? (
+            <>
+              <div>
+                <h2>{t.addTitle}</h2>
+                <p>{t.addLead(cash(sale.extraPrice), sale.extraPrice === 0)}</p>
+              </div>
+              <div className="sale-card-actions">
+                <button type="button" className="as-link" onClick={() => setAdding(false)}>
+                  {t.addCancel}
+                </button>
+              </div>
+            </>
+          ) : order?.status === "delivered" ? (
             <>
               <div>
                 <h2>{t.readyTitle}</h2>
@@ -379,6 +400,16 @@ export default function PhotoGrid({
                   {onlyFavs ? t.showAll : t.showMine}
                 </button>
                 <DownloadAll items={sale.delivered} zipName={`${zipBase}-moje-zdjecia.zip`} label={t.downloadMine} lang={lang} />
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setOnlyFavs(false);
+                    setAdding(true);
+                  }}
+                >
+                  {t.addMore}
+                </button>
               </div>
             </>
           ) : order ? (
@@ -387,11 +418,16 @@ export default function PhotoGrid({
                 <h2>{t.orderPlaced}</h2>
                 <p>{order.status === "paid" ? t.statusPaid : order.total > 0 ? t.statusOrdered(cash(order.total)) : t.statusOrderedFree}</p>
               </div>
-              {order.status === "ordered" && order.total > 0 && (
+              {((order.status === "ordered" && order.total > 0) || sale.delivered.length > 0) && (
                 <div className="sale-card-actions">
-                  <button type="button" className="btn" onClick={() => payRef.current?.showModal()}>
-                    {t.howToPay}
-                  </button>
+                  {sale.delivered.length > 0 && (
+                    <DownloadAll items={sale.delivered} zipName={`${zipBase}-moje-zdjecia.zip`} label={t.downloadEarlier} lang={lang} />
+                  )}
+                  {order.status === "ordered" && order.total > 0 && (
+                    <button type="button" className="btn" onClick={() => payRef.current?.showModal()}>
+                      {t.howToPay}
+                    </button>
+                  )}
                 </div>
               )}
             </>
@@ -467,7 +503,7 @@ export default function PhotoGrid({
             favorites && !locked
               ? (i) => {
                   const p = all[i];
-                  if (!p) return null;
+                  if (!p || done.has(p.name)) return null;
                   const on = favs.has(p.name);
                   return (
                     <button
@@ -491,7 +527,7 @@ export default function PhotoGrid({
         <div className="fav-bar sale-bar" role="region" aria-label={t.picked}>
           <span className="fav-count">
             <Check on size={16} />{" "}
-            {locked ? favs.size : t.saleCount(favs.size, sale.included)}
+            {locked ? favs.size : done.size ? t.addCount(fresh) : t.saleCount(favs.size, sale.included)}
             {!locked && extra > 0 && sale.extraPrice > 0 && <em> {t.saleExtra(extra, cash(extraSum))}</em>}
           </span>
           <button type="button" onClick={() => setOnlyFavs((v) => !v)}>
@@ -501,7 +537,7 @@ export default function PhotoGrid({
             <button
               type="button"
               className="fav-send"
-              disabled={favs.size === 0}
+              disabled={favs.size === 0 || (done.size > 0 && fresh === 0)}
               onClick={() => {
                 setFavError("");
                 orderRef.current?.showModal();
@@ -664,9 +700,9 @@ export default function PhotoGrid({
               <dl className="sale-sum">
                 <div>
                   <dt>{t.orderChosen}</dt>
-                  <dd>{favs.size}</dd>
+                  <dd>{done.size ? fresh : favs.size}</dd>
                 </div>
-                {sale.included > 0 && (
+                {sale.included > 0 && done.size === 0 && (
                   <div>
                     <dt>{t.orderIncluded}</dt>
                     <dd>{Math.min(favs.size, sale.included)}</dd>
