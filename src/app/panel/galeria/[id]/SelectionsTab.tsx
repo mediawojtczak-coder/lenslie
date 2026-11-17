@@ -1,6 +1,7 @@
 import { getUser } from "@/lib/supabase/server";
 import SelectionActions from "./SelectionActions";
 import OrderActions from "./OrderActions";
+import ReplaceEdited from "./ReplaceEdited";
 import { listSaleOrders, type SaleOrder } from "@/lib/sales";
 import { money } from "@/lib/lang";
 import { getLang } from "@/lib/lang-server";
@@ -22,9 +23,11 @@ export default async function SelectionsTab({
   id,
   photos,
   selling = false,
+  edited = [],
 }: {
   id: string;
   selling?: boolean;
+  edited?: string[];
   photos: { name: string; fileName: string; url: string }[];
 }) {
   const { supabase } = await getUser();
@@ -111,11 +114,12 @@ export default async function SelectionsTab({
                 <OrderActions galleryId={id} selection={r.id} status={o.status} total={o.total} />
               </div>
             )}
+            {items.length > 0 && <ReplaceEdited galleryId={id} photos={items.map((p) => ({ name: p.name, fileName: p.fileName }))} edited={edited} />}
             {r.note && <blockquote className="selection-note">{r.note}</blockquote>}
             {items.length > 0 ? (
               <ul className="selection-grid">
                 {items.map((p) => (
-                  <li key={p.name} title={p.fileName}>
+                  <li key={p.name} title={p.fileName} className={edited.includes(p.name) ? "is-edited" : undefined}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.url} alt={p.fileName} loading="lazy" />
                     <span>{p.fileName}</span>

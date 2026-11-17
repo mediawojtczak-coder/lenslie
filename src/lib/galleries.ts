@@ -16,6 +16,8 @@ export type GalleryMeta = {
   reminders?: { email: string; days: number; token: string; sentFor?: string; by?: "photographer" }[];
   // E-mail pary / klienta wpisany przez fotografa na kafelku galerii
   clientEmail?: string;
+  // Zdjęcia podmienione przez fotografa na obrobione (nazwy bez rozszerzenia)
+  edited?: string[];
   passwordHash?: string;
   // Hasło do udostępnienia klientowi (widoczne tylko dla fotografa w panelu)
   password?: string;

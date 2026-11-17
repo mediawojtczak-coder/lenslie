@@ -19,6 +19,7 @@ const EN: Record<string, string> = {
   "To nie jest Twoja galeria.": "This is not your gallery.",
   "Adres galerii może zawierać tylko małe litery, cyfry i myślniki.": "The gallery address can contain only lowercase letters, digits and hyphens.",
   "Nie wybrano żadnych zdjęć.": "No photos selected.",
+  "Nie ma takiego zdjęcia w galerii.": "This photo is not in the gallery.",
   "Nie wybrano zdjęć.": "No photos selected.",
   "Dostęp do tej galerii wygasł. Przedłuż go, aby dodać zdjęcia.": "Access to this gallery has expired. Renew it to add photos.",
   "Nie udało się zapisać profilu. Sprawdź, czy w Supabase uruchomiono SQL z tabelą profiles.": "Could not save the profile.",

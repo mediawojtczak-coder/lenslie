@@ -2998,3 +2998,19 @@ html.nav-busy body {
 /* Odświeżanie przeciągnięciem w dół (aplikacja na ekranie głównym) */
 .ptr { position: fixed; top: env(safe-area-inset-top, 0); left: 50%; z-index: 200; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--card, #fff); color: var(--brass); box-shadow: 0 6px 20px rgba(0, 0, 0, .18); pointer-events: none; }
 .ptr-spin { animation: dl-spin .8s linear infinite; }
+
+/* Podmiana wybranych zdjęć na obrobione (zakładka Wybory klientów) */
+.rep { margin: 4px 0 18px; padding: 14px 16px; border: 1px solid var(--hair); border-radius: 10px; background: color-mix(in srgb, var(--blush) 35%, transparent); }
+.rep-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.rep-head b { display: block; font-weight: 500; }
+.rep-head span { font-size: .82rem; color: var(--taupe); font-variant-numeric: tabular-nums; }
+.rep .hint-inline { margin: 10px 0 0; }
+.rep-plan { margin-top: 12px; }
+.rep-plan p { margin: 0 0 8px; }
+.rep-plan small { display: block; margin-top: 4px; color: var(--taupe); }
+.rep-bar { height: 4px; border-radius: 4px; background: var(--hair); overflow: hidden; margin: 8px 0 10px; }
+.rep-bar i { display: block; height: 100%; background: var(--brass); transition: width .2s; }
+.rep-actions { display: flex; align-items: center; gap: 14px; }
+.selection-grid li.is-edited { position: relative; }
+.selection-grid li.is-edited::after { content: "✓ obrobione"; position: absolute; top: 6px; left: 6px; padding: 2px 7px; border-radius: 10px; background: rgba(23, 19, 15, .72); color: #f1d9b0; font-size: .64rem; letter-spacing: .02em; }
+html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }

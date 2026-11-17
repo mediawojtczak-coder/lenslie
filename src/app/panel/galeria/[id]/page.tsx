@@ -229,7 +229,7 @@ export default async function ZarzadzanieGalerii({
         )}
 
         {tab === "wybory" ? (
-          <SelectionsTab id={id} selling={Boolean(meta?.sale?.enabled)} photos={photos.map((p) => ({ name: p.name, fileName: p.fileName, url: p.webUrl }))} />
+          <SelectionsTab id={id} selling={Boolean(meta?.sale?.enabled)} edited={meta?.edited ?? []} photos={photos.map((p) => ({ name: p.name, fileName: p.fileName, url: p.webUrl }))} />
         ) : tab === "album" && albumAllowed(user?.email) ? (
           await (async () => {
             const [project, sub, sels] = await Promise.all([
