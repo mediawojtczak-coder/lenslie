@@ -2,6 +2,8 @@ import { getUser } from "@/lib/supabase/server";
 import SelectionActions from "./SelectionActions";
 import OrderActions from "./OrderActions";
 import ReplaceEdited from "./ReplaceEdited";
+import ClientLink from "./ClientLink";
+import { siteUrl } from "@/lib/email";
 import { listSaleOrders, type SaleOrder } from "@/lib/sales";
 import { money } from "@/lib/lang";
 import { getLang } from "@/lib/lang-server";
@@ -112,6 +114,7 @@ export default async function SelectionsTab({
                   </small>
                 </p>
                 <OrderActions galleryId={id} selection={r.id} status={o.status} total={o.total} />
+                <ClientLink url={`${siteUrl()}/galeria/${id}/moje/${r.id}`} />
               </div>
             )}
             {items.length > 0 && <ReplaceEdited galleryId={id} photos={items.map((p) => ({ name: p.name, fileName: p.fileName }))} edited={edited} />}

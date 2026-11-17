@@ -80,7 +80,7 @@ export async function mailOrderPlaced(galleryId: string, title: string, o: SaleO
                   : "Fotograf przygotuje zdjęcia – napiszemy do Ciebie, gdy będą gotowe do pobrania.",
               ]),
         ],
-        { label: en ? "Open the gallery" : "Otwórz galerię", url: `${siteUrl()}/galeria/${galleryId}` },
+        { label: en ? "Open the gallery" : "Otwórz galerię", url: `${siteUrl()}/galeria/${galleryId}/moje/${o.selection}` },
         galleryLang,
       ),
     }).catch(() => undefined);
@@ -100,7 +100,7 @@ export async function mailDelivered(galleryId: string, title: string, o: SaleOrd
           ? `Your ${o.photos.length} photos from “${title}” are ready. Open the gallery to download them in full resolution, without the watermark.`
           : `Twoje zdjęcia z galerii „${title}” (${o.photos.length}) są gotowe. Otwórz galerię, aby pobrać je w pełnej rozdzielczości, bez znaku wodnego.`,
       ],
-      { label: en ? "Download my photos" : "Pobierz moje zdjęcia", url: `${siteUrl()}/galeria/${galleryId}` },
+      { label: en ? "Download my photos" : "Pobierz moje zdjęcia", url: `${siteUrl()}/galeria/${galleryId}/moje/${o.selection}` },
       galleryLang,
     ),
   }).catch(() => undefined);
