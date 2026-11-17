@@ -1166,7 +1166,7 @@ input:focus { outline: none; border-bottom-color: var(--ink); }
   white-space: nowrap;
 }
 .fav-bar button:hover { background: rgba(255, 255, 255, .1); }
-.fav-bar .fav-send { background: #fff; color: var(--ink); }
+.fav-bar .fav-send { background: #fff; color: #2b2522; }
 .fav-bar .fav-send:hover { background: var(--blush); }
 .modal-lead { color: var(--taupe); font-size: .9rem; margin: -6px 0 22px; line-height: 1.55; }
 .modal-textarea {
@@ -3014,3 +3014,10 @@ html.nav-busy body {
 .selection-grid li.is-edited { position: relative; }
 .selection-grid li.is-edited::after { content: "✓ obrobione"; position: absolute; top: 6px; left: 6px; padding: 2px 7px; border-radius: 10px; background: rgba(23, 19, 15, .72); color: #f1d9b0; font-size: .64rem; letter-spacing: .02em; }
 html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
+
+/* Pasek ulubionych / zamówienia w ciemnym motywie galerii: złoty przycisk, czytelny tekst, licznik w jednej linii */
+.gtheme-noir .fav-bar { background: rgba(28, 25, 22, .94); border: 1px solid rgba(201, 168, 124, .28); }
+.gtheme-noir .fav-bar .fav-send { background: #c9a87c; color: #17130f; }
+.gtheme-noir .fav-bar .fav-send:hover { background: #d8bb8b; }
+.gtheme-noir .fav-bar .fav-send:disabled { background: #6e5f4d; color: #2a241f; opacity: 1; }
+.sale-bar .fav-count { white-space: nowrap; }
