@@ -3040,3 +3040,6 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 .ui-dark .g-picks { background: rgba(196, 107, 92, .14); color: #efc3b8; }
 .ui-dark .g-picks.hot { background: rgba(201, 168, 124, .14); color: #ead2a6; }
 .client-link { display: inline-block; margin-top: 8px; font-size: .82rem; }
+/* ciemny motyw: linki w kartach galerii (np. „Pokaż moje”) czytelne na ciemnym tle */
+.gtheme-noir .as-link { color: #d9bf93; text-decoration-color: rgba(217, 191, 147, .5); }
+.gtheme-noir .as-link:hover { color: #f1d9b0; }
