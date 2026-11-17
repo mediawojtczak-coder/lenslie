@@ -1,5 +1,6 @@
 import Link from "next/link";
 import GalleryNudge from "./GalleryNudge";
+import { listSaleOrders, type SaleOrder } from "@/lib/sales";
 import InstallApp from "@/components/InstallApp";
 import { getProSub, proActive } from "@/lib/pro";
 import SideLogout from "@/components/SideLogout";
@@ -31,6 +32,8 @@ type Card = GalleryRow & {
   reminderSent: boolean;
   pro: boolean;
   published: boolean;
+  // wybory klientów: ile osób zaznaczyło zdjęcia, ile zdjęć, stan zamówień (sprzedaż)
+  picks: { clients: number; photos: number; order: "new" | "paid" | "delivered" | null } | null;
 };
 
 
@@ -81,11 +84,24 @@ export default async function Panel({
       // zapytanie Supabase rusza dopiero przy „await” – uruchamiamy je od razu, równolegle z opisem
       const viewsQ = (async () =>
         await supabase.from("gallery_events").select("kind", { count: "exact", head: true }).eq("gallery_id", g.id).in("kind", ["view", "guest_view"]))();
+      const selQ = (async () => await supabase.from("selections").select("id, photos").eq("gallery_id", g.id))();
       const meta = await getMeta(g.id).catch(() => null);
-      const [summary, { count: views, error: viewsErr }] = await Promise.all([
+      const [summary, { count: views, error: viewsErr }, { data: sels }, orders] = await Promise.all([
         getGallerySummary(g.id, meta?.cover, meta?.coverFile).catch(() => ({ count: 0, coverUrl: null })),
         viewsQ,
+        selQ,
+        meta?.sale?.enabled ? listSaleOrders(g.id).catch(() => new Map<string, SaleOrder>()) : Promise.resolve(new Map<string, SaleOrder>()),
       ]);
+      const chosen = ((sels ?? []) as { id: string; photos: string[] | null }[]).filter((s) => (s.photos ?? []).length > 0);
+      const os = [...orders.values()];
+      const picks =
+        chosen.length || os.length
+          ? {
+              clients: chosen.length,
+              photos: chosen.reduce((n, s) => n + (s.photos ?? []).length, 0),
+              order: os.some((o) => o.status === "ordered") ? ("new" as const) : os.some((o) => o.status === "paid") ? ("paid" as const) : os.length ? ("delivered" as const) : null,
+            }
+          : null;
       return {
         ...g,
         ...summary,
@@ -99,6 +115,7 @@ export default async function Panel({
         reminderSent: Boolean(meta?.expiresAt && (meta.reminders ?? []).some((r) => r.by === "photographer" && r.sentFor === meta.expiresAt)),
         pro: meta?.plan === "pro",
         published: Boolean(meta?.plan),
+        picks,
       };
     }),
   );
@@ -216,6 +233,11 @@ export default async function Panel({
                   ) : (
                     c.protected && <span className="g-badge">{t("Hasło", "Password")}</span>
                   )}
+                  {c.picks && (
+                    <span className={`g-pick-badge${c.picks.order === "new" || c.picks.order === "paid" ? " hot" : ""}`}>
+                      {c.picks.order === "new" ? t("Zamówienie", "Order") : c.picks.order === "paid" ? t("Opłacone", "Paid") : c.picks.order === "delivered" ? t("Udostępnione", "Delivered") : t("Wybór klienta", "Client picks")}
+                    </span>
+                  )}
                 </Link>
                 <div className="g-info">
                   <Link href={`/panel/galeria/${c.id}`} className="g-title">
@@ -229,6 +251,25 @@ export default async function Panel({
                       ? `${c.expired ? t("Wygasła", "Expired") : t("Dostęp do", "Available until")} ${dateFmt.format(new Date(c.expiresAt))}`
                       : `${t("Utworzona", "Created")} ${dateFmt.format(new Date(c.created_at))}`}
                   </p>
+                  {c.picks && (
+                    <Link href={`/panel/galeria/${c.id}?tab=wybory`} className={`g-picks${c.picks.order === "new" || c.picks.order === "paid" ? " hot" : ""}`}>
+                      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                        <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" fill="currentColor" />
+                      </svg>
+                      <span>
+                        {c.picks.order === "new"
+                          ? t("Nowe zamówienie od klienta", "New client order")
+                          : c.picks.order === "paid"
+                            ? t("Zamówienie opłacone – udostępnij zdjęcia", "Order paid – deliver the photos")
+                            : c.picks.order === "delivered"
+                              ? t("Zdjęcia udostępnione klientowi", "Photos delivered")
+                              : c.picks.clients === 1
+                                ? t(`Klient wybrał ${photosLabel(c.picks.photos)}`, `Client picked ${photosLabel(c.picks.photos)}`)
+                                : t(`${c.picks.clients} osoby wybrały zdjęcia`, `${c.picks.clients} people picked photos`)}
+                      </span>
+                      <b aria-hidden="true">›</b>
+                    </Link>
+                  )}
                   {c.note && (
                     <Link href={`/panel/galeria/${c.id}?tab=notatka`} className="g-note" title={c.note}>
                       <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">

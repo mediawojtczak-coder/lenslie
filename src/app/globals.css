@@ -3026,3 +3026,16 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 .gtheme-noir .fav-mark.pick { color: #c9a87c; background: rgba(17, 16, 14, .55); }
 .gtheme-noir .sale-bar .fav-count { color: #f2ede8; }
 .gtheme-noir .sale-bar .fav-count svg { color: #c9a87c; }
+
+/* Kafelek galerii: klient wybrał zdjęcia / złożył zamówienie */
+.g-pick-badge { position: absolute; top: 12px; right: 12px; padding: 5px 11px; border-radius: 20px; background: rgba(255, 255, 255, .94); color: #9c4f43; font-size: .74rem; font-weight: 500; letter-spacing: .02em; box-shadow: 0 4px 14px rgba(0, 0, 0, .12); }
+.g-pick-badge.hot { background: #c9a87c; color: #17130f; }
+.g-picks { display: flex; align-items: center; gap: 8px; margin: 12px 0 4px; padding: 9px 12px; border-radius: 8px; background: #f8ece8; color: #8f4a3f; font-size: .86rem; text-decoration: none; }
+.g-picks svg { flex: 0 0 auto; color: #c46b5c; }
+.g-picks span { flex: 1; min-width: 0; }
+.g-picks b { font-weight: 400; font-size: 1.1rem; line-height: 1; opacity: .6; }
+.g-picks:hover { background: #f3dfd9; }
+.g-picks.hot { background: #f6ecdc; color: #6e5226; box-shadow: inset 0 0 0 1px rgba(201, 168, 124, .55); }
+.g-picks.hot svg { color: #b8975f; }
+.ui-dark .g-picks { background: rgba(196, 107, 92, .14); color: #efc3b8; }
+.ui-dark .g-picks.hot { background: rgba(201, 168, 124, .14); color: #ead2a6; }
