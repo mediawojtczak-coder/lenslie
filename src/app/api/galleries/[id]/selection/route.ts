@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, hasAccess, accessCookieName, isExpired } from "@/lib/galleries";
@@ -91,10 +91,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       note,
       createdAt: new Date().toISOString(),
     };
-    await saveSaleOrder(id, order);
-    if (note) await db.from("selections").update({ note, updated_at: order.createdAt }).eq("id", sel.id);
-    const payout = await getPayoutForGallery(id).catch(() => null);
-    await mailOrderPlaced(id, meta.title, order, payout, meta.lang ?? "pl");
+    // zapis zamówienia, notatki i dane do wpłaty równolegle; maile wysyłamy już po odpowiedzi dla klienta
+    const [, , payout] = await Promise.all([
+      saveSaleOrder(id, order),
+      note ? db.from("selections").update({ note, updated_at: order.createdAt }).eq("id", sel.id) : Promise.resolve(null),
+      getPayoutForGallery(id).catch(() => null),
+    ]);
+    after(() => mailOrderPlaced(id, meta.title, order, payout, meta.lang ?? "pl").catch(() => undefined));
     return NextResponse.json({ ok: true, order: { status: order.status, total, extra, count: photos.length, ref: order.ref }, payment: paymentLines(order, payout, meta.title, meta.lang ?? "pl") });
   }
 

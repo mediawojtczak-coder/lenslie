@@ -3021,3 +3021,8 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 .gtheme-noir .fav-bar .fav-send:hover { background: #d8bb8b; }
 .gtheme-noir .fav-bar .fav-send:disabled { background: #6e5f4d; color: #2a241f; opacity: 1; }
 .sale-bar .fav-count { white-space: nowrap; }
+/* ciemny motyw: zaznaczenie zdjęcia w sprzedaży – złote kółko z ciemnym znaczkiem (wcześniej biały na białym) */
+.gtheme-noir { --check-ink: #17130f; }
+.gtheme-noir .fav-mark.pick { color: #c9a87c; background: rgba(17, 16, 14, .55); }
+.gtheme-noir .sale-bar .fav-count { color: #f2ede8; }
+.gtheme-noir .sale-bar .fav-count svg { color: #c9a87c; }

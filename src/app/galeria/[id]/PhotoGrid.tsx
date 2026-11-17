@@ -37,7 +37,7 @@ function Check({ on, size = 20 }: { on: boolean; size?: number }) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
       <circle cx="12" cy="12" r="8.5" fill={on ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" />
-      <path d="M8.3 12.3l2.5 2.5 4.9-5.2" fill="none" stroke={on ? "#fff" : "currentColor"} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8.3 12.3l2.5 2.5 4.9-5.2" fill="none" stroke={on ? "var(--check-ink, #fff)" : "currentColor"} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
