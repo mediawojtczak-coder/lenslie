@@ -1,6 +1,5 @@
 import Link from "next/link";
 import StudioLinksBar from "./StudioLinksBar";
-import { studioLinksFor } from "@/lib/studio-links";
 import { getGalleryPhotos, pickCover, applyOrder, getMusicUrl, customCoverUrl, type Photo } from "@/lib/photos";
 import { watermarkOn, type GalleryMeta, type Downloads } from "@/lib/galleries";
 import { getGalleryBrandOnce } from "@/lib/gallery-cache";
@@ -76,7 +75,7 @@ export default async function GalleryView({
       : Promise.resolve(null),
   ]);
 
-  const studioLinks = studioLinksFor(brand.studioName);
+  const studioLinks = "links" in brand ? brand.links : null;
   const error = !photosRes.ok;
   let photos: Photo[] = applyOrder(photosRes.list, meta?.order);
   // Zdjęcie bez nałożonego znaku wodnego (np. świeżo z Lightrooma) czeka, aż panel je zabezpieczy

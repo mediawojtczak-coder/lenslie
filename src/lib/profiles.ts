@@ -3,7 +3,9 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET } from "@/lib/r2";
 import { adminClient } from "@/lib/supabase/admin";
 
-export type Brand = { studioName: string | null; logoUrl: string | null };
+import { studioLinksFor, type StudioLinks } from "@/lib/studio-links";
+
+export type Brand = { studioName: string | null; logoUrl: string | null; links?: StudioLinks | null };
 
 export async function logoUrl(key: string | null | undefined) {
   if (!key) return null;
@@ -27,8 +29,11 @@ export async function getGalleryBrand(galleryId: string): Promise<Brand> {
   if (!db) return { studioName: null, logoUrl: null };
   const { data: g } = await db.from("galleries").select("owner_id").eq("id", galleryId).maybeSingle();
   if (!g?.owner_id) return { studioName: null, logoUrl: null };
-  const { data: p } = await db.from("profiles").select("studio_name, logo_key").eq("id", g.owner_id).maybeSingle();
-  return { studioName: p?.studio_name ?? null, logoUrl: await logoUrl(p?.logo_key) };
+  const [{ data: p }, { data: u }] = await Promise.all([
+    db.from("profiles").select("studio_name, logo_key").eq("id", g.owner_id).maybeSingle(),
+    db.auth.admin.getUserById(g.owner_id),
+  ]);
+  return { studioName: p?.studio_name ?? null, logoUrl: await logoUrl(p?.logo_key), links: studioLinksFor(u?.user?.email) };
 }
 
 // E-mail właściciela galerii (do powiadomień)
