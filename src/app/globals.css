@@ -3083,3 +3083,8 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 .g-studio > i { width: 1px; height: 14px; background: currentColor; opacity: .22; }
 .g-studio-tel { font-size: .78rem; letter-spacing: .14em; font-variant-numeric: tabular-nums; }
 .gtheme-noir .g-studio { color: #f2ede8; border-color: rgba(242, 237, 232, .1); }
+
+/* Pasek galerii: przyciski w jednej linii, komunikat pobierania pod przyciskiem (nie rozpycha paska) */
+.g-bar-actions > *, .g-bar-actions button { white-space: nowrap; }
+.g-bar-actions .download-all { position: relative; }
+.g-bar-actions .download-all .hint-center { position: absolute; top: calc(100% + 8px); right: 0; width: max-content; max-width: 280px; margin: 0; padding: 8px 12px; border-radius: 8px; background: var(--card, #fff); box-shadow: 0 6px 20px rgba(0, 0, 0, .08); font-size: .8rem; text-align: left; white-space: normal; z-index: 6; }
