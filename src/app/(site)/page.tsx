@@ -29,6 +29,7 @@ const ORG_LD = [
     alternateName: "Lenslie – galerie zdjęć online dla fotografów",
     url: "https://www.lenslie.com",
     logo: "https://www.lenslie.com/icon-512.png",
+    sameAs: ["https://www.facebook.com/profile.php?id=61595950988743"],
   },
   {
     "@context": "https://schema.org",
