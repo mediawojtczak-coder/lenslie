@@ -64,6 +64,28 @@ export async function getGalleryPhotos(id: string, opts: { watermark?: boolean }
   return buildPhotos(prefix, webObjs, originalObjs, wmObjs, opts);
 }
 
+// Galeria klienta ze sprzedażą: zdjęcia (ze znakiem wodnym, jeśli włączony) i czyste wersje zdjęć z udostępnionego
+// zamówienia – z jednego przeglądu magazynu. Lista zdjęć do odblokowania (`clean`) może dojść w trakcie przeglądania.
+export async function getGalleryPhotosWithClean(
+  id: string,
+  opts: { watermark?: boolean; clean: Promise<Iterable<string>> },
+): Promise<{ photos: Photo[]; clean: Photo[] }> {
+  if (!process.env.R2_ENDPOINT) return { photos: [], clean: [] };
+  const prefix = galleryPrefix(id);
+  const [webObjs, originalObjs, wmObjs, cleanList] = await Promise.all([
+    listObjects(`${prefix}web/`),
+    listObjects(`${prefix}original/`),
+    opts.watermark ? listObjects(`${prefix}wm/`) : Promise.resolve([] as Obj[]),
+    opts.clean,
+  ]);
+  const photos = await buildPhotos(prefix, webObjs, originalObjs, wmObjs, { watermark: opts.watermark });
+  const names = new Set(cleanList);
+  if (names.size === 0) return { photos, clean: [] };
+  if (!opts.watermark) return { photos, clean: photos.filter((p) => names.has(p.name)) };
+  const webSel = webObjs.filter((o) => names.has(baseName(o.key.slice(`${prefix}web/`.length))));
+  return { photos, clean: await buildPhotos(prefix, webSel, originalObjs, [], {}) };
+}
+
 // Zdjęcia i zajęte miejsce z jednego przeglądu magazynu (panel galerii – szybciej niż osobno)
 export async function getGalleryPhotosAndUsage(id: string, opts: { watermark?: boolean } = {}): Promise<{ photos: Photo[]; usage: number; wmKeys: Set<string> }> {
   if (!process.env.R2_ENDPOINT) return { photos: [], usage: 0, wmKeys: new Set() };

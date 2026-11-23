@@ -36,11 +36,15 @@ export default async function SelectionsTab({
   const lang = await getLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const fmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Warsaw" });
-  const { data, error } = await supabase
-    .from("selections")
-    .select("id, client_name, client_email, photos, note, updated_at")
-    .eq("gallery_id", id)
-    .order("updated_at", { ascending: false });
+  // wybory klientów (Supabase) i zamówienia (R2) czytamy naraz, a nie jedno po drugim
+  const [{ data, error }, orders] = await Promise.all([
+    supabase
+      .from("selections")
+      .select("id, client_name, client_email, photos, note, updated_at")
+      .eq("gallery_id", id)
+      .order("updated_at", { ascending: false }),
+    listSaleOrders(id).catch(() => new Map<string, SaleOrder>()),
+  ]);
 
   if (error) {
     return (
@@ -54,7 +58,6 @@ export default async function SelectionsTab({
     );
   }
 
-  const orders: Map<string, SaleOrder> = await listSaleOrders(id).catch(() => new Map());
   const cash = (n: number) => money(n, lang, n % 1 !== 0);
   // Złożone zamówienia na górze, potem pozostałe wybory
   const rows = ((data ?? []) as Row[]).sort((a, b) => Number(orders.has(b.id)) - Number(orders.has(a.id)));

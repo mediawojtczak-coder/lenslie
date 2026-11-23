@@ -1,6 +1,6 @@
 import Link from "next/link";
 import StudioLinksBar from "./StudioLinksBar";
-import { getGalleryPhotos, pickCover, applyOrder, getMusicUrl, customCoverUrl, type Photo } from "@/lib/photos";
+import { getGalleryPhotosWithClean, pickCover, applyOrder, getMusicUrl, customCoverUrl, type Photo } from "@/lib/photos";
 import { watermarkOn, type GalleryMeta, type Downloads } from "@/lib/galleries";
 import { getGalleryBrandOnce } from "@/lib/gallery-cache";
 import { adminClient } from "@/lib/supabase/admin";
@@ -64,15 +64,22 @@ export default async function GalleryView({
   // Studio fotografa, zdjęcia i ulubione klienta pobieramy równolegle (wcześniej po kolei)
   const selling = saleOn(meta);
   const store = await cookies();
-  const [brand, photosRes, sel] = await Promise.all([
+  const clientDb = mode === "client" && !preview && Boolean(adminClient());
+  const selP = clientDb ? getSelection(id, store.get(selectionCookie(id))?.value).catch(() => null) : Promise.resolve(null);
+  // Sprzedaż: zamówienie klienta czytamy zaraz po jego wyborze, a dane do wpłaty od razu – równolegle ze zdjęciami
+  // (wcześniej zamówienie, druga lista zdjęć i dane do wpłaty szły po kolei, już po wczytaniu galerii)
+  const orderP: Promise<SaleOrder | null> = selling
+    ? selP.then((s) => (s ? getSaleOrder(id, s.id).catch(() => null) : null))
+    : Promise.resolve(null);
+  const payoutP = selling && clientDb ? getPayoutForGallery(id).catch(() => null) : Promise.resolve(null);
+  const [brand, photosRes, sel, order] = await Promise.all([
     getGalleryBrandOnce(id).catch(() => ({ studioName: null, logoUrl: null })),
-    getGalleryPhotos(id, { watermark: Boolean(watermark) }).then(
-      (list) => ({ ok: true as const, list }),
-      () => ({ ok: false as const, list: [] as Photo[] }),
+    getGalleryPhotosWithClean(id, { watermark: Boolean(watermark), clean: orderP.then(unlockedPhotos) }).then(
+      (r) => ({ ok: true as const, list: r.photos, clean: r.clean }),
+      () => ({ ok: false as const, list: [] as Photo[], clean: [] as Photo[] }),
     ),
-    mode === "client" && !preview && adminClient()
-      ? getSelection(id, store.get(selectionCookie(id))?.value).catch(() => null)
-      : Promise.resolve(null),
+    selP,
+    orderP,
   ]);
 
   const studioLinks = "links" in brand ? brand.links : null;
@@ -81,13 +88,8 @@ export default async function GalleryView({
   // Zdjęcie bez nałożonego znaku wodnego (np. świeżo z Lightrooma) czeka, aż panel je zabezpieczy
   if (watermark && !preview) photos = photos.filter((p) => p.watermarked !== false);
 
-  // Sprzedaż zdjęć: klient pobiera tylko zdjęcia z dostarczonego zamówienia
-  const order: SaleOrder | null = selling && sel ? await getSaleOrder(id, sel.id).catch(() => null) : null;
-  const unlocked = new Set(unlockedPhotos(order));
-  const clean = new Map<string, Photo>();
-  if (unlocked.size > 0) {
-    for (const p of await getGalleryPhotos(id).catch(() => [] as Photo[])) if (unlocked.has(p.name)) clean.set(p.name, p);
-  }
+  // Sprzedaż zdjęć: klient pobiera tylko zdjęcia z dostarczonego zamówienia (czyste wersje z tego samego przeglądu magazynu)
+  const clean = new Map<string, Photo>(photosRes.clean.map((p) => [p.name, p]));
 
   // Goście nigdy nie dostają więcej niż klient
   const clientDownloads: Downloads = selling ? "none" : (meta?.downloads ?? "all");
@@ -196,7 +198,7 @@ export default async function GalleryView({
       included: meta!.sale!.included,
       extraPrice: meta!.sale!.extraPrice,
       title,
-      payout: await getPayoutForGallery(id).catch(() => null),
+      payout: await payoutP,
       order: order ? { status: order.status, total: order.total, extra: order.extra, count: order.photos.length, ref: order.ref } : null,
       done: unlockedPhotos(order),
       delivered: [...clean.values()].map((c) => ({ url: c.downloadUrl, fileName: c.fileName, webUrl: c.webDownloadUrl, webFileName: c.webFileName })),

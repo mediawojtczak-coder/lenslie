@@ -2,6 +2,7 @@ import { DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET } from "@/lib/r2";
 import { listObjects } from "@/lib/photos";
+import { presignGet } from "@/lib/presign";
 
 // Filmy w galeriach: oryginał w pełnej jakości w R2 (videos/<galeria>/…), podgląd do oglądania z Cloudflare Stream.
 // Cena liczona po wgraniu pliku: koszt Lenslie × 2 (marża 100%), za okres do końca dostępu do galerii.
@@ -148,12 +149,9 @@ export async function startVideos(videos: Video[], ids: string[]) {
   }
 }
 
+// szybki podpis (bez AWS SDK), jak przy zdjęciach – src/lib/presign.ts
 export async function signedVideoUrl(key: string, download?: string) {
-  return getSignedUrl(
-    r2,
-    new GetObjectCommand({ Bucket: BUCKET, Key: key, ...(download ? { ResponseContentDisposition: `attachment; filename="${download}"` } : {}) }),
-    { expiresIn: 6 * 3600 },
-  );
+  return presignGet(key, { expiresIn: 6 * 3600, ...(download ? { disposition: `attachment; filename="${download}"` } : {}) });
 }
 
 export async function deleteVideo(v: Video) {
