@@ -4,7 +4,7 @@ import { COMPANY } from "@/lib/company";
 import { getLang } from "@/lib/lang-server";
 
 export async function generateMetadata() {
-  return { title: (await getLang()) === "en" ? "Terms of service – Lenslie" : "Regulamin – Lenslie" };
+  return { title: (await getLang()) === "en" ? "Terms of service – Lenslie" : "Regulamin – Lenslie", alternates: { canonical: "/regulamin" } };
 }
 
 function RegulaminPl() {

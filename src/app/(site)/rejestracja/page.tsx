@@ -6,6 +6,18 @@ import { getLang } from "@/lib/lang-server";
 
 export const dynamic = "force-dynamic";
 
+// Własny tytuł (wcześniej taki sam jak strona główna – Google widział duplikat)
+export async function generateMetadata() {
+  const en = (await getLang()) === "en";
+  return {
+    title: en ? "Sign up – online galleries for photographers | Lenslie" : "Załóż konto – galerie online dla fotografów | Lenslie",
+    description: en
+      ? "Create a free Lenslie account and send your first online gallery to a client today."
+      : "Załóż bezpłatne konto Lenslie i jeszcze dziś wyślij klientowi pierwszą galerię zdjęć online.",
+    alternates: { canonical: "/rejestracja" },
+  };
+}
+
 const TXT = {
   pl: {
     errors: {

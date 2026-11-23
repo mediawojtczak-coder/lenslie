@@ -4,16 +4,16 @@ import { FEATURES } from "@/lib/features";
 const SITE = "https://www.lenslie.com";
 
 // Mapa strony dla Google: strony Lenslie i strony funkcji
+// (bez lastModified – wcześniej była to data wygenerowania mapy, przez co Google uznaje ją za niewiarygodną)
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
   return [
-    { url: `${SITE}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
-    { url: `${SITE}/cennik`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
-    { url: `${SITE}/znajdz-siebie`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${SITE}/przypomnienie`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
-    ...FEATURES.map((f) => ({ url: `${SITE}/funkcje/${f.slug}`, lastModified: now, changeFrequency: "monthly" as const, priority: 0.7 })),
-    { url: `${SITE}/rejestracja`, lastModified: now, changeFrequency: "yearly", priority: 0.6 },
-    { url: `${SITE}/regulamin`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${SITE}/polityka-prywatnosci`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${SITE}/`, changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE}/cennik`, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE}/znajdz-siebie`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${SITE}/przypomnienie`, changeFrequency: "monthly", priority: 0.6 },
+    ...FEATURES.map((f) => ({ url: `${SITE}/funkcje/${f.slug}`, changeFrequency: "monthly" as const, priority: 0.7 })),
+    { url: `${SITE}/rejestracja`, changeFrequency: "yearly", priority: 0.6 },
+    { url: `${SITE}/regulamin`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${SITE}/polityka-prywatnosci`, changeFrequency: "yearly", priority: 0.2 },
   ];
 }

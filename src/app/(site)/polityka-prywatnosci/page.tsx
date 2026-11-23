@@ -3,7 +3,7 @@ import { COMPANY } from "@/lib/company";
 import { getLang } from "@/lib/lang-server";
 
 export async function generateMetadata() {
-  return { title: (await getLang()) === "en" ? "Privacy policy – Lenslie" : "Polityka prywatności – Lenslie" };
+  return { title: (await getLang()) === "en" ? "Privacy policy – Lenslie" : "Polityka prywatności – Lenslie", alternates: { canonical: "/polityka-prywatnosci" } };
 }
 
 function PolitykaPl() {

@@ -6,6 +6,12 @@ import { getLang } from "@/lib/lang-server";
 
 export const dynamic = "force-dynamic";
 
+// Strona logowania nie jest potrzebna w wynikach Google (linki z niej nadal są śledzone)
+export async function generateMetadata() {
+  const en = (await getLang()) === "en";
+  return { title: en ? "Log in – Lenslie" : "Zaloguj się – Lenslie", robots: { index: false, follow: true } };
+}
+
 const MESSAGES: Record<"pl" | "en", Record<string, string>> = {
   pl: {
     dane: "Nieprawidłowy e-mail lub hasło.",

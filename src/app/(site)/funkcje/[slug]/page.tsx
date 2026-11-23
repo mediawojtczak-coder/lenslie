@@ -16,7 +16,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const lang = await getLang();
   if (!f) return {};
   const i = lang === "en" ? 1 : 0;
-  return { title: `${f.card.title[i]} – Lenslie`, description: f.card.text[i] };
+  return {
+    title: `${f.card.title[i]} – ${i ? "online galleries for photographers" : "galerie online dla fotografów"} | Lenslie`,
+    description: f.card.text[i],
+    alternates: { canonical: `/funkcje/${f.slug}` },
+  };
 }
 
 // Strona reklamowa jednej funkcji Lenslie

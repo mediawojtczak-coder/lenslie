@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import PricingPlans from "@/components/PricingPlans";
 import DeviceShowcase from "@/components/DeviceShowcase";
 import FeatureCards from "@/components/FeatureCards";
@@ -9,7 +10,14 @@ import { tr } from "@/lib/lang";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { alternates: { canonical: "/" } };
+// Tytuł w Google z frazą, której szukają fotografowie („galeria online dla fotografa”)
+export async function generateMetadata(): Promise<Metadata> {
+  const en = (await getLang()) === "en";
+  return {
+    title: en ? "Online client galleries for photographers | Lenslie" : "Galeria online dla fotografa – zdjęcia dla klientów | Lenslie",
+    alternates: { canonical: "/" },
+  };
+}
 
 // Dane strukturalne dla Google: Lenslie jako aplikacja internetowa z ceną od 5 zł
 const JSON_LD = {

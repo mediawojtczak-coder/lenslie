@@ -7,8 +7,11 @@ import { getLang } from "@/lib/lang-server";
 export async function generateMetadata(): Promise<Metadata> {
   const en = (await getLang()) === "en";
   return {
-    title: en ? "Pricing – Lenslie" : "Cennik – Lenslie",
-    description: en ? "Pay only for the galleries you deliver. No subscription." : "Płacisz tylko za galerie, które oddajesz klientom. Bez abonamentu.",
+    title: en ? "Pricing – online galleries for photographers | Lenslie" : "Cennik galerii online dla fotografów – od 5 zł | Lenslie",
+    description: en
+      ? "Pay only for the galleries you deliver to clients. No subscription, all features included."
+      : "Ile kosztuje galeria zdjęć online dla klienta? Płacisz tylko za galerie, które oddajesz klientom – od 5 zł, bez abonamentu, wszystkie funkcje w cenie.",
+    alternates: { canonical: "/cennik" },
   };
 }
 

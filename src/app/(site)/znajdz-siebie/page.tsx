@@ -11,6 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
       lang === "en"
         ? "One selfie and every guest sees only the wedding photos they're in. Face recognition for photo galleries."
         : "Jedno selfie i każdy gość widzi tylko zdjęcia z wesela, na których jest. Rozpoznawanie twarzy w galeriach zdjęć.",
+    alternates: { canonical: "/znajdz-siebie" },
   };
 }
 
