@@ -20,6 +20,26 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // Dane strukturalne dla Google: Lenslie jako aplikacja internetowa z ceną od 5 zł
+// Organization + WebSite pomagają Google połączyć nazwę „Lenslie” z firmą (a nie z imieniem „Leslie”)
+const ORG_LD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Lenslie",
+    alternateName: "Lenslie – galerie zdjęć online dla fotografów",
+    url: "https://www.lenslie.com",
+    logo: "https://www.lenslie.com/icon-512.png",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Lenslie",
+    alternateName: ["Lenslie galerie", "lenslie.com"],
+    url: "https://www.lenslie.com",
+    inLanguage: ["pl", "en"],
+  },
+];
+
 const JSON_LD = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -50,7 +70,7 @@ export default async function Home() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([...ORG_LD, JSON_LD]) }} />
       <section className="hero">
         <h1>{t("Twoje zdjęcia zasługują na piękną oprawę.", "Your photos deserve a beautiful setting.")}</h1>
         <p>
