@@ -252,7 +252,7 @@ export default function AlbumTab({
     setSpreads((list) => [...list, layoutSpread([name], asp, project.style, 0, project.seed, ratio)]);
   }
 
-  async function download() {
+  async function download(pages = false) {
     setError("");
     try {
       const names = [...used];
@@ -267,10 +267,10 @@ export default function AlbumTab({
       const { exportAlbum } = await import("@/lib/album-render");
       const fallback = Object.fromEntries(photos.map((p) => [p.name, p.url]));
       const slug = (galleryTitle || "album").normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/ł/g, "l").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "album";
-      const zip = await exportAlbum(project, data.urls ?? {}, fallback, (done, total) => setExporting({ done, total }), slug);
+      const zip = await exportAlbum(project, data.urls ?? {}, fallback, (done, total) => setExporting({ done, total }), slug, pages);
       const a = document.createElement("a");
       a.href = URL.createObjectURL(zip);
-      a.download = `${slug}-album-${fmt.id}.zip`;
+      a.download = `${slug}-album-${fmt.id}${pages ? "-strony" : ""}.zip`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -755,9 +755,14 @@ export default function AlbumTab({
                 </div>
               ) : (
                 <>
-                  <button type="button" className="btn btn-dark" onClick={download}>
-                    {t("Pobierz rozkładówki (ZIP)", "Download spreads (ZIP)")}
-                  </button>
+                  <div className="alb-dl">
+                    <button type="button" className="btn btn-dark" onClick={() => download(false)}>
+                      {t("Pobierz rozkładówki (ZIP)", "Download spreads (ZIP)")}
+                    </button>
+                    <button type="button" className="btn btn-ghost" onClick={() => download(true)} title={t("Każda rozkładówka jako dwa pliki – lewa i prawa strona (np. do edytora Uwolnij Kolory)", "Each spread as two files – left and right page")}>
+                      {t("Pobierz strony osobno (ZIP)", "Download single pages (ZIP)")}
+                    </button>
+                  </div>
                   {freeTrial && (
                     <p className="hint-inline">
                       {t(

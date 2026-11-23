@@ -259,6 +259,7 @@ export async function exportAlbum(
   fallbackUrls: Record<string, string>,
   onProgress: (done: number, total: number) => void,
   name: string,
+  pages = false,
 ): Promise<Blob> {
   const { downloadZip } = await import("client-zip");
   const canvas = document.createElement("canvas");
@@ -284,13 +285,34 @@ export async function exportAlbum(
       dims,
     );
     cache.forEach((b) => b.close());
-    files.push({ name: `${name}-${fmt.id}-${pad(i + 1)}.jpg`, input: await withDpi(await toJpeg(canvas)) });
+    if (pages) {
+      // strony osobno: każda połowa rozkładówki ze spadem z każdej strony (od grzbietu bierze kawałek sąsiedniej strony)
+      const over = p.bleed && !p.printPx ? Math.round(BLEED_CM * pxPerCm) : 0;
+      const half = Math.round(dims.width / 2);
+      const parts: [number, number][] = [
+        [0, half + over],
+        [half - over, dims.width - (half - over)],
+      ];
+      for (let k = 0; k < 2; k++) {
+        const [x, w] = parts[k];
+        const c = document.createElement("canvas");
+        c.width = w;
+        c.height = dims.height;
+        c.getContext("2d")!.drawImage(canvas, x, 0, w, dims.height, 0, 0, w, dims.height);
+        files.push({ name: `${name}-${fmt.id}-strona-${pad(i * 2 + k + 1)}.jpg`, input: await withDpi(await toJpeg(c)) });
+        c.width = c.height = 0;
+      }
+    } else {
+      files.push({ name: `${name}-${fmt.id}-${pad(i + 1)}.jpg`, input: await withDpi(await toJpeg(canvas)) });
+    }
     onProgress(i + 1, total);
   }
   const b = p.printPx ? ", wymiary wg drukarni" : p.bleed ? `, ze spadem ${BLEED_CM * 10} mm z każdej strony` : ", bez spadu";
   const info = [
     `Album ${fmt.w}×${fmt.h} cm – ${total} rozkładówek (${total * 2} stron).`,
-    `Każdy plik to rozkładówka ${fmt.w * 2}×${fmt.h} cm${b}: ${dims.width}×${dims.height} px, ${DPI} dpi, sRGB, JPEG.`,
+    pages
+      ? `Każdy plik to jedna strona ${fmt.w}×${fmt.h} cm${b}, ${DPI} dpi, sRGB, JPEG. Pliki są ponumerowane stronami (strona-01, strona-02…).`
+      : `Każdy plik to rozkładówka ${fmt.w * 2}×${fmt.h} cm${b}: ${dims.width}×${dims.height} px, ${DPI} dpi, sRGB, JPEG.`,
     p.bleed || p.printPx ? "Spad zostanie obcięty w drukarni – nie umieszczaj ważnych elementów przy samej krawędzi." : "",
     "Przygotowano w Lenslie – www.lenslie.com",
   ]
