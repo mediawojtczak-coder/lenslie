@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${SITE}/`, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE}/cennik`, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE}/alternatywa-pixieset`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE}/znajdz-siebie`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE}/przypomnienie`, changeFrequency: "monthly", priority: 0.6 },
     ...FEATURES.map((f) => ({ url: `${SITE}/funkcje/${f.slug}`, changeFrequency: "monthly" as const, priority: 0.7 })),

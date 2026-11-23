@@ -35,6 +35,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           <Link href="/rejestracja">{t("Załóż konto", "Sign up")}</Link>
           <Link href="/znajdz-siebie">{t("Znajdź siebie", "Find me")}</Link>
           <Link href="/przypomnienie">{t("Przypomnienie dla klienta", "Client reminder")}</Link>
+          <Link href="/alternatywa-pixieset">{t("Alternatywa dla Pixieset", "Pixieset alternative")}</Link>
           <Link href="/regulamin">{t("Regulamin", "Terms of service")}</Link>
           <Link href="/polityka-prywatnosci">{t("Polityka prywatności", "Privacy policy")}</Link>
           <CookieSettings label={t("Ustawienia cookie", "Cookie settings")} />
