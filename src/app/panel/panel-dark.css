@@ -178,3 +178,10 @@ html:has(.app.ui-dark), body:has(.app.ui-dark) { background: #11100e; }
 .ui-dark .app-search input { background-color: #151311; }
 .account-menu .ui-look-opts button { width: auto; margin: 0; padding: 7px 9px; border: 1px solid var(--hair); text-decoration: none; letter-spacing: 0; text-transform: none; }
 .account-menu .ui-look-opts button.on { border-color: var(--brass); }
+
+/* Album: przyciski pod rozkładówką czytelne w ciemnym panelu */
+.ui-dark .alb-tools button { background: var(--card-2); border-color: var(--hair); color: var(--ink); }
+.ui-dark .alb-tools button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.ui-dark .alb-tools button:disabled { opacity: .3; }
+.ui-dark .alb-tools .alb-edit, .ui-dark .alb-tools button.on { background: var(--accent); border-color: var(--accent); color: #17130f; }
+.ui-dark .alb-tools .alb-edit:hover, .ui-dark .alb-tools button.on:hover { color: #17130f; filter: brightness(1.06); }
