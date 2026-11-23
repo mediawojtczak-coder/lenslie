@@ -533,7 +533,7 @@ export function emptyProject(source: string, title: string, subtitle: string): A
     source,
     title,
     subtitle,
-    titlePage: true,
+    titlePage: false,
     bleed: true,
     spreads: [],
     aspects: {},
