@@ -3118,3 +3118,4 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
   .alt-features ul { grid-template-columns: 1fr; }
 }
 .alt-hero .fs-lead { margin-left: auto; margin-right: auto; }
+.sel-zip-err { font-size: .8rem; color: #b4533c; }

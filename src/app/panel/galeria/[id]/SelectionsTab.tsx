@@ -30,7 +30,7 @@ export default async function SelectionsTab({
   id: string;
   selling?: boolean;
   edited?: string[];
-  photos: { name: string; fileName: string; url: string }[];
+  photos: { name: string; fileName: string; url: string; dl: string }[];
 }) {
   const { supabase } = await getUser();
   const lang = await getLang();
@@ -100,7 +100,7 @@ export default async function SelectionsTab({
                   {items.length} {items.length === 1 ? t("zdjęcie", "photo") : t("zdjęć", "photos")} · {t("zmiana", "updated")} {fmt.format(new Date(r.updated_at))}
                 </p>
               </div>
-              <SelectionActions galleryId={id} selectionId={r.id} name={r.client_name} fileNames={items.map((p) => p.fileName)} />
+              <SelectionActions galleryId={id} selectionId={r.id} name={r.client_name} fileNames={items.map((p) => p.fileName)} files={items.map((p) => ({ url: p.dl, fileName: p.fileName }))} />
             </header>
             {o && (
               <div className="order-box">
