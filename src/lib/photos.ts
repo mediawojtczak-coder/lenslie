@@ -1,6 +1,6 @@
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { r2, BUCKET, baseName, galleryPrefix } from "@/lib/r2";
-import { presigner, presignGet } from "@/lib/presign";
+import { presigner, presignGet, fastSignedUrl, fastSigningOk } from "@/lib/presign";
 
 export type Photo = {
   name: string;
@@ -18,7 +18,74 @@ export type Photo = {
 
 type Obj = { key: string; size: number; modified: string };
 
+// Lista plików bez AWS SDK: SDK parsuje odpowiedź XML bardzo kosztownie (przy galerii z 900 zdjęciami to
+// większość czasu serwera przy każdym otwarciu). Tu: podpisany adres + proste odczytanie XML.
+// Bezpiecznik: przy pierwszym użyciu wynik porównujemy z SDK – jeśli się różni, zostajemy przy SDK.
+const xmlText = (s: string) =>
+  s.replace(/&(lt|gt|quot|apos|amp|#(\d+)|#x([0-9a-f]+));/gi, (m, n, d, h) =>
+    d ? String.fromCodePoint(Number(d)) : h ? String.fromCodePoint(parseInt(h, 16)) : ({ lt: "<", gt: ">", quot: '"', apos: "'", amp: "&" } as Record<string, string>)[n.toLowerCase()] ?? m,
+  );
+const tag = (xml: string, name: string) => {
+  const m = xml.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`));
+  return m ? xmlText(m[1]) : undefined;
+};
+
+async function fastList(prefix: string, delimiter?: string): Promise<{ objs: Obj[]; prefixes: string[] }> {
+  const objs: Obj[] = [];
+  const prefixes: string[] = [];
+  let token: string | undefined;
+  do {
+    const params: [string, string][] = [["list-type", "2"], ["prefix", prefix]];
+    if (delimiter) params.push(["delimiter", delimiter]);
+    if (token) params.push(["continuation-token", token]);
+    const res = await fetch(fastSignedUrl("GET", null, params), { cache: "no-store" });
+    if (!res.ok) throw new Error(`R2 list ${res.status}`);
+    const xml = await res.text();
+    for (const m of xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)) {
+      const key = tag(m[1], "Key");
+      if (!key) continue;
+      const mod = tag(m[1], "LastModified");
+      objs.push({ key, size: Number(tag(m[1], "Size") ?? 0), modified: mod ? new Date(mod).toISOString() : "" });
+    }
+    for (const m of xml.matchAll(/<CommonPrefixes>([\s\S]*?)<\/CommonPrefixes>/g)) {
+      const p = tag(m[1], "Prefix");
+      if (p) prefixes.push(p);
+    }
+    token = tag(xml, "IsTruncated") === "true" ? tag(xml, "NextContinuationToken") : undefined;
+  } while (token);
+  return { objs, prefixes };
+}
+
+let listCheck: Promise<boolean> | null = null;
+function fastListOk(prefix: string, sdk: () => Promise<Obj[]>) {
+  listCheck ??= (async () => {
+    try {
+      if (!(await fastSigningOk())) return false;
+      const [a, b] = await Promise.all([fastList(prefix), sdk()]);
+      const norm = (l: Obj[]) => l.map((o) => `${o.key}|${o.size}|${o.modified}`).sort().join("\n");
+      const same = norm(a.objs) === norm(b);
+      if (!same) console.error("listObjects: szybka lista różni się od SDK – używam SDK", { prefix, fast: a.objs.length, sdk: b.length });
+      return same;
+    } catch (err) {
+      console.error("listObjects check:", err);
+      return false;
+    }
+  })();
+  return listCheck;
+}
+
 export async function listObjects(prefix: string): Promise<Obj[]> {
+  if (await fastListOk(prefix, () => sdkListObjects(prefix))) {
+    try {
+      return (await fastList(prefix)).objs;
+    } catch (err) {
+      console.error("fastList:", err);
+    }
+  }
+  return sdkListObjects(prefix);
+}
+
+async function sdkListObjects(prefix: string): Promise<Obj[]> {
   const out: Obj[] = [];
   let token: string | undefined;
   do {
@@ -37,6 +104,13 @@ export async function listObjects(prefix: string): Promise<Obj[]> {
 
 // Podkatalogi pod prefiksem (np. galleries/<id>/) – jedno szybkie zapytanie zamiast listowania wszystkich plików
 export async function listPrefixes(prefix: string): Promise<string[]> {
+  if (await fastListOk(prefix, () => sdkListObjects(prefix))) {
+    try {
+      return (await fastList(prefix, "/")).prefixes;
+    } catch (err) {
+      console.error("fastList prefixes:", err);
+    }
+  }
   const out: string[] = [];
   let token: string | undefined;
   do {

@@ -12,6 +12,7 @@ const enc = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${
 const hmac = (k: Buffer | string, s: string) => createHmac("sha256", k).update(s, "utf8").digest();
 
 export type SignInput = {
+  method?: string; // domyślnie GET
   host: string;
   path: string; // już zakodowana ścieżka, np. /bucket/klucz
   params: [string, string][];
@@ -23,7 +24,7 @@ export type SignInput = {
 let cachedKey: { id: string; key: Buffer } | null = null;
 
 // Czysty SigV4 dla zapytania z podpisem w adresie (sprawdzony na przykładzie z dokumentacji AWS)
-export function sigv4Query({ host, path, params, region, secret, amz }: SignInput) {
+export function sigv4Query({ method = "GET", host, path, params, region, secret, amz }: SignInput) {
   const day = amz.slice(0, 8);
   const query = params
     .map(([k, v]) => [enc(k), enc(v)] as const)
@@ -31,7 +32,7 @@ export function sigv4Query({ host, path, params, region, secret, amz }: SignInpu
     .map(([k, v]) => `${k}=${v}`)
     .join("&");
   const payload = params.find(([k]) => k === "X-Amz-Content-Sha256")?.[1] ?? "UNSIGNED-PAYLOAD";
-  const canonical = ["GET", path, query, `host:${host}\n`, "host", payload].join("\n");
+  const canonical = [method, path, query, `host:${host}\n`, "host", payload].join("\n");
   const scope = `${day}/${region}/s3/aws4_request`;
   const toSign = ["AWS4-HMAC-SHA256", amz, scope, createHash("sha256").update(canonical, "utf8").digest("hex")].join("\n");
   const id = `${day}|${region}|${secret}`;
@@ -112,3 +113,29 @@ export async function presignGet(key: string, opts: Opts = {}): Promise<string> 
 export async function presigner(): Promise<(key: string, opts?: Opts) => Promise<string> | string> {
   return (await fastIsSafe()) ? fastPresign : sdkPresign;
 }
+
+// Podpisany adres do dowolnego zapytania do R2 (lista plików, zapis pustego pliku) – bez ciężkiego AWS SDK.
+// key = null → zapytanie do samego bucketu (np. lista plików).
+export function fastSignedUrl(method: "GET" | "PUT", key: string | null, extra: [string, string][] = [], expiresIn = 300) {
+  const endpoint = new URL(process.env.R2_ENDPOINT ?? "");
+  const host = virtualHost ? `${BUCKET}.${endpoint.host}` : endpoint.host;
+  const accessKey = process.env.R2_ACCESS_KEY_ID ?? "";
+  const secret = process.env.R2_SECRET_ACCESS_KEY ?? "";
+  const amz = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const keyPath = key === null ? "" : key.split("/").map(enc).join("/");
+  const path = virtualHost ? `/${keyPath}` : `/${enc(BUCKET)}${key === null ? "" : `/${keyPath}`}`;
+  const params: [string, string][] = [
+    ["X-Amz-Algorithm", "AWS4-HMAC-SHA256"],
+    ["X-Amz-Content-Sha256", "UNSIGNED-PAYLOAD"],
+    ["X-Amz-Credential", `${accessKey}/${amz.slice(0, 8)}/auto/s3/aws4_request`],
+    ["X-Amz-Date", amz],
+    ["X-Amz-Expires", String(expiresIn)],
+    ["X-Amz-SignedHeaders", "host"],
+    ...extra,
+  ];
+  const { query, signature } = sigv4Query({ method, host, path, params, region: "auto", secret, amz });
+  return `${endpoint.protocol}//${host}${path}?${query}&X-Amz-Signature=${signature}`;
+}
+
+// Czy szybkie podpisy działają (to samo sprawdzenie co przy linkach do zdjęć)
+export const fastSigningOk = () => fastIsSafe();

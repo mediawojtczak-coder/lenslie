@@ -1,3 +1,4 @@
+import { putEmpty } from "@/lib/r2-light";
 import { randomBytes } from "crypto";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { r2, BUCKET } from "@/lib/r2";
@@ -19,7 +20,7 @@ export const isSource = (v: unknown): v is FunnelSource => SOURCES.includes(v as
 export async function recordVisit(stage: VisitStage, src: FunnelSource, dev: Device) {
   const day = new Date().toISOString().slice(0, 10);
   const Key = `funnel/${day}/${stage}.${src}.${dev}.${randomBytes(5).toString("hex")}`;
-  await r2.send(new PutObjectCommand({ Bucket: BUCKET, Key, Body: "", ContentType: "text/plain" }));
+  await putEmpty(Key);
 }
 
 // Segmenty kolumn w panelu

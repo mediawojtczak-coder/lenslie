@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import type { Metadata } from "next";
 import PricingPlans from "@/components/PricingPlans";
 import DeviceShowcase from "@/components/DeviceShowcase";
@@ -55,15 +56,22 @@ const JSON_LD = {
 // Galeria pokazowa: utwórz w panelu galerię o nazwie „Pokaz” i wgraj do niej zdjęcia na stronę główną
 const SHOWCASE_ID = "pokaz";
 
+// Zdjęcia galerii pokazowej zapamiętane na 45 minut (linki są ważne 2 godziny) – strona główna nie przegląda
+// magazynu przy każdym wejściu
+const showcase = unstable_cache(
+  async () => {
+    const [photos, meta] = await Promise.all([getGalleryPhotos(SHOWCASE_ID).catch(() => []), getMeta(SHOWCASE_ID).catch(() => null)]);
+    return { urls: photos.slice(0, 12).map((p) => p.webUrl), title: meta?.title ?? null };
+  },
+  ["home-showcase-v1"],
+  { revalidate: 2700 },
+);
+
 export default async function Home() {
   const lang = await getLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
-  const [photos, meta] = await Promise.all([
-    getGalleryPhotos(SHOWCASE_ID).catch(() => []),
-    getMeta(SHOWCASE_ID).catch(() => null),
-  ]);
-  const urls = photos.map((p) => p.webUrl);
-  const showcaseTitle = meta?.title && meta.title.toLowerCase() !== "pokaz" ? meta.title : "Anna & Marek";
+  const { urls, title: metaTitle } = await showcase();
+  const showcaseTitle = metaTitle && metaTitle.toLowerCase() !== "pokaz" ? metaTitle : "Anna & Marek";
 
   // Zdjęcia z banera, gdy galeria „Pokaz” jest jeszcze pusta
   const fallback = [2, 1, 4, 3, 6, 5, 7, 1, 2, 4].map((n) => `/home/foto-${n}.jpg`);

@@ -1,3 +1,4 @@
+import { putEmpty } from "@/lib/r2-light";
 import { randomBytes } from "crypto";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { r2, BUCKET } from "@/lib/r2";
@@ -15,7 +16,7 @@ const clampMs = (n: unknown) => Math.max(0, Math.min(120_000, Math.round(Number(
 export async function recordSpeed(kind: SpeedKind, group: SpeedGroup, ms: unknown, ttfb: unknown) {
   const day = new Date().toISOString().slice(0, 10);
   const Key = `speed/${day}/${kind}.${group}.${clampMs(ms)}.${clampMs(ttfb)}.${randomBytes(4).toString("hex")}`;
-  await r2.send(new PutObjectCommand({ Bucket: BUCKET, Key, Body: "", ContentType: "text/plain" }));
+  await putEmpty(Key);
 }
 
 export type SpeedRow = { group: SpeedGroup; label: string; load: Stat; nav: Stat; ttfb: Stat };
