@@ -4,6 +4,7 @@ import { getSignupSource, sourceDetail, type SignupSource } from "@/lib/signup-s
 import { speedKeys, speedFrom, grade, fmtMs } from "@/lib/speed";
 import { visitCounts, sourceKind, emptyCounts, addTo, SEGMENTS, type Counts } from "@/lib/funnel";
 import { listObjects, listPrefixes } from "@/lib/photos";
+import { unstable_cache } from "next/cache";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
 import { getPlan, formatBytes } from "@/lib/plans";
 import { videoCost, galleryVideoBytes, USD_PLN, R2_GB_MONTH, STREAM_MIN_MONTH, STREAM_MIN_VIEW } from "@/lib/videos";
@@ -50,6 +51,14 @@ const MAIL: Record<string, string> = {
   blad: "Resend odrzucił wysyłkę. Sprawdź, czy klucz ma dostęp do domeny lenslie.com i czy domena jest zweryfikowana.",
 };
 
+// Zajęte miejsce galerii – liczone z magazynu najwyżej raz na 10 minut (przegląd wszystkich plików jest ciężki)
+const storageUsage = unstable_cache(
+  async (ids: string[]): Promise<[string, number][]> =>
+    Promise.all(ids.map(async (id) => [id, (await listObjects(`galleries/${id}/`).catch(() => [])).reduce((a, o) => a + o.size, 0)] as [string, number])),
+  ["admin-storage-usage-v1"],
+  { revalidate: 600 },
+);
+
 export default async function Admin({ searchParams }: { searchParams: Promise<{ mail?: string; reset?: string; usuniete?: string; gratis?: string }> }) {
   const { mail, reset, usuniete, gratis } = await searchParams;
   const db = adminClient();
@@ -85,7 +94,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const galleryIds = [...new Set([...galleries.map((g) => g.id), ...galleryDirs.map((d) => d.split("/")[1]).filter(Boolean)])];
   const ownerIds = [...new Set(galleries.map((g) => g.owner_id).filter((x): x is string => Boolean(x)))];
   const [objectLists, metaList, addons, sourceList, walletList] = await Promise.all([
-    Promise.all(galleryIds.map((id) => listObjects(`galleries/${id}/`).catch(() => []))),
+    storageUsage(galleryIds),
     Promise.all(galleries.map(async (g) => [g.id, await getMeta(g.id).catch(() => null)] as const)),
     Promise.all(
       users.map(async (u) => {
@@ -96,7 +105,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     Promise.all(users.map(async (u): Promise<[string, SignupSource | null]> => [u.id, await getSignupSource(u.id).catch(() => null)])),
     Promise.all(ownerIds.map(async (uid) => [uid, (await getWallet(uid).catch(() => ({ history: [] as WalletEntry[] }))).history] as const)),
   ]);
-  const objects = objectLists.flat();
+
   const orders = allOrders.slice(0, 200);
   const paidOrders = orders.filter((o) => o.status === "paid").slice(0, 100);
   const pendingOrders = orders.filter((o) => o.status !== "paid" && Date.now() - new Date(o.createdAt).getTime() < 7 * 24 * 3600 * 1000);
@@ -130,7 +139,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
 
   // Zajęte miejsce każdej galerii w jednym przejściu po magazynie (zdjęcia + filmy)
   const usage = new Map<string, number>();
-  for (const o of [...objects, ...videoObjects]) {
+  for (const [gid, bytes] of objectLists) usage.set(gid, (usage.get(gid) ?? 0) + bytes);
+  for (const o of videoObjects) {
     const gid = o.key.split("/")[1];
     usage.set(gid, (usage.get(gid) ?? 0) + o.size);
   }

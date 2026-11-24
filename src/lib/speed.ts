@@ -56,8 +56,10 @@ export function speedFrom(keys: string[], fromDaysAgo: number, toDaysAgo: number
 }
 
 export async function speedKeys(): Promise<string[]> {
-  const from = new Date(Date.now() - 15 * 24 * 3600 * 1000).toISOString().slice(0, 10);
-  return (await listObjects("speed/").catch(() => [])).map((o) => o.key).filter((k) => (k.split("/")[1] ?? "") >= from);
+  // tylko ostatnie 15 dni, każdy dzień osobno i równolegle (zamiast przeglądać wszystkie pomiary od początku)
+  const days = Array.from({ length: 16 }, (_, i) => new Date(Date.now() - i * 24 * 3600 * 1000).toISOString().slice(0, 10));
+  const lists = await Promise.all(days.map((d) => listObjects(`speed/${d}/`).catch(() => [])));
+  return lists.flat().map((o) => o.key);
 }
 
 // Ocena: dobra / do poprawy / wolna (próg dla 75% wizyt – jak w Google Core Web Vitals dla ładowania)

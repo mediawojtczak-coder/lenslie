@@ -2,7 +2,7 @@ import { putEmpty } from "@/lib/r2-light";
 import { randomBytes } from "crypto";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { r2, BUCKET } from "@/lib/r2";
-import { listObjects } from "@/lib/photos";
+import { listObjects, listPrefixes } from "@/lib/photos";
 
 // Lejek odwiedzin strony Lenslie – bez cookies i danych osobowych.
 // Każde zdarzenie to pusty plik w R2: funnel/<RRRR-MM-DD>/<etap>.<źródło>.<urządzenie>.<los>
@@ -42,12 +42,13 @@ export function addTo(c: Counts, src: string | undefined, dev: string | undefine
 export async function visitCounts(days = 30): Promise<{ counts: Record<VisitStage, Counts>; since: string | null }> {
   const counts = Object.fromEntries(VISIT_STAGES.map((s) => [s, emptyCounts()])) as Record<VisitStage, Counts>;
   const from = new Date(Date.now() - days * 24 * 3600 * 1000).toISOString().slice(0, 10);
-  let since: string | null = null;
-  for (const o of await listObjects("funnel/").catch(() => [])) {
+  // dni z danymi jednym lekkim zapytaniem, potem tylko potrzebne dni – równolegle
+  const dayDirs = (await listPrefixes("funnel/").catch(() => [] as string[])).map((p) => p.split("/")[1]).filter(Boolean).sort();
+  const since: string | null = dayDirs[0] ?? null;
+  const lists = await Promise.all(dayDirs.filter((d) => d >= from).map((d) => listObjects(`funnel/${d}/`).catch(() => [])));
+  for (const o of lists.flat()) {
     const [, day, name] = o.key.split("/");
     if (!day || !name) continue;
-    if (!since || day < since) since = day;
-    if (day < from) continue;
     const [stage, src, dev] = name.split(".");
     if (isStage(stage)) addTo(counts[stage], src, dev);
   }
