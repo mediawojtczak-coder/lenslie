@@ -8,11 +8,13 @@ export default function StripeConnectCard({
   country,
   countries,
   fee,
+  pro,
 }: {
   status: "none" | "pending" | "ready";
   country: string;
   countries: [string, string][];
   fee: number;
+  pro: boolean;
 }) {
   const [c, setC] = useState(countries.some(([k]) => k === country) ? country : "GB");
   const [busy, setBusy] = useState(false);

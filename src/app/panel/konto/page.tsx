@@ -91,6 +91,7 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
               country={ipCountry}
               countries={CONNECT_COUNTRIES}
               fee={SALES_FEE_PERCENT()}
+              pro={Boolean(await activePro(user!.id).catch(() => null))}
             />
           )}
           {tab === "wplaty" && <PayoutCard payout={payout} />}

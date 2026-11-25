@@ -7,6 +7,7 @@ import { getSelection, selectionCookie } from "@/lib/selections";
 import { getSaleOrder, saveSaleOrder } from "@/lib/sales";
 import { cardSales, salesFee } from "@/lib/stripe-connect";
 import { createCheckout } from "@/lib/stripe";
+import { activePro } from "@/lib/pro";
 
 export const runtime = "nodejs";
 
@@ -44,7 +45,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       email: order.clientEmail ?? "",
       successUrl: `${origin}/api/platnosci/stripe?${q.toString()}`,
       cancelUrl: back,
-      connect: { account: card.account, fee: salesFee(amount) },
+      connect: { account: card.account, fee: salesFee(amount, Boolean(await activePro(card.owner).catch(() => null))) },
       metadata: { kind: "sale", gallery: id, selection: sel.id },
     });
     if (!session.url) throw new Error("no url");

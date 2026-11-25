@@ -23,9 +23,16 @@ export async function getConnect(uid: string): Promise<Connect | null> {
 const saveConnect = (uid: string, c: Connect) =>
   r2.send(new PutObjectCommand({ Bucket: BUCKET, Key: key(uid), Body: JSON.stringify(c), ContentType: "application/json" }));
 
-// Prowizja Lenslie od sprzedaży zdjęć (procent; pokrywa też opłatę Stripe, którą płaci Lenslie)
+// Prowizja Lenslie od sprzedaży zdjęć (zatwierdzone 25.11.2026):
+// bez Pro – 5% (w tym opłata za kartę, którą płaci Lenslie); z Pro – 0% prowizji, tylko koszt karty (ok. 3% + 0,30).
 export const SALES_FEE_PERCENT = () => Math.min(30, Math.max(0, Number(process.env.STRIPE_SALES_FEE ?? "5") || 0));
-export const salesFee = (amountMinor: number) => Math.round((amountMinor * SALES_FEE_PERCENT()) / 100);
+export const CARD_COST = { percent: 3, fixed: 30 }; // fixed – w groszach/centach waluty
+export function salesFee(amountMinor: number, pro: boolean) {
+  const fee = pro
+    ? Math.round((amountMinor * CARD_COST.percent) / 100) + CARD_COST.fixed
+    : Math.round((amountMinor * SALES_FEE_PERCENT()) / 100);
+  return Math.max(0, Math.min(fee, amountMinor - 1));
+}
 
 // Kraje, w których fotograf może założyć konto Stripe Express (najczęstsze dla Lenslie)
 export const CONNECT_COUNTRIES: [string, string][] = [
@@ -85,7 +92,7 @@ export async function connectDashboard(uid: string) {
 }
 
 // Czy klienci tej galerii mogą płacić kartą: galeria angielska, waluta ustawiona, fotograf ma gotowe konto Stripe
-export async function cardSales(galleryId: string, meta: GalleryMeta | null): Promise<{ account: string } | null> {
+export async function cardSales(galleryId: string, meta: GalleryMeta | null): Promise<{ account: string; owner: string } | null> {
   if (!saleCur(meta)) return null;
   const db = adminClient();
   if (!db) return null;
@@ -93,5 +100,5 @@ export async function cardSales(galleryId: string, meta: GalleryMeta | null): Pr
   if (!g?.owner_id) return null;
   const [c, owner] = await Promise.all([getConnect(g.owner_id), db.auth.admin.getUserById(g.owner_id).catch(() => null)]);
   if (!c?.ready || !stripeAllowed(owner?.data?.user?.email)) return null;
-  return { account: c.account };
+  return { account: c.account, owner: g.owner_id as string };
 }
