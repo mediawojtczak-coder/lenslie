@@ -4,6 +4,8 @@ import { tr } from "@/lib/lang";
 import LangSwitch from "@/components/LangSwitch";
 import GoogleTag, { CookieSettings } from "@/components/GoogleTag";
 import FunnelBeacon from "@/components/FunnelBeacon";
+import SiteAssistant from "@/components/SiteAssistant";
+import { sitePublic } from "@/lib/assistant";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const lang = await getLang();
@@ -28,6 +30,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         </nav>
       </header>
       <main>{children}</main>
+      <SiteAssistant on={sitePublic()} />
       <footer className="site-footer">
         <p className="wordmark">Lenslie</p>
         <nav aria-label={t("Stopka", "Footer")}>

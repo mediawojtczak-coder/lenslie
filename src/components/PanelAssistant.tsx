@@ -5,7 +5,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { useTr } from "@/components/LangProvider";
 
 type Msg = { role: "user" | "assistant"; content: string };
-const STORE = "lenslie_assistant_v1";
+export type AssistantMode = "panel" | "site";
 
 // Pogrubienia (**…**) i ścieżki panelu (/panel/…) jako linki – reszta zwykłym tekstem
 function Rich({ text }: { text: string }) {
@@ -27,15 +27,25 @@ function Rich({ text }: { text: string }) {
   );
 }
 
-const SUGGESTIONS: [string, string][] = [
-  ["Jak wysłać galerię klientowi?", "How do I send a gallery to my client?"],
-  ["Jak podpiąć własną domenę?", "How do I connect my own domain?"],
-  ["Jak działa sprzedaż zdjęć?", "How do photo sales work?"],
-];
+const SUGGESTIONS: Record<AssistantMode, [string, string][]> = {
+  panel: [
+    ["Jak wysłać galerię klientowi?", "How do I send a gallery to my client?"],
+    ["Jak podpiąć własną domenę?", "How do I connect my own domain?"],
+    ["Jak działa sprzedaż zdjęć?", "How do photo sales work?"],
+  ],
+  site: [
+    ["Ile zapłacę za galerię ślubną?", "How much is a wedding gallery?"],
+    ["Czym Lenslie różni się od Pixieset?", "How is Lenslie different from Pixieset?"],
+    ["Czy klient może wybrać zdjęcia do albumu?", "Can my client pick photos for an album?"],
+  ],
+};
 
-// Asystent AI w panelu – pływający przycisk i okienko rozmowy
-export default function PanelAssistant() {
+// Asystent AI – pływający przycisk i okienko rozmowy. „panel” – dla zalogowanego fotografa, „site” – na stronie Lenslie.
+export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMode }) {
   const t = useTr();
+  const STORE = `lenslie_assistant_${mode}_v1`;
+  const endpoint = mode === "site" ? "/api/assistant/site" : "/api/assistant";
+  const [contact, setContact] = useState({ show: false, email: "", agree: false });
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -68,7 +78,7 @@ export default function PanelAssistant() {
     setSent(false);
     setBusy(true);
     try {
-      const res = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: next }) });
+      const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: next }) });
       const data = (await res.json().catch(() => ({}))) as { text?: string; error?: string };
       if (!res.ok || !data.text) throw new Error(data.error || t("Asystent chwilowo nie odpowiada.", "The assistant is not responding right now."));
       setMsgs([...next, { role: "assistant", content: data.text }]);
@@ -80,10 +90,22 @@ export default function PanelAssistant() {
   }
 
   async function handoff() {
-    if (!msgs.length) return;
-    const res = await fetch("/api/assistant/handoff", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: msgs }) }).catch(() => null);
-    if (res?.ok) setSent(true);
-    else setError(t("Nie udało się wysłać – spróbuj ponownie.", "Could not send – try again."));
+    if (mode === "site") {
+      // na stronie: najpierw e-mail i zgoda, żeby Adam mógł odpisać
+      if (!contact.show) return setContact({ ...contact, show: true });
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) return setError(t("Wpisz poprawny e-mail.", "Enter a valid e-mail."));
+      if (!contact.agree) return setError(t("Zaznacz zgodę na kontakt.", "Please agree to be contacted."));
+    } else if (!msgs.length) return;
+    setError("");
+    const res = await fetch(mode === "site" ? "/api/assistant/lead" : "/api/assistant/handoff", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: msgs, email: contact.email.trim() }),
+    }).catch(() => null);
+    if (res?.ok) {
+      setSent(true);
+      setContact({ show: false, email: "", agree: false });
+    } else setError(t("Nie udało się wysłać – spróbuj ponownie.", "Could not send – try again."));
   }
 
   return (
@@ -93,7 +115,11 @@ export default function PanelAssistant() {
           <header className="pa-head">
             <div>
               <b>{t("Asystent Lenslie", "Lenslie assistant")}</b>
-              <span>{t("Odpowiada AI – sprawdza Twoje galerie, niczego nie zmienia", "Answered by AI – it looks at your galleries but changes nothing")}</span>
+              <span>
+                {mode === "site"
+                  ? t("Odpowiada AI – pytaj o funkcje i ceny", "Answered by AI – ask about features and pricing")
+                  : t("Odpowiada AI – sprawdza Twoje galerie, niczego nie zmienia", "Answered by AI – it looks at your galleries but changes nothing")}
+              </span>
             </div>
             <button type="button" className="pa-x" onClick={() => setOpen(false)} aria-label={t("Zamknij", "Close")}>
               ×
@@ -103,9 +129,13 @@ export default function PanelAssistant() {
           <div className="pa-list" ref={list}>
             {msgs.length === 0 && (
               <div className="pa-hello">
-                <p>{t("Cześć! Zapytaj o cokolwiek w Lenslie – gdzie coś kliknąć, jak coś działa albo co się dzieje z Twoją galerią.", "Hi! Ask anything about Lenslie – where to click, how something works or what's going on with your gallery.")}</p>
+                <p>
+                  {mode === "site"
+                    ? t("Cześć! Jestem asystentem Lenslie. Powiem, jak działają galerie dla klientów, ile kosztują i który pakiet pasuje do Twoich sesji.", "Hi! I'm the Lenslie assistant. I'll explain how client galleries work, what they cost and which package fits your sessions.")
+                    : t("Cześć! Zapytaj o cokolwiek w Lenslie – gdzie coś kliknąć, jak coś działa albo co się dzieje z Twoją galerią.", "Hi! Ask anything about Lenslie – where to click, how something works or what's going on with your gallery.")}
+                </p>
                 <div className="pa-sugg">
-                  {SUGGESTIONS.map(([pl, en]) => (
+                  {SUGGESTIONS[mode].map(([pl, en]) => (
                     <button key={pl} type="button" onClick={() => ask(t(pl, en))}>
                       {t(pl, en)}
                     </button>
@@ -151,9 +181,31 @@ export default function PanelAssistant() {
               {t("Wyślij", "Send")}
             </button>
           </form>
+          {contact.show && !sent && (
+            <div className="pa-contact">
+              <input
+                type="email"
+                value={contact.email}
+                onChange={(e) => setContact({ ...contact, email: e.target.value })}
+                placeholder={t("Twój e-mail", "Your e-mail")}
+                aria-label={t("Twój e-mail", "Your e-mail")}
+              />
+              <label>
+                <input type="checkbox" checked={contact.agree} onChange={(e) => setContact({ ...contact, agree: e.target.checked })} />
+                {t("Zgadzam się na kontakt mailowy w sprawie Lenslie (rozmowa zostanie przekazana Adamowi).", "I agree to be contacted by e-mail about Lenslie (the chat will be passed to Adam).")}
+              </label>
+              <button type="button" className="btn btn-dark btn-small" onClick={handoff}>
+                {t("Wyślij", "Send")}
+              </button>
+            </div>
+          )}
           <div className="pa-foot">
             {sent ? (
               <span>{t("Wysłane – Adam odpisze mailem.", "Sent – Adam will reply by e-mail.")}</span>
+            ) : mode === "site" ? (
+              <button type="button" className="as-link" onClick={() => setContact({ ...contact, show: !contact.show })}>
+                {t("Porozmawiaj z człowiekiem", "Talk to a human")}
+              </button>
             ) : (
               <button type="button" className="as-link" onClick={handoff} disabled={!msgs.length}>
                 {t("Wyślij rozmowę do Adama", "Send this conversation to Adam")}
