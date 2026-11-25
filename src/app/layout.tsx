@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
     appleWebApp: { capable: true, title: "Lenslie", statusBarStyle: "default" },
     description:
       lang === "en"
-        ? "Elegant online galleries for photographers' clients: favourites, full-resolution downloads, photo sales, Lightroom plug-in and album designer. Pay per gallery, from PLN 5."
+        ? "Elegant online galleries for photographers' clients: favourites, full-resolution downloads, photo sales, Lightroom plug-in and album designer. Pay per gallery, no subscription."
         : "Eleganckie galerie online dla klientów fotografa: wybór ulubionych, pobieranie w pełnej jakości, sprzedaż zdjęć, wtyczka do Lightrooma i projektor albumów. Płacisz za galerię, od 5 zł.",
   };
 }

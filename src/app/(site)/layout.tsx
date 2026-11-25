@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { ogImage } from "@/lib/og";
 import { getLang } from "@/lib/lang-server";
 import { tr } from "@/lib/lang";
 import LangSwitch from "@/components/LangSwitch";
@@ -6,6 +8,14 @@ import GoogleTag, { CookieSettings } from "@/components/GoogleTag";
 import FunnelBeacon from "@/components/FunnelBeacon";
 import SiteAssistant from "@/components/SiteAssistant";
 import { sitePublic } from "@/lib/assistant";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  return {
+    openGraph: { siteName: "Lenslie", type: "website", locale: lang === "en" ? "en_GB" : "pl_PL", images: [ogImage(lang)] },
+    twitter: { card: "summary_large_image", images: [ogImage(lang)] },
+  };
+}
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const lang = await getLang();

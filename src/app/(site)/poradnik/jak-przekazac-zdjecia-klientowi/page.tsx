@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getLang } from "@/lib/lang-server";
+import { ogImage } from "@/lib/og";
 import { siteCur } from "@/lib/viewer-cur";
 import { addonPriceF, galleryPriceF, fmtCur } from "@/lib/foreign-prices";
 import { tr } from "@/lib/lang";
@@ -16,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
       ? "WeTransfer, Google Drive or an online gallery? We compare the ways photographers deliver sessions: limits, link expiry, photo proofing and client experience."
       : "WeTransfer, Dysk Google czy galeria online? Porównujemy sposoby oddawania sesji: limity, wygasanie linków, wybór zdjęć przez klienta i wygodę na telefonie.",
     alternates: { canonical: `/poradnik/${SLUG}` },
-    openGraph: { type: "article" },
+    openGraph: { type: "article", siteName: "Lenslie", locale: en ? "en_GB" : "pl_PL", images: [ogImage(en ? "en" : "pl")] },
   };
 }
 
