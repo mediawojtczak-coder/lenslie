@@ -3208,9 +3208,9 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 @media (hover: none) { .pa .pa-hide { opacity: .9; } }
 .pa-head .pa-x + .pa-x { margin-left: -4px; }
 .pa-head .pa-x { display: grid; place-items: center; }
-.pa-mini { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 16px; background: none; cursor: pointer; box-shadow: 0 8px 22px rgba(40, 30, 20, .25); transition: transform .2s, box-shadow .2s; }
-.pa-mini img { width: 48px; height: 48px; border-radius: 16px; display: block; }
-.pa-mini i { position: absolute; right: -3px; top: -3px; width: 12px; height: 12px; border-radius: 50%; background: #5bc58a; border: 2px solid #fbf8f5; }
-.pa-mini:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(40, 30, 20, .32); }
+.pa-mini { position: fixed; right: 16px; bottom: 16px; z-index: 60; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 10px; background: none; cursor: pointer; opacity: .7; box-shadow: 0 3px 10px rgba(40, 30, 20, .16); transition: opacity .2s, transform .2s; }
+.pa-mini img { width: 30px; height: 30px; border-radius: 10px; display: block; }
+.pa-mini i { position: absolute; right: -2px; top: -2px; width: 8px; height: 8px; border-radius: 50%; background: #5bc58a; border: 1.5px solid #fbf8f5; }
+.pa-mini:hover, .pa-mini:focus-visible { opacity: 1; transform: scale(1.08); }
 .ui-dark .pa-mini i { border-color: #11100e; }
-@media (max-width: 600px) { .pa-mini { right: 12px; bottom: 12px; } }
+@media (max-width: 600px) { .pa-mini { right: 10px; bottom: 10px; } }
