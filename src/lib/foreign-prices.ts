@@ -30,6 +30,9 @@ export const ADDON_EUR = {
   album: 10, // projektor albumów – miesiąc
   portfolio: 6, // strona portfolio – miesiąc
 } as const;
+// Przedłużenie galerii przez klienta fotografa (w zł 20/30/40/50)
+const CLIENT_EXTEND_EUR: Record<Period, number> = { 1: 5, 3: 7, 6: 9, 12: 12 };
+export const clientExtendF = (period: Period, cur: Cur) => fromEur(CLIENT_EXTEND_EUR[period] ?? 0, cur);
 // Rok = 10 miesięcy (2 miesiące gratis)
 const YEAR_MONTHS = 10;
 

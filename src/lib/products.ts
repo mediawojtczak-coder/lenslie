@@ -25,6 +25,8 @@ export async function fulfillProduct(a: ProductAction) {
     await applyPro(a.uid, a.tier, a.months, a.upgrade);
   } else if (a.product === "album") {
     await extendAlbumSub(a.uid, a.months);
+  } else if (a.product === "domain") {
+    await fulfilDomain(a.uid, a.host, Boolean(a.renew));
   } else if (a.product === "faces") {
     const meta = await getMeta(a.galleryId);
     if (meta) {
@@ -32,4 +34,24 @@ export async function fulfillProduct(a: ProductAction) {
       await saveMeta(a.galleryId, meta);
     }
   }
+}
+
+// Własna domena opłacona kartą (wersja angielska): zakup na rok albo przedłużenie o rok
+async function fulfilDomain(uid: string, host: string, renew: boolean) {
+  const { getDomainByUser, saveDomain, deleteDomain, domainActive, vercelAddDomain, vercelRemoveDomain } = await import("@/lib/domains");
+  const { addMonths } = await import("@/lib/plans");
+  const current = await getDomainByUser(uid);
+  if (renew && current) {
+    const base = domainActive(current) ? new Date(current.paidUntil) : new Date();
+    await saveDomain({ ...current, paidUntil: addMonths(base, 12).toISOString(), reminded: false, detached: false });
+    if (!domainActive(current)) await vercelAddDomain(current.host);
+    return;
+  }
+  const err = await vercelAddDomain(host);
+  if (err) console.error("Domena po płatności:", host, err);
+  if (current && current.host !== host) {
+    await vercelRemoveDomain(current.host);
+    await deleteDomain(current);
+  }
+  await saveDomain({ host, uid, addedAt: new Date().toISOString(), paidUntil: addMonths(new Date(), 12).toISOString() });
 }

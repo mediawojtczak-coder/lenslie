@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { cardMode } from "@/lib/stripe";
+import { getLang } from "@/lib/lang-server";
+import { purchase } from "@/lib/purchase";
 import { activePro, proGraceEnd } from "@/lib/pro";
 import { E } from "@/lib/api-lang";
 import { getUser } from "@/lib/supabase/server";
@@ -48,6 +51,21 @@ export async function POST(req: Request) {
     // Zakup: pobieramy opłatę z salda; zmiana adresu w trakcie opłaconego okresu jest bezpłatna; w abonamencie Pro – w cenie
     const pro = await activePro(user.id);
     const paidActive = domainActive(current) || Boolean(pro);
+    // wersja angielska z kartą: najpierw podłączamy adres (sprawdzenie), potem płatność; domena zapisze się po opłaceniu
+    if (!paidActive && cardMode(user.email, await getLang())) {
+      const err0 = await vercelAddDomain(host);
+      if (err0) return NextResponse.json({ error: await E(err0) }, { status: 400 });
+      return purchase({
+        req,
+        user,
+        amount: DOMAIN_PRICE,
+        label: `custom domain ${host} – 12 months`,
+        pay: "p24",
+        invoice: null,
+        action: { action: "product", product: "domain", uid: user.id, host },
+        returnPath: "/panel/konto?tab=domena",
+      });
+    }
     if (!paidActive) {
       const ok = await spend(user.id, price, `Własna domena ${host} – 12 mies.`, `domain-${host}-${Date.now()}`);
       if (!ok) return NextResponse.json({ error: await E("Za mało środków na saldzie."), code: "FUNDS" }, { status: 402 });
@@ -89,6 +107,18 @@ export async function POST(req: Request) {
       await saveDomain({ ...current, paidUntil: proGraceEnd(pro).toISOString(), reminded: false, detached: false });
       if (!domainActive(current)) await vercelAddDomain(current.host);
       return NextResponse.json({ ok: true, free: true });
+    }
+    if (cardMode(user.email, await getLang())) {
+      return purchase({
+        req,
+        user,
+        amount: DOMAIN_PRICE,
+        label: `custom domain ${current.host} – renewal 12 months`,
+        pay: "p24",
+        invoice: null,
+        action: { action: "product", product: "domain", uid: user.id, host: current.host, renew: true },
+        returnPath: "/panel/konto?tab=domena",
+      });
     }
     const ok = await spend(user.id, price, `Przedłużenie domeny ${current.host} – 12 mies.`, `domain-renew-${Date.now()}`);
     if (!ok) return NextResponse.json({ error: await E("Za mało środków na saldzie."), code: "FUNDS" }, { status: 402 });

@@ -1,5 +1,6 @@
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { r2, BUCKET } from "@/lib/r2";
+import { isCountry } from "@/lib/countries";
 
 // Dane do faktury fotografa (zapamiętane w magazynie: profiles/<id>/billing.json)
 export type Billing = {
@@ -9,6 +10,8 @@ export type Billing = {
   street: string;
   postcode: string;
   city: string;
+  // kraj (kod ISO); brak = Polska. Poza Polską nip to numer VAT (nieobowiązkowy dla osób prywatnych)
+  country?: string;
 };
 
 export const EMPTY_BILLING: Billing = { want: false, company: "", nip: "", street: "", postcode: "", city: "" };
@@ -47,8 +50,15 @@ export function cleanBilling(raw: unknown): { ok: true; billing: Billing } | { o
     street: s(r.street, 200),
     postcode: s(r.postcode, 10),
     city: s(r.city, 100),
+    ...(isCountry(r.country) && r.country !== "PL" ? { country: r.country } : {}),
   };
+  if (b.country) b.nip = s(r.nip, 20).replace(/\s/g, "").toUpperCase();
   if (!b.want) return { ok: true, billing: b };
+  if (b.country) {
+    if (!b.company || !b.street || !b.city) return { ok: false, error: "Please fill in your invoice details." };
+    if (b.nip && !/^[A-Z0-9-]{4,20}$/.test(b.nip)) return { ok: false, error: "Please check your VAT number." };
+    return { ok: true, billing: b };
+  }
   if (!b.company || !b.street || !b.postcode || !b.city) return { ok: false, error: "Uzupełnij dane do faktury." };
   if (!nipValid(b.nip)) return { ok: false, error: "Sprawdź NIP – powinien mieć 10 cyfr." };
   return { ok: true, billing: b };

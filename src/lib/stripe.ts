@@ -18,6 +18,11 @@ export function stripeAllowed(email: string | null | undefined) {
   return Boolean(email && admins().includes(email.toLowerCase()));
 }
 
+// Angielska wersja z płatnościami kartą (bez salda w zł) – dla tej osoby
+export const cardMode = (email: string | null | undefined, lang: "pl" | "en") => lang === "en" && stripeAllowed(email);
+// Strona publiczna (niezalogowani): płatności kartą w wersji angielskiej włączone dla wszystkich
+export const cardModePublic = (lang: "pl" | "en") => lang === "en" && stripeEnabled() && process.env.STRIPE_PUBLIC === "1";
+
 // Waluta płatności Stripe dla tej osoby albo null (wtedy złotówki i Przelewy24)
 export async function stripeCurrency(email: string | null | undefined, lang?: "pl" | "en"): Promise<Cur | null> {
   if (!stripeAllowed(email)) return null;

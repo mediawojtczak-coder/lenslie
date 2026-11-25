@@ -808,6 +808,14 @@ export default function PhotoGrid({
                           </button>
                         </dd>
                       </div>
+                      {sale.payout.swift && (
+                        <div>
+                          <dt>SWIFT / BIC</dt>
+                          <dd>
+                            <span className="mono">{sale.payout.swift}</span>
+                          </dd>
+                        </div>
+                      )}
                       <div>
                         <dt>{t.transferTitle}</dt>
                         <dd>
@@ -818,6 +826,25 @@ export default function PhotoGrid({
                         </dd>
                       </div>
                     </>
+                  )}
+                  {!sale.card && sale.payout?.paypal && (
+                    <div>
+                      <dt>PayPal</dt>
+                      <dd>
+                        {sale.payout.paypal.startsWith("https://") ? (
+                          <a href={sale.payout.paypal} target="_blank" rel="noopener noreferrer">
+                            {sale.payout.paypal.replace("https://", "")}
+                          </a>
+                        ) : (
+                          <>
+                            <span className="mono">{sale.payout.paypal}</span>
+                            <button type="button" className="as-link" onClick={() => copy(sale.payout!.paypal!, "pp")}>
+                              {copied === "pp" ? t.copied : t.copy}
+                            </button>
+                          </>
+                        )}
+                      </dd>
+                    </div>
                   )}
                   {!sale.card && sale.payout?.blik && (
                     <div>

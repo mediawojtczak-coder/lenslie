@@ -38,7 +38,8 @@ export type SaleOrder = {
 // Zdjęcia, które klient może już pobrać bez znaku wodnego
 export const unlockedPhotos = (o: SaleOrder | null) => (o ? (o.status === "delivered" ? o.photos : (o.deliveredPhotos ?? [])) : []);
 // Dane, na które klient wpłaca pieniądze fotografowi
-export type Payout = { holder: string; account: string; blik: string };
+// account: polski numer (26 cyfr) albo IBAN; swift i paypal – dla fotografów spoza Polski
+export type Payout = { holder: string; account: string; blik: string; swift?: string; paypal?: string };
 
 export const MAX_INCLUDED = 2000;
 export const MAX_EXTRA_PRICE = 2000;
@@ -71,21 +72,52 @@ export function formatAccount(digits: string) {
   return d.length === 26 ? `${d.slice(0, 2)} ${d.slice(2).replace(/(\d{4})(?=\d)/g, "$1 ")}` : d;
 }
 
+// IBAN: kraj (2 litery), 2 cyfry kontrolne, do 30 znaków; sprawdzenie sumy kontrolnej mod 97
+export function ibanValid(raw: string) {
+  const v = raw.replace(/\s/g, "").toUpperCase();
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(v)) return false;
+  const moved = v.slice(4) + v.slice(0, 4);
+  const digits = moved.replace(/[A-Z]/g, (c) => String(c.charCodeAt(0) - 55));
+  let rem = 0;
+  for (const d of digits) rem = (rem * 10 + Number(d)) % 97;
+  return rem === 1;
+}
+const groups = (v: string) => v.replace(/(.{4})(?=.)/g, "$1 ");
+
 export function cleanPayout(raw: unknown): { ok: true; payout: Payout } | { ok: false; error: string } {
   const r = (raw ?? {}) as Record<string, unknown>;
   const holder = String(r.holder ?? "").trim().slice(0, 100);
-  const accountDigits = String(r.account ?? "").replace(/^\s*PL/i, "").replace(/[\s-]/g, "");
+  const accRaw = String(r.account ?? "").trim().replace(/[\s-]/g, "").toUpperCase();
   const blikDigits = String(r.blik ?? "").replace(/^\s*\+?48/, "").replace(/[\s-]/g, "");
-  if (accountDigits && !/^\d{26}$/.test(accountDigits)) return { ok: false, error: "Numer konta powinien mieć 26 cyfr." };
+  const swift = String(r.swift ?? "").replace(/\s/g, "").toUpperCase().slice(0, 11);
+  const paypalRaw = String(r.paypal ?? "").trim().slice(0, 120);
+  // polski numer (z PL albo bez) albo zagraniczny IBAN
+  let account = "";
+  if (accRaw) {
+    const pl = accRaw.replace(/^PL/, "");
+    if (/^\d{26}$/.test(pl)) account = formatAccount(pl);
+    else if (ibanValid(accRaw)) account = groups(accRaw);
+    else return { ok: false, error: "Numer konta powinien mieć 26 cyfr." };
+  }
+  if (swift && !/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(swift)) return { ok: false, error: "Sprawdź kod SWIFT/BIC." };
+  let paypal = "";
+  if (paypalRaw) {
+    const link = paypalRaw.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+    if (/^paypal\.me\/[A-Za-z0-9_.-]{2,40}$/i.test(link)) paypal = `https://${link}`;
+    else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalRaw)) paypal = paypalRaw.toLowerCase();
+    else return { ok: false, error: "PayPal: podaj adres e-mail albo link paypal.me." };
+  }
   if (blikDigits && !/^\d{9}$/.test(blikDigits)) return { ok: false, error: "Numer telefonu do BLIK powinien mieć 9 cyfr." };
-  if (!accountDigits && !blikDigits) return { ok: false, error: "Podaj numer konta albo telefon do BLIK." };
-  if (accountDigits && !holder) return { ok: false, error: "Podaj odbiorcę przelewu (imię i nazwisko albo nazwę firmy)." };
+  if (!account && !blikDigits && !paypal) return { ok: false, error: "Podaj numer konta albo telefon do BLIK." };
+  if (account && !holder) return { ok: false, error: "Podaj odbiorcę przelewu (imię i nazwisko albo nazwę firmy)." };
   return {
     ok: true,
     payout: {
       holder,
-      account: accountDigits ? formatAccount(accountDigits) : "",
+      account,
       blik: blikDigits ? blikDigits.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3") : "",
+      ...(swift ? { swift } : {}),
+      ...(paypal ? { paypal } : {}),
     },
   };
 }

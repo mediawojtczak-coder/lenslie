@@ -1,3 +1,4 @@
+import { viewerCur, addonLabel, proFromLabel } from "@/lib/viewer-cur";
 import Link from "next/link";
 import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
@@ -15,6 +16,7 @@ export default async function ZnajdzSiebiePanel() {
   const { supabase, user } = await getUser();
   const pro = await activePro(user?.id).catch(() => null);
   const lang = await getLang();
+  const cur = await viewerCur();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const { data } = await supabase.from("galleries").select("id, title, created_at").order("created_at", { ascending: false });
   const rows = await Promise.all(
@@ -45,8 +47,8 @@ export default async function ZnajdzSiebiePanel() {
                     "With Pro you can turn it on in any gallery at no extra cost. Your client and guests take a selfie and the gallery shows only the photos they're in.",
                   )
                 : t(
-                    `Włącz w wybranej galerii za ${money(FACES_PRICE, lang)} jednorazowo. Klient i goście robią selfie, a galeria pokazuje tylko zdjęcia, na których są.`,
-                    `Turn it on in a gallery for a one-off ${money(FACES_PRICE, lang)}. Your client and guests take a selfie and the gallery shows only the photos they're in.`,
+                    `Włącz w wybranej galerii za ${addonLabel("faces", FACES_PRICE, lang, cur)} jednorazowo. Klient i goście robią selfie, a galeria pokazuje tylko zdjęcia, na których są.`,
+                    `Turn it on in a gallery for a one-off ${addonLabel("faces", FACES_PRICE, lang, cur)}. Your client and guests take a selfie and the gallery shows only the photos they're in.`,
                   )}
             </p>
             <Link href="/znajdz-siebie" className="as-link" target="_blank">
@@ -78,7 +80,7 @@ export default async function ZnajdzSiebiePanel() {
                       <span className={ready ? "order-status delivered" : on ? "order-status paid" : "order-status"}>
                         {ready ? t("Działa", "Active") : on ? t("Do przygotowania", "Needs preparing") : f?.paid ? t("Wyłączone", "Off") : t("Nie włączone", "Not on")}
                       </span>
-                      <small>{f?.paid ? t("Ustawienia ›", "Settings ›") : pro ? t("Włącz ›", "Turn on ›") : `${t("Włącz za", "Turn on for")} ${money(FACES_PRICE, lang)} ›`}</small>
+                      <small>{f?.paid ? t("Ustawienia ›", "Settings ›") : pro ? t("Włącz ›", "Turn on ›") : `${t("Włącz za", "Turn on for")} ${addonLabel("faces", FACES_PRICE, lang, cur)} ›`}</small>
                     </div>
                   </Link>
                 </li>

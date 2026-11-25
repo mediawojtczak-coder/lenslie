@@ -65,7 +65,9 @@ export default function SaleCard({
       <p>
         {t(
           "Klient wybiera zdjęcia do pakietu z sesji, a za każde kolejne dopłaca Tobie przelewem lub BLIK-iem. Po wpłacie jednym kliknięciem udostępniasz mu zdjęcia bez znaku wodnego.",
-          "Your client picks the photos included in the session package and pays you for each extra photo by bank transfer or BLIK. After payment, one click gives them the photos without the watermark.",
+          card
+            ? "Your client picks the photos included in the session package and pays for each extra photo by card, right in the gallery. The photos unlock automatically after payment."
+            : "Your client picks the photos included in the session package and pays you for each extra photo by bank transfer. After payment, one click gives them the photos without the watermark.",
         )}
       </p>
 
@@ -94,7 +96,7 @@ export default function SaleCard({
                   <option value="eur">€ EUR – card payment</option>
                   <option value="usd">$ USD – card payment</option>
                   <option value="gbp">£ GBP – card payment</option>
-                  <option value="pln">PLN – bank transfer / BLIK</option>
+                  <option value="pln">PLN – bank transfer</option>
                 </select>
               </div>
             )}
@@ -129,7 +131,7 @@ export default function SaleCard({
           )}
           {!hasPayout && !(card && cur !== "pln") && (
             <p className="warn-inline">
-              {t("Podaj numer konta lub telefon do BLIK, na które klienci mają wpłacać: ", "Add the bank account or BLIK phone your clients should pay to: ")}
+              {t("Podaj numer konta lub telefon do BLIK, na które klienci mają wpłacać: ", "Add the bank account (IBAN) or PayPal your clients should pay to: ")}
               <Link href="/panel/konto?tab=wplaty">{t("Moje konto › Wpłaty od klientów", "My account › Client payments")}</Link>
             </p>
           )}

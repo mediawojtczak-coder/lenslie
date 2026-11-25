@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { startPayment } from "@/lib/checkout";
+import { cardMode } from "@/lib/stripe";
+import { firstFreeAvailable, claimFirstFree, FIRST_FREE_MAX_MONTHS } from "@/lib/first-free";
 import { E } from "@/lib/api-lang";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, saveMeta } from "@/lib/galleries";
@@ -76,6 +78,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const inv = cleanBilling(body.invoice);
   if (!inv.ok) return NextResponse.json({ error: await E(inv.error) }, { status: 400 });
   if (body.invoice) await saveBilling(user.id, inv.billing).catch(() => undefined);
+
+  // Wersja angielska z płatnościami kartą: pierwsza galeria gratis (do 3 miesięcy, dowolny pakiet)
+  if (
+    checked.action.action === "choose" &&
+    checked.action.period <= FIRST_FREE_MAX_MONTHS &&
+    cardMode(user.email, await getLang()) &&
+    (await firstFreeAvailable(user.id)) &&
+    (await claimFirstFree(user.id))
+  ) {
+    await applyAction(id, checked.action);
+    await notifyAdmins(`Pierwsza galeria gratis – ${user.email}`, "Pierwsza galeria gratis (wersja angielska)", [
+      `Konto: ${user.email}.`,
+      `Galeria: ${meta.title} – ${checked.label}.`,
+    ]).catch(() => undefined);
+    return NextResponse.json({ ok: true, charged: 0, free: true });
+  }
 
   // Płatność z salda konta
   if (body.pay === "wallet" && checked.amount > 0) {

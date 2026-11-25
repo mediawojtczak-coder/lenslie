@@ -34,7 +34,8 @@ import FacesCard from "./FacesCard";
 import { FACES_PRICE } from "@/lib/faces";
 import { THEMES, getOwnedThemes, themesFreeFor, type ThemeId } from "@/lib/themes";
 import { getPayout } from "@/lib/sales";
-import { stripeAllowed } from "@/lib/stripe";
+import { stripeAllowed, cardMode } from "@/lib/stripe";
+import { firstFreeAvailable } from "@/lib/first-free";
 import { getConnect } from "@/lib/stripe-connect";
 import AlbumTab from "./AlbumTab";
 import { getAlbumProject, getAlbumSub, albumActive, albumAllowed, freeAlbumFor } from "@/lib/albums";
@@ -230,6 +231,7 @@ export default async function ZarzadzanieGalerii({
             billing={billing ?? { want: false, company: "", nip: "", street: "", postcode: "", city: "" }}
               balance={balance}
             pro={proOn && proT ? { name: proName(proT), usedBytes: pool?.bytes ?? usedBytes, limitBytes: proBytes(proT) } : null}
+            firstFree={user && cardMode(user.email, lang) ? await firstFreeAvailable(user.id) : false}
           />
         )}
 

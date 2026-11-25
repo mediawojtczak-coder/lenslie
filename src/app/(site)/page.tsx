@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import type { Metadata } from "next";
+import { siteCur } from "@/lib/viewer-cur";
 import PricingPlans from "@/components/PricingPlans";
 import DeviceShowcase from "@/components/DeviceShowcase";
 import FeatureCards from "@/components/FeatureCards";
@@ -132,7 +133,7 @@ export default async function Home() {
       <section className="home-pricing" id="cennik">
         <h2>{t("Prosty cennik", "Simple pricing")}</h2>
         <p>{t("Płacisz tylko za galerie, które oddajesz klientom. Bez abonamentu.", "Pay only for the galleries you deliver. No subscription.")}</p>
-        <PricingPlans />
+        <PricingPlans cur={await siteCur(lang)} />
         <p className="home-pricing-more">
           <Link href="/cennik">{t("Wszystko o pakietach i najczęstsze pytania", "All about plans and FAQ")}</Link>
         </p>

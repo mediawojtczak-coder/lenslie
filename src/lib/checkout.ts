@@ -6,6 +6,7 @@ import { proTier } from "@/lib/pro-plans";
 import { getTheme } from "@/lib/themes";
 import {
   galleryPriceF,
+  clientExtendF,
   galleryUpgradeF,
   proPriceF,
   proUpgradeF,
@@ -21,6 +22,7 @@ export async function foreignAmount(order: Order, cur: Cur): Promise<number | nu
   const pln = order.amount / 100;
   if (a.action === "topup") return null;
   if (a.action === "choose") return galleryPriceF(a.plan, a.period, cur);
+  if (a.action === "extend" && order.byClient) return clientExtendF(a.period, cur);
   if (a.action === "upgrade" || a.action === "extend") {
     const meta = await getMeta(order.galleryId);
     const current = getPlan(meta?.plan);
@@ -35,6 +37,7 @@ export async function foreignAmount(order: Order, cur: Cur): Promise<number | nu
     if (a.product === "faces") return addonPriceF("faces", cur);
     if (a.product === "album") return addonPriceF("album", cur, a.months);
     if (a.product === "portfolio") return addonPriceF("portfolio", cur, a.months);
+    if (a.product === "domain") return addonPriceF("domain", cur);
     if (a.product === "pro") {
       const t = proTier(a.tier);
       if (!t) return null;
@@ -47,8 +50,9 @@ export async function foreignAmount(order: Order, cur: Cur): Promise<number | nu
 
 // Rozpoczęcie płatności online: Stripe (angielska wersja, waluta kraju) albo Przelewy24 (złotówki).
 // Zwraca adres strony płatności.
-export async function startPayment(order: Order, origin: string, lang?: "pl" | "en"): Promise<string> {
-  const cur = await stripeCurrency(order.email, lang);
+// gateEmail – czyje konto decyduje o płatności kartą (np. fotograf, gdy płaci jego klient)
+export async function startPayment(order: Order, origin: string, lang?: "pl" | "en", gateEmail?: string | null): Promise<string> {
+  const cur = await stripeCurrency(gateEmail ?? order.email, lang);
   if (cur) {
     const amount = await foreignAmount(order, cur);
     if (amount && amount > 0) {

@@ -1,3 +1,4 @@
+import { viewerCur, addonLabel, proFromLabel } from "@/lib/viewer-cur";
 import Link from "next/link";
 import SideLogout from "@/components/SideLogout";
 import { getUser } from "@/lib/supabase/server";
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function Goscie() {
   const { user } = await getUser();
   const lang = await getLang();
+  const cur = await viewerCur();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const events = await listUserGuestEvents(user!.id).catch(() => []);
   const fmt = new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "pl-PL", { day: "numeric", month: "long", year: "numeric" });
@@ -36,8 +38,8 @@ export default async function Goscie() {
             <p>{t("Goście wesela wrzucają swoje zdjęcia z telefonów – po zeskanowaniu kodu QR ze stołu.", "Wedding guests upload their phone photos – after scanning a QR code on the table.")}</p>
             <p className="hint-inline">
               {t(
-                `Bez aplikacji i logowania. ${money(GUEST_PRICE, lang)} za wydarzenie: rok dodawania i oglądania, do ${GUEST_LIMIT_GB} GB zdjęć, kartki z kodem QR do druku. Dolicz to do swojej oferty dla pary.`,
-                `No app, no login. ${money(GUEST_PRICE, lang)} per event: a year of uploads and viewing, up to ${GUEST_LIMIT_GB} GB, printable QR table cards. Add it to your offer for the couple.`,
+                `Bez aplikacji i logowania. ${addonLabel("guests", GUEST_PRICE, lang, cur)} za wydarzenie: rok dodawania i oglądania, do ${GUEST_LIMIT_GB} GB zdjęć, kartki z kodem QR do druku. Dolicz to do swojej oferty dla pary.`,
+                `No app, no login. ${addonLabel("guests", GUEST_PRICE, lang, cur)} per event: a year of uploads and viewing, up to ${GUEST_LIMIT_GB} GB, printable QR table cards. Add it to your offer for the couple.`,
               )}
             </p>
             <CreateGuestEvent label={t("Utwórz wydarzenie", "Create an event")} className="btn" />

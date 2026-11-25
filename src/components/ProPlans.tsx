@@ -1,10 +1,26 @@
 import Link from "next/link";
 import { money, usdify } from "@/lib/lang";
+import { addonPriceF, fmtCur, galleryPriceF, proPriceF, type Cur } from "@/lib/foreign-prices";
 import { PHOTO_TIERS, FILM_TIERS, proName, compareFor, COMPARE_ADDONS, COMPARE_GALLERY_GB, COMPARE_GALLERY_PRICE } from "@/lib/pro-plans";
 
 // Pakiety Pro na stronie cennika: karty i porównanie z cenami za pojedyncze galerie i dodatki
-export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
-  const t = (pl: string, en: string) => (lang === "en" ? usdify(en) : pl);
+export default function ProPlans({ lang, cur = null }: { lang: "pl" | "en"; cur?: Cur | null }) {
+  const t = (pl: string, en: string) => (lang === "en" ? (cur ? en : usdify(en)) : pl);
+  // kwota w walucie klienta (gdy płatności kartą) albo w złotych
+  const m = (pln: number, foreign: number) => (cur ? fmtCur(foreign, cur) : money(pln, lang));
+  // porównanie w walucie: duże galerie na 12 mies. i dodatki w kolejności COMPARE_ADDONS
+  const fAddons = cur
+    ? [addonPriceF("portfolio", cur, 12), addonPriceF("album", cur, 12), addonPriceF("domain", cur), 3 * addonPriceF("theme", cur), 5 * addonPriceF("faces", cur), 2 * addonPriceF("guests", cur)]
+    : [];
+  const fCompare = (x: (typeof PHOTO_TIERS)[number]) => {
+    if (!cur) return { gallery: 0, galleryCost: 0, separately: 0, yearly: 0, saving: 0 };
+    const c = compareFor(x);
+    const gallery = galleryPriceF("duza", 12, cur);
+    const galleryCost = c.galleries * gallery;
+    const separately = galleryCost + fAddons.reduce((a, b) => a + b, 0);
+    const yearly = proPriceF(x.id, 12, cur);
+    return { gallery, galleryCost, separately, yearly, saving: Math.max(0, separately - yearly) };
+  };
   const n = (v: number) => v.toLocaleString(lang === "en" ? "en-GB" : "pl-PL");
   const included = [
     t("Galerie bez opłat za publikację", "Publish galleries at no extra cost"),
@@ -22,11 +38,11 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
                 : t(`ok. ${n(Math.round((x.gb * 1000) / 7.5 / 1000))} tys. zdjęć w pełnej rozdzielczości`, `approx. ${n(Math.round((x.gb * 1000) / 7.5 / 1000))},000 full-resolution photos`)}
             </p>
             <p className="plan-price">
-              <span className="amount">{money(x.monthly, lang)}</span>
+              <span className="amount">{m(x.monthly, cur ? proPriceF(x.id, 1, cur) : 0)}</span>
               <span className="per">{t("miesięcznie", "a month")}</span>
             </p>
             <p className="plan-month">
-              {t("albo", "or")} <strong>{money(x.yearly, lang)}</strong> {t("za rok z góry", "paid yearly in advance")}
+              {t("albo", "or")} <strong>{m(x.yearly, cur ? proPriceF(x.id, 12, cur) : 0)}</strong> {t("za rok z góry", cur ? "a year – 2 months free" : "paid yearly in advance")}
             </p>
             <ul className="plan-facts">
               <li>
@@ -95,40 +111,40 @@ export default function ProPlans({ lang }: { lang: "pl" | "en" }) {
             </thead>
             <tbody>
               <tr>
-                <th scope="row">{t(`Duże galerie po ${COMPARE_GALLERY_PRICE} zł`, `Large galleries at PLN ${COMPARE_GALLERY_PRICE}`)}</th>
+                <th scope="row">{cur ? `Large galleries at ${fmtCur(galleryPriceF("duza", 12, cur), cur)}` : t(`Duże galerie po ${COMPARE_GALLERY_PRICE} zł`, `Large galleries at PLN ${COMPARE_GALLERY_PRICE}`)}</th>
                 {PHOTO_TIERS.map((x) => {
                   const c = compareFor(x);
                   return (
                     <td key={x.id}>
-                      {c.galleries} × = {money(c.galleryCost, lang)}
+                      {c.galleries} × = {m(c.galleryCost, fCompare(x).galleryCost)}
                     </td>
                   );
                 })}
               </tr>
-              {COMPARE_ADDONS.map((a) => (
+              {COMPARE_ADDONS.map((a, i) => (
                 <tr key={a.pl}>
                   <th scope="row">{lang === "en" ? a.en : a.pl}</th>
                   {PHOTO_TIERS.map((x) => (
-                    <td key={x.id}>{money(a.price, lang)}</td>
+                    <td key={x.id}>{m(a.price, fAddons[i] ?? 0)}</td>
                   ))}
                 </tr>
               ))}
               <tr className="pro-row-sum">
                 <th scope="row">{t("Razem osobno", "Total separately")}</th>
                 {PHOTO_TIERS.map((x) => (
-                  <td key={x.id}>{money(compareFor(x).separately, lang)}</td>
+                  <td key={x.id}>{m(compareFor(x).separately, fCompare(x).separately)}</td>
                 ))}
               </tr>
               <tr className="pro-row-pro">
                 <th scope="row">{t("Abonament Pro na rok", "Pro subscription per year")}</th>
                 {PHOTO_TIERS.map((x) => (
-                  <td key={x.id}>{money(x.yearly, lang)}</td>
+                  <td key={x.id}>{m(x.yearly, fCompare(x).yearly)}</td>
                 ))}
               </tr>
               <tr className="pro-row-save">
                 <th scope="row">{t("Oszczędzasz", "You save")}</th>
                 {PHOTO_TIERS.map((x) => (
-                  <td key={x.id}>{money(compareFor(x).saving, lang)}</td>
+                  <td key={x.id}>{m(compareFor(x).saving, fCompare(x).saving)}</td>
                 ))}
               </tr>
             </tbody>

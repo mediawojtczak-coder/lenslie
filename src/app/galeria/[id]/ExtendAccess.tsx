@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { clientExtendF, fmtCur, type Cur } from "@/lib/foreign-prices";
+import type { Period } from "@/lib/plans";
 import { money } from "@/lib/lang";
 
 type Offer = {
@@ -66,7 +68,7 @@ const L = {
 };
 
 // Informacja dla klienta, ile dni zostało, i samodzielne przedłużenie dostępu
-export default function ExtendAccess({ id, offer, lang }: { id: string; offer: Offer; lang: "pl" | "en" }) {
+export default function ExtendAccess({ id, offer, lang, cur = null }: { id: string; offer: Offer; lang: "pl" | "en"; cur?: Cur | null }) {
   const t = L[lang];
   const fmt = new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "pl-PL", { day: "numeric", month: "long", year: "numeric" });
   const [open, setOpen] = useState<null | "extend" | "remind">(null);
@@ -157,7 +159,7 @@ export default function ExtendAccess({ id, offer, lang }: { id: string; offer: O
             onClick={() => setPeriod(p.period)}
           >
             <span>{t.months(p.period)}</span>
-            <strong>{money(p.amount, lang)}</strong>
+            <strong>{cur ? fmtCur(clientExtendF(p.period as Period, cur), cur) : money(p.amount, lang)}</strong>
           </button>
         ))}
       </div>
@@ -169,9 +171,9 @@ export default function ExtendAccess({ id, offer, lang }: { id: string; offer: O
         </p>
       )}
       <button type="submit" className="btn btn-dark btn-wide" disabled={busy}>
-        {busy ? t.wait : t.pay(money(amount, lang))}
+        {busy ? t.wait : t.pay(cur ? fmtCur(clientExtendF(period as Period, cur), cur) : money(amount, lang))}
       </button>
-      <p className="ext-note">{t.note}</p>
+      <p className="ext-note">{cur ? "Pay by card, Apple Pay or Google Pay. The new period starts when the current one ends." : t.note}</p>
     </form>
   );
 

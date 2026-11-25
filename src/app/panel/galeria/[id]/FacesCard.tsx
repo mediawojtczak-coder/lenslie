@@ -6,7 +6,7 @@ import { useLang } from "@/components/LangProvider";
 import { tr, money } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
 import { useCur } from "@/components/CurrencyProvider";
-import { addonPriceF } from "@/lib/foreign-prices";
+import { addonPriceF, fmtCur } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import { indexPhotos } from "@/lib/faces-client";
 import type { Billing } from "@/lib/billing";
@@ -113,7 +113,7 @@ export default function FacesCard({
             )}
           </label>
           <p className="hint-inline">
-            {price > 0 ? `${money(price, lang)} ${t("jednorazowo za tę galerię.", "one-off for this gallery.")}` : t("W cenie abonamentu Pro.", "Included in your Pro subscription.")}
+            {price > 0 ? `${cur ? fmtCur(addonPriceF("faces", cur), cur) : money(price, lang)} ${t("jednorazowo za tę galerię.", "one-off for this gallery.")}` : t("W cenie abonamentu Pro.", "Included in your Pro subscription.")}
           </p>
           <InvoiceFields value={invoice} onChange={setInvoice} />
           <PayButtons price={price} foreign={cur ? addonPriceF("faces", cur) : undefined} balance={balance} busy={busy} disabled={!consent} label={t("i włącz", "and turn on")} onPay={buy} />

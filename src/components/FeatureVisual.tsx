@@ -86,7 +86,7 @@ export default function FeatureVisual({ visual, lang, small = false }: { visual:
               </div>
               <div className="fv-cart">
                 <span>{t("33 zdjęcia · 3 dodatkowe", "33 photos · 3 extra")}</span>
-                <strong>{t("60 zł", "PLN 60")}</strong>
+                <strong>{t("60 zł", "€60")}</strong>
               </div>
             </div>
           </div>

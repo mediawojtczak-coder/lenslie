@@ -1467,6 +1467,7 @@ ol.stat-list { counter-reset: s; }
 .invoice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
 .invoice-grid label { font-size: .8rem; }
 .invoice-grid input { margin: 2px 0 14px; padding: 8px 0 10px; }
+.invoice-grid select { display: block; width: 100%; margin: 4px 0 14px; padding: 8px 10px; font: inherit; font-size: .95rem; border: 1px solid var(--hair); border-radius: 8px; background: transparent; color: inherit; }
 .invoice-grid .span2 { grid-column: 1 / -1; }
 .admin-table td.wrap { white-space: normal; min-width: 180px; }
 .inv-cell { display: flex; flex-direction: column; gap: 6px; font-size: .8rem; }

@@ -7,6 +7,8 @@ import { putEmpty } from "@/lib/r2-light";
 import { assistantAllowed, knowledge, SYSTEM_RULES, ASSISTANT_DAILY_LIMIT, ASSISTANT_MODEL } from "@/lib/assistant";
 
 import { getLang } from "@/lib/lang-server";
+import { stripeCurrency } from "@/lib/stripe";
+import { foreignKnowledge } from "@/lib/assistant";
 
 const langRule = (l: "pl" | "en") =>
   l === "en"
@@ -75,6 +77,7 @@ export async function POST(req: Request) {
 - galerie (najnowsze ${list.length}):
 ${rows.join("\n") || "- brak galerii"}`;
 
+  const panelCur = await stripeCurrency(user.email).catch(() => null);
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
@@ -85,6 +88,7 @@ ${rows.join("\n") || "- brak galerii"}`;
         { type: "text", text: `${SYSTEM_RULES}\n\nWIEDZA O LENSLIE:\n${knowledge()}`, cache_control: { type: "ephemeral" } },
         { type: "text", text: account },
         { type: "text", text: langRule(await getLang()) },
+        ...(panelCur ? [{ type: "text", text: foreignKnowledge(panelCur) }] : []),
       ],
       messages,
     }),

@@ -5,7 +5,7 @@ import { useLang } from "@/components/LangProvider";
 import { tr, money } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
 import { useCur } from "@/components/CurrencyProvider";
-import { addonPriceF } from "@/lib/foreign-prices";
+import { addonPriceF, fmtCur } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import type { Billing } from "@/lib/billing";
 
@@ -56,8 +56,8 @@ export default function AlbumSubCard({ balance, billing, returnPath, compact = f
         {([12, 1] as const).map((m) => (
           <button key={m} type="button" className={months === m ? "alb-plan on" : "alb-plan"} onClick={() => setMonths(m)}>
             <span>{m === 12 ? t("Rok", "Year") : t("Miesiąc", "Month")}</span>
-            <strong>{money(PRICES[m], lang)}</strong>
-            <small>{m === 12 ? t("oszczędzasz 178 zł", "save PLN 178") : t("bez zobowiązań", "no commitment")}</small>
+            <strong>{cur ? fmtCur(addonPriceF("album", cur, m), cur) : money(PRICES[m], lang)}</strong>
+            <small>{m === 12 ? cur ? `save ${fmtCur(addonPriceF("album", cur, 1) * 12 - addonPriceF("album", cur, 12), cur)}` : t("oszczędzasz 178 zł", "save PLN 178") : t("bez zobowiązań", "no commitment")}</small>
           </button>
         ))}
       </div>

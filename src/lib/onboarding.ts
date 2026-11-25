@@ -28,7 +28,7 @@ export async function saveOnboarding(uid: string, s: OnboardingState) {
   await r2.send(new PutObjectCommand({ Bucket: BUCKET, Key: key(uid), Body: JSON.stringify(s), ContentType: "application/json" }));
 }
 
-function mail(step: OnboardingStep, lang: SiteLang) {
+function mail(step: OnboardingStep, lang: SiteLang, card = false) {
   const en = lang === "en";
   const panel = `${siteUrl()}/panel`;
   if (step === "welcome") {
@@ -37,10 +37,14 @@ function mail(step: OnboardingStep, lang: SiteLang) {
       title: en ? "Welcome to Lenslie" : "Witaj w Lenslie",
       lines: en
         ? [
-            "Thank you for joining! We've added PLN 20 to your balance – enough to publish your first gallery.",
+            card
+              ? "Thank you for joining! Your first gallery is on us – publish it free for up to 3 months."
+              : "Thank you for joining! We've added PLN 20 to your balance – enough to publish your first gallery.",
             "1. Click “New gallery” and give it a name, e.g. the couple's names.",
             "2. Drag your photos in – full resolution, no compression.",
-            "3. Click “Publish”, choose how long your client should have access and pay from your balance.",
+            card
+              ? "3. Click “Publish” and choose how long your client should have access – your first gallery is free."
+              : "3. Click “Publish”, choose how long your client should have access and pay from your balance.",
             "4. Send your client the link or QR code – they can pick favourites and download everything.",
             "Working in Lightroom? Install our free plug-in and publish galleries straight from your catalogue.",
           ]
@@ -57,11 +61,17 @@ function mail(step: OnboardingStep, lang: SiteLang) {
   }
   if (step === "nudge") {
     return {
-      subject: en ? "Your PLN 20 is waiting – publish your first gallery" : "Twoje 20 zł czeka – opublikuj pierwszą galerię",
+      subject: en
+        ? card
+          ? "Your free first gallery is waiting"
+          : "Your PLN 20 is waiting – publish your first gallery"
+        : "Twoje 20 zł czeka – opublikuj pierwszą galerię",
       title: en ? "Your first gallery is one step away" : "Pierwsza galeria jest o krok",
       lines: en
         ? [
-            "You still have PLN 20 on your Lenslie balance – enough for your first gallery.",
+            card
+              ? "Your first Lenslie gallery is still free – publish it for up to 3 months at no cost."
+              : "You still have PLN 20 on your Lenslie balance – enough for your first gallery.",
             "Pick any recent session, drag in the photos and publish. Your client gets an elegant gallery with favourites, downloads and a slideshow – on phone and computer.",
             "Questions? Just reply to this e-mail – we're happy to help.",
           ]
@@ -80,7 +90,9 @@ function mail(step: OnboardingStep, lang: SiteLang) {
       ? [
           "Lightroom plug-in – publish and update galleries straight from Lightroom, no exporting and uploading.",
           "Album designer – your client hearts their favourite photos and the album lays itself out, ready for print.",
-          "Pro plans – if you deliver many sessions, one monthly fee covers all galleries, videos and add-ons (from PLN 59 a month).",
+          card
+            ? "Pro plans – if you deliver many sessions, one monthly fee covers all galleries, videos and add-ons (from €15 / $15 / £13 a month)."
+            : "Pro plans – if you deliver many sessions, one monthly fee covers all galleries, videos and add-ons (from PLN 59 a month).",
         ]
       : [
           "Wtyczka do Lightrooma – publikujesz i aktualizujesz galerie prosto z Lightrooma, bez eksportu i wgrywania.",
@@ -95,7 +107,8 @@ function mail(step: OnboardingStep, lang: SiteLang) {
 export async function sendOnboarding(uid: string, email: string, step: OnboardingStep, lang: SiteLang): Promise<boolean> {
   const s = await getOnboarding(uid);
   if (s.off || s.sent[step]) return false;
-  const m = mail(step, lang);
+  const { cardMode } = await import("@/lib/stripe");
+  const m = mail(step, lang, cardMode(email, lang === "en" ? "en" : "pl"));
   const off = `${siteUrl()}/api/onboarding?u=${encodeURIComponent(uid)}&t=${s.token}`;
   const html = emailLayout(m.title, m.lines, m.button, lang).replace(
     "</div></body></html>",

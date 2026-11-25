@@ -35,13 +35,7 @@ export function salesFee(amountMinor: number, pro: boolean) {
 }
 
 // Kraje, w których fotograf może założyć konto Stripe Express (najczęstsze dla Lenslie)
-export const CONNECT_COUNTRIES: [string, string][] = [
-  ["GB", "United Kingdom"], ["IE", "Ireland"], ["US", "United States"], ["CA", "Canada"], ["AU", "Australia"], ["NZ", "New Zealand"],
-  ["DE", "Germany"], ["AT", "Austria"], ["CH", "Switzerland"], ["NL", "Netherlands"], ["BE", "Belgium"], ["LU", "Luxembourg"],
-  ["FR", "France"], ["ES", "Spain"], ["PT", "Portugal"], ["IT", "Italy"], ["DK", "Denmark"], ["SE", "Sweden"], ["NO", "Norway"],
-  ["FI", "Finland"], ["PL", "Poland"], ["CZ", "Czechia"], ["SK", "Slovakia"], ["LT", "Lithuania"], ["LV", "Latvia"], ["EE", "Estonia"],
-  ["HU", "Hungary"], ["RO", "Romania"], ["BG", "Bulgaria"], ["HR", "Croatia"], ["SI", "Slovenia"], ["GR", "Greece"], ["CY", "Cyprus"], ["MT", "Malta"],
-];
+export { COUNTRIES as CONNECT_COUNTRIES } from "@/lib/countries";
 
 type Account = { id: string; charges_enabled: boolean; details_submitted: boolean; country: string };
 
@@ -101,4 +95,18 @@ export async function cardSales(galleryId: string, meta: GalleryMeta | null): Pr
   const [c, owner] = await Promise.all([getConnect(g.owner_id), db.auth.admin.getUserById(g.owner_id).catch(() => null)]);
   if (!c?.ready || !stripeAllowed(owner?.data?.user?.email)) return null;
   return { account: c.account, owner: g.owner_id as string };
+}
+
+// Waluta, w której klient galerii angielskiej przedłuża dostęp kartą (gdy fotograf ma włączone płatności kartą)
+export async function ownerCardCur(galleryId: string, meta: GalleryMeta | null): Promise<import("@/lib/foreign-prices").Cur | null> {
+  if (meta?.lang !== "en") return null;
+  const db = adminClient();
+  if (!db) return null;
+  const { data: g } = await db.from("galleries").select("owner_id").eq("id", galleryId).maybeSingle();
+  if (!g?.owner_id) return null;
+  const owner = await db.auth.admin.getUserById(g.owner_id).catch(() => null);
+  if (!stripeAllowed(owner?.data?.user?.email)) return null;
+  const { headers } = await import("next/headers");
+  const { curForCountry } = await import("@/lib/foreign-prices");
+  return curForCountry((await headers()).get("x-vercel-ip-country"));
 }

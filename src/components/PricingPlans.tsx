@@ -5,10 +5,11 @@ import Link from "next/link";
 import { PLANS, PERIODS, DEFAULT_PERIOD, planName, planPhotos, planFor, periodText, periodShort, perMonthL, type Period } from "@/lib/plans";
 import { useLang } from "./LangProvider";
 import { tr, money } from "@/lib/lang";
+import { fmtCur, galleryPriceF, type Cur } from "@/lib/foreign-prices";
 
 
 // Karty pakietów z przełącznikiem okresu publikacji
-export default function PricingPlans() {
+export default function PricingPlans({ cur = null }: { cur?: Cur | null }) {
   const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD);
   const lang = useLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
@@ -38,10 +39,15 @@ export default function PricingPlans() {
             <h3>{planName(plan, lang)}</h3>
             <p className="plan-for">{planFor(plan, lang)}</p>
             <p className="plan-price">
-              <span className="amount">{money(plan.prices[period], lang)}</span>
+              <span className="amount">{cur ? fmtCur(galleryPriceF(plan.id, period, cur), cur) : money(plan.prices[period], lang)}</span>
               <span className="per">{t("za galerię", "per gallery")}</span>
             </p>
-            {period > 1 && <p className="plan-month">{t("czyli", "that is")} {perMonthL(plan.prices[period], period, lang)}</p>}
+            {period > 1 && (
+              <p className="plan-month">
+                {t("czyli", "that is")}{" "}
+                {cur ? `${fmtCur(Math.round((galleryPriceF(plan.id, period, cur) / period) * 100) / 100, cur)}/mo.` : perMonthL(plan.prices[period], period, lang)}
+              </p>
+            )}
             <ul className="plan-facts">
               <li>
                 <strong>{t("do", "up to")} {fmtGb(plan.limitGb)}</strong> {planPhotos(plan, lang)} {t("w pełnej rozdzielczości", "in full resolution")}

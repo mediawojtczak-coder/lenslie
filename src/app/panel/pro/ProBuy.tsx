@@ -5,7 +5,7 @@ import { useLang } from "@/components/LangProvider";
 import { tr, money } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
 import { useCur } from "@/components/CurrencyProvider";
-import { proPriceF, proUpgradeF } from "@/lib/foreign-prices";
+import { proPriceF, proUpgradeF, fmtCur } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import type { Billing } from "@/lib/billing";
 import { PRO_TIERS, proIsBigger, proName, proPrice, proHardLimit, proVideoSeconds, type ProTierId, type ProMonths } from "@/lib/pro-plans";
@@ -107,11 +107,11 @@ export default function ProBuy({
               </small>
               {mode === "upgrade" ? (
                 <em>
-                  +{money(upgrade[x.id] ?? 0, lang)} <small>{t("do końca okresu", "until period end")}</small>
+                  +{payCur ? fmtCur(proUpgradeF(x.id, upgrade[x.id] ?? 0, x.monthly, payCur), payCur) : money(upgrade[x.id] ?? 0, lang)} <small>{t("do końca okresu", "until period end")}</small>
                 </em>
               ) : (
                 <em>
-                  {money(months === 12 ? x.yearly : x.monthly, lang)} <small>{months === 12 ? t("/ rok", "/ year") : t("/ mies.", "/ mo.")}</small>
+                  {payCur ? fmtCur(proPriceF(x.id, months, payCur), payCur) : money(months === 12 ? x.yearly : x.monthly, lang)} <small>{months === 12 ? t("/ rok", "/ year") : t("/ mies.", "/ mo.")}</small>
                 </em>
               )}
             </button>

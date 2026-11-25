@@ -12,7 +12,7 @@ import ReferralCard from "./ReferralCard";
 import DomainCard from "./DomainCard";
 import PayoutCard from "./PayoutCard";
 import StripeConnectCard from "./StripeConnectCard";
-import { stripeAllowed } from "@/lib/stripe";
+import { stripeAllowed, cardMode } from "@/lib/stripe";
 import { refreshConnect, CONNECT_COUNTRIES, SALES_FEE_PERCENT } from "@/lib/stripe-connect";
 import { headers } from "next/headers";
 import { getPayout } from "@/lib/sales";
@@ -30,10 +30,15 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
   const sp = await searchParams;
   const TABS = ["saldo", "studio", "faktury", "wplaty", "domena", "polecenia", "logowanie"] as const;
   type Tab = (typeof TABS)[number];
-  const tab: Tab = sp["nowe-haslo"] ? "logowanie" : sp.platnosc ? "saldo" : (TABS as readonly string[]).includes(sp.tab ?? "") ? (sp.tab as Tab) : "saldo";
   const lang = await getLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const { supabase, user } = await getUser();
+  // wersja angielska z płatnościami kartą: bez salda w zł i poleceń (nagrody w zł)
+  const card = cardMode(user!.email, lang);
+  const hidden: Tab[] = card ? ["saldo", "polecenia"] : [];
+  const first: Tab = card ? "studio" : "saldo";
+  const asked: Tab = sp["nowe-haslo"] ? "logowanie" : (TABS as readonly string[]).includes(sp.tab ?? "") ? (sp.tab as Tab) : first;
+  const tab: Tab = hidden.includes(asked) ? first : asked;
   const { data, error } = await supabase.from("profiles").select("studio_name, logo_key").eq("id", user!.id).maybeSingle();
   const [wallet, billing, refUser] = await Promise.all([
     getWallet(user!.id),
@@ -65,7 +70,7 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
               ["polecenia", t("Poleć Lenslie", "Refer a friend")],
               ["logowanie", t("Logowanie i hasło", "Sign-in & password")],
             ] as [Tab, string][]
-          ).map(([k, label]) => (
+          ).filter(([k]) => !hidden.includes(k)).map(([k, label]) => (
             <Link key={k} href={`/panel/konto?tab=${k}`} className={tab === k ? "side-link active" : "side-link"} aria-current={tab === k ? "page" : undefined}>
               <span>{label}</span>
             </Link>

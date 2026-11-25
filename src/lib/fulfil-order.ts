@@ -95,7 +95,7 @@ async function afterPaid(order: Order, via: { gateway: "p24" | "stripe"; ref: st
           `Za: ${order.description}.`,
           `Konto: ${order.email}.`,
           ...(inv
-            ? [`Faktura na: ${inv.company}, NIP ${inv.nip}, ${inv.street}, ${inv.postcode} ${inv.city}.`, "Fakturę wyślij na adres e-mail konta."]
+            ? [`Faktura na: ${inv.company}, ${inv.country ? (inv.nip ? `VAT ${inv.nip}` : "osoba prywatna / bez numeru VAT") : `NIP ${inv.nip}`}, ${inv.street}, ${inv.postcode} ${inv.city}${inv.country ? `, ${inv.country}` : ""}.`, "Fakturę wyślij na adres e-mail konta."]
             : ["Klient nie prosił o fakturę."]),
         ],
         { label: "Płatności w panelu administratora", url: `${siteUrl()}/admin#platnosci` },

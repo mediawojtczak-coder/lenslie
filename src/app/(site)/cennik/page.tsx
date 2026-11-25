@@ -3,6 +3,8 @@ import { usdify } from "@/lib/lang";
 import PricingPlans from "@/components/PricingPlans";
 import ProPlans from "@/components/ProPlans";
 import { getLang } from "@/lib/lang-server";
+import { siteCur } from "@/lib/viewer-cur";
+import { addonPriceF, fmtCur, type Cur } from "@/lib/foreign-prices";
 
 export async function generateMetadata(): Promise<Metadata> {
   const en = (await getLang()) === "en";
@@ -68,9 +70,21 @@ const TXT = {
   },
 };
 
+// Odpowiedzi FAQ w wersji angielskiej z płatnościami kartą (waluta kraju odwiedzającego)
+function cardQa(qa: string[][], cur: Cur): string[][] {
+  const f = (eur: number) => fmtCur(eur, cur);
+  return qa.map(([q, a]) => {
+    if (q === "How can I pay?")
+      return [q, `By card, Apple Pay or Google Pay, in ${cur === "eur" ? "euros" : cur === "usd" ? "US dollars" : "pounds"} – you pay for each gallery when you publish it. Your first gallery is free for up to 3 months.`];
+    if (q === "Can wedding guests add their own photos?") return [q, a.replace(/PLN 99/, f(addonPriceF("guests", cur)))];
+    return [q, a];
+  });
+}
+
 export default async function Cennik() {
   const lang = await getLang();
-  const t = TXT[lang];
+  const cur = await siteCur(lang);
+  const t = cur ? { ...TXT.en, lead: `${TXT.en.lead} Your first gallery is free.`, qa: cardQa(TXT.en.qa, cur) } : TXT[lang];
   return (
     <div className="pricing">
       <section className="pricing-head">
@@ -78,11 +92,14 @@ export default async function Cennik() {
         <p>{t.lead}</p>
       </section>
 
-      <PricingPlans />
+      <PricingPlans cur={cur} />
 
-      <ProPlans lang={lang} />
+      <ProPlans lang={lang} cur={cur} />
 
-      {lang === "en" && (
+      {lang === "en" && cur && (
+        <p className="hint-inline usd-note">Prices in {cur === "eur" ? "euros" : cur === "usd" ? "US dollars" : "British pounds"}. Secure card payments by Stripe.</p>
+      )}
+      {lang === "en" && !cur && (
         <p className="hint-inline usd-note">
           Prices are charged in Polish złoty (PLN) via Przelewy24. Dollar amounts are approximate – the final amount depends on your bank&apos;s exchange rate.
         </p>
@@ -102,7 +119,7 @@ export default async function Cennik() {
         {t.qa.map(([q, a]) => (
           <details key={q}>
             <summary>{q}</summary>
-            <p>{lang === "en" ? usdify(a) : a}</p>
+            <p>{lang === "en" && !cur ? usdify(a) : a}</p>
           </details>
         ))}
       </section>

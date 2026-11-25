@@ -1,3 +1,4 @@
+import { viewerCur, addonLabel, proFromLabel } from "@/lib/viewer-cur";
 import Link from "next/link";
 import GalleryNudge from "./GalleryNudge";
 import { listSaleOrders, type SaleOrder } from "@/lib/sales";
@@ -53,6 +54,7 @@ export default async function Panel({
 }) {
   const { q = "", filtr = "" } = await searchParams;
   const lang = await getLang();
+  const cur = await viewerCur();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const dateFmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", year: "numeric" });
   const viewsLabel = (n: number) => {
@@ -164,7 +166,7 @@ export default async function Panel({
         <nav aria-label={t("Narzędzia", "Tools")} className="side-tools">
           <Link href="/panel/pro" className="side-link">
             <span>Lenslie Pro</span>
-            <span className="side-count">{proOn ? t("aktywny", "active") : t("od 59 zł", "from PLN 59")}</span>
+            <span className="side-count">{proOn ? t("aktywny", "active") : cur ? `from ${proFromLabel(cur)}` : t("od 59 zł", "from PLN 59")}</span>
           </Link>
           <Link href="/panel/strona" className="side-link">
             <span>{t("Moja strona", "My website")}</span>
@@ -193,7 +195,7 @@ export default async function Panel({
           </Link>
           <Link href="/panel/goscie/oferta" className="side-link">
             <span>{t("Kody QR na stoły", "QR codes for tables")}</span>
-            <span className="side-count">{lang === "en" ? "PLN 99" : "99 zł"}</span>
+            <span className="side-count">{addonLabel("guests", 99, lang, cur)}</span>
           </Link>
           <InstallApp />
         </nav>

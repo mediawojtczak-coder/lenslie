@@ -8,7 +8,7 @@ import { tr, money, locale } from "@/lib/lang";
 import { planName, planPhotos, periodText, periodShort, perMonthL } from "@/lib/plans";
 import PayButtons from "@/components/PayButtons";
 import { useCur } from "@/components/CurrencyProvider";
-import { galleryPriceF, galleryUpgradeF } from "@/lib/foreign-prices";
+import { galleryPriceF, galleryUpgradeF, fmtCur } from "@/lib/foreign-prices";
 import type { Billing } from "@/lib/billing";
 import {
   PLANS,
@@ -213,8 +213,10 @@ export default function PlanBar({
                   </span>
                   <span className="pick-price">
                     {mode === "upgrade" && plan && period
-                      ? `${t("dopłata", "extra")} ${zl(upgradeCost(plan, p, period))}`
-                      : zl(p.prices[newPeriod])}
+                      ? `${t("dopłata", "extra")} ${cur ? fmtCur(galleryUpgradeF(plan.id, p.id, period, cur), cur) : zl(upgradeCost(plan, p, period))}`
+                      : cur
+                        ? fmtCur(galleryPriceF(p.id, newPeriod, cur), cur)
+                        : zl(p.prices[newPeriod])}
                   </span>
                 </label>
               ))}
@@ -235,7 +237,9 @@ export default function PlanBar({
                     {periodShort(p, lang)}
                     {plan && mode === "extend" && (
                       <small className="period-sub">
-                        {zl(plan.prices[p] + (videoExtend?.[p] ?? 0))} · {perMonthL(plan.prices[p] + (videoExtend?.[p] ?? 0), p, lang)}
+                        {cur
+                          ? `${fmtCur(galleryPriceF(plan.id, p, cur), cur)} · ${fmtCur(Math.round((galleryPriceF(plan.id, p, cur) / p) * 100) / 100, cur)}/mo.`
+                          : `${zl(plan.prices[p] + (videoExtend?.[p] ?? 0))} · ${perMonthL(plan.prices[p] + (videoExtend?.[p] ?? 0), p, lang)}`}
                       </small>
                     )}
                   </button>

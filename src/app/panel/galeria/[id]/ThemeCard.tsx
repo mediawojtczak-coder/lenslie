@@ -6,7 +6,7 @@ import { useLang } from "@/components/LangProvider";
 import { tr, money } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
 import { useCur } from "@/components/CurrencyProvider";
-import { addonPriceF } from "@/lib/foreign-prices";
+import { addonPriceF, fmtCur } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import type { Billing } from "@/lib/billing";
 import type { Theme, ThemeId } from "@/lib/themes";
@@ -75,7 +75,7 @@ export default function ThemeCard({
             <strong>{lang === "en" ? th.nameEn : th.name}</strong>
             <small>{lang === "en" ? th.descEn : th.desc}</small>
             <em>
-              {current === th.id ? t("W tej galerii", "In this gallery") : has(th) ? (th.price ? t("Twój", "Owned") : t("Darmowy", "Free")) : money(th.price, lang)}
+              {current === th.id ? t("W tej galerii", "In this gallery") : has(th) ? (th.price ? t("Twój", "Owned") : t("Darmowy", "Free")) : cur ? fmtCur(addonPriceF("theme", cur), cur) : money(th.price, lang)}
             </em>
           </button>
         ))}

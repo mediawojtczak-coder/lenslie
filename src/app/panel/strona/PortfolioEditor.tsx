@@ -6,7 +6,7 @@ import { useLang } from "@/components/LangProvider";
 import { tr, money, locale } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
 import { useCur } from "@/components/CurrencyProvider";
-import { addonPriceF } from "@/lib/foreign-prices";
+import { addonPriceF, fmtCur } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import { canvasToJpeg } from "@/lib/watermark-client";
 import type { Billing } from "@/lib/billing";
@@ -358,7 +358,7 @@ export default function PortfolioEditor({
             <button key={m} type="button" className={months === m ? "period active" : "period"} onClick={() => setMonths(m)}>
               {m === 1 ? t("1 miesiąc", "1 month") : t("12 miesięcy", "12 months")}
               <small className="period-sub">
-                {money(prices[m], lang)}
+                {cur ? fmtCur(addonPriceF("portfolio", cur, m), cur) : money(prices[m], lang)}
                 {m === 12 && ` · ${t("2 miesiące gratis", "2 months free")}`}
               </small>
             </button>

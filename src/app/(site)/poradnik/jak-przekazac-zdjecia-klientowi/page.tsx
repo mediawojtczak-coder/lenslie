@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getLang } from "@/lib/lang-server";
+import { siteCur } from "@/lib/viewer-cur";
+import { addonPriceF, galleryPriceF, fmtCur } from "@/lib/foreign-prices";
 import { tr } from "@/lib/lang";
 
 const SLUG = "jak-przekazac-zdjecia-klientowi";
@@ -20,6 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function JakPrzekazacZdjecia() {
   const lang = await getLang();
+  const cur = await siteCur(lang);
   const t = (pl: string, en: string) => tr(lang, pl, en);
 
   const rows: [string, string, string, string][] = [
@@ -27,7 +30,7 @@ export default async function JakPrzekazacZdjecia() {
       t("Ile kosztuje", "Cost"),
       t("Darmowy plan z limitem, wyższe w abonamencie", "Free plan with limits, more on a subscription"),
       t("Darmowe miejsce na koncie Google, więcej w abonamencie", "Free Google account storage, more on a subscription"),
-      t("W Lenslie od 5 zł za galerię, bez abonamentu", "In Lenslie from PLN 5 per gallery, no subscription"),
+      cur ? `In Lenslie from ${fmtCur(galleryPriceF("mala", 1, cur), cur)} per gallery, no subscription` : t("W Lenslie od 5 zł za galerię, bez abonamentu", "In Lenslie from PLN 5 per gallery, no subscription"),
     ],
     [
       t("Limit danych", "Data limit"),
@@ -231,7 +234,9 @@ export default async function JakPrzekazacZdjecia() {
       <p>
         {t(
           "Płacisz za galerię, którą oddajesz klientowi – od 5 zł za mniejszą sesję na miesiąc do 25 zł za reportaż ślubny na rok. Szczegóły są w ",
-          "You pay per gallery you deliver – from PLN 5 for a smaller session for a month to PLN 25 for a wedding for a year. Details are in the ",
+          cur
+            ? `You pay per gallery you deliver – from ${fmtCur(galleryPriceF("mala", 1, cur), cur)} for a smaller session for a month to ${fmtCur(galleryPriceF("duza", 12, cur), cur)} for a wedding for a year. Details are in the `
+            : "You pay per gallery you deliver – from PLN 5 for a smaller session for a month to PLN 25 for a wedding for a year. Details are in the ",
         )}
         <Link href="/cennik">{t("cenniku", "pricing")}</Link>.
         {t(" Jeśli korzystasz z Pixieset, zobacz też ", " If you use Pixieset, see also ")}

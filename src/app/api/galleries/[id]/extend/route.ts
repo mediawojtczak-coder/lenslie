@@ -53,7 +53,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   };
   await saveOrder(order);
   try {
-    return NextResponse.json({ ok: true, redirect: await startPayment(order, siteUrl(), meta.lang === "en" ? "en" : "pl") });
+    const ownerEmail = db ? (await db.auth.admin.getUserById(owner as string).catch(() => null))?.data?.user?.email : null;
+    return NextResponse.json({ ok: true, redirect: await startPayment(order, siteUrl(), meta.lang === "en" ? "en" : "pl", ownerEmail ?? null) });
   } catch {
     return err("Bramka płatności nie przyjęła zamówienia. Spróbuj za chwilę.", "The payment gateway is unavailable. Try again shortly.", 502);
   }

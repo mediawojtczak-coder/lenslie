@@ -17,9 +17,11 @@ export function paymentLines(o: SaleOrder, payout: Payout | null, title: string,
   if (payout?.account) {
     lines.push(
       en ? `Bank transfer to: ${payout.holder}, account ${payout.account}` : `Przelew na konto: ${payout.holder}, ${payout.account}`,
-      en ? `Transfer title: ${transferTitle(o, title)}` : `Tytuł przelewu: ${transferTitle(o, title)}`,
+      ...(payout.swift ? [`SWIFT/BIC: ${payout.swift}`] : []),
+      en ? `Payment reference: ${transferTitle(o, title)}` : `Tytuł przelewu: ${transferTitle(o, title)}`,
     );
   }
+  if (payout?.paypal) lines.push(`PayPal: ${payout.paypal}`);
   if (payout?.blik) lines.push(en ? `BLIK to phone number: ${payout.blik}` : `BLIK na numer telefonu: ${payout.blik}`);
   if (!payout) lines.push(en ? "Your photographer will send you the payment details." : "Fotograf prześle Ci dane do wpłaty.");
   return lines;

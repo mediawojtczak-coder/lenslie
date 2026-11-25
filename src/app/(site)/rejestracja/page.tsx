@@ -3,6 +3,7 @@ import { usdify } from "@/lib/lang";
 import Link from "next/link";
 import { cleanCode, REWARD, THRESHOLD } from "@/lib/referrals";
 import { getLang } from "@/lib/lang-server";
+import { siteCur } from "@/lib/viewer-cur";
 
 export const dynamic = "force-dynamic";
 
@@ -88,6 +89,7 @@ export default async function Rejestracja({
   const refCode = cleanCode(polecenie ?? ref);
   const open = process.env.REGISTRATION_OPEN === "1";
   const lang = await getLang();
+  const cur = await siteCur(lang);
   const t = TXT[lang];
 
   return (
@@ -112,10 +114,12 @@ export default async function Rejestracja({
             <p className="lead">{t.lead}</p>
             <p className="ref-banner">
               {lang === "en"
-                ? usdify("Sign up and get PLN 20 on your balance to start – enough for your first gallery.")
+                ? cur
+                  ? "Sign up free – your first gallery is on us (up to 3 months)."
+                  : usdify("Sign up and get PLN 20 on your balance to start – enough for your first gallery.")
                 : "Załóż konto i odbierz 20 zł na start – wystarczy na pierwszą galerię."}
             </p>
-            {refCode && <p className="ref-banner">{lang === "en" ? usdify(t.ref(REWARD, THRESHOLD)) : t.ref(REWARD, THRESHOLD)}</p>}
+            {refCode && !cur && <p className="ref-banner">{lang === "en" ? usdify(t.ref(REWARD, THRESHOLD)) : t.ref(REWARD, THRESHOLD)}</p>}
             <form method="post" action="/auth/zarejestruj">
               {refCode && <input type="hidden" name="ref" value={refCode} />}
               <label htmlFor="studio">{t.studio}</label>

@@ -8,7 +8,7 @@ import { tr, money, locale } from "@/lib/lang";
 import { planName } from "@/lib/plans";
 import PayButtons from "@/components/PayButtons";
 import { useCur } from "@/components/CurrencyProvider";
-import { galleryPriceF } from "@/lib/foreign-prices";
+import { galleryPriceF, fmtCur } from "@/lib/foreign-prices";
 import type { Billing } from "@/lib/billing";
 import { PLANS, PERIODS, DEFAULT_PERIOD, fitPlan, formatBytes, perMonthL, hardLimitBytes, type Period, type PlanId } from "@/lib/plans";
 
@@ -30,6 +30,7 @@ export default function PublishBar({
   billing,
   balance,
   pro = null,
+  firstFree = false,
 }: {
   id: string;
   title: string;
@@ -40,6 +41,8 @@ export default function PublishBar({
   balance: number;
   // aktywny abonament Pro: publikacja bez opłaty
   pro?: { name: string; usedBytes: number; limitBytes: number } | null;
+  // wersja angielska z płatnością kartą: pierwsza galeria gratis (do 3 miesięcy)
+  firstFree?: boolean;
 }) {
   const [invoice, setInvoice] = useState<Billing>(billing);
   const lang = useLang();
@@ -58,6 +61,12 @@ export default function PublishBar({
   const price = plan ? plan.prices[period] : 0;
   const cur = useCur();
   const foreign = cur && plan ? galleryPriceF(plan.id, period, cur) : undefined;
+  // ceny w walucie klienta (Stripe) albo w złotych
+  const priceIn = (p: (typeof PLANS)[number], n: Period) => (cur ? galleryPriceF(p.id, n, cur) : p.prices[n]);
+  const show = (n: number) => (cur ? fmtCur(n, cur) : zl(n));
+  const perMo = (v: number, n: Period) => (cur ? `${fmtCur(Math.round((v / n) * 100) / 100, cur)}/mo.` : perMonthL(v, n, lang));
+  const free = Boolean(cur && firstFree && period <= 3);
+  const shown = free ? 0 : cur ? (foreign ?? 0) : price;
 
   function open() {
     setPlanId(fitPlan(usedBytes)?.id ?? null);
@@ -224,8 +233,8 @@ export default function PublishBar({
                     <span>{lang === "en" ? (n === 1 ? "month" : "months") : n === 1 ? "miesiąc" : n < 5 ? "miesiące" : "miesięcy"}</span>
                     {plan && (
                       <>
-                        <em>{money(plan.prices[n], lang)}</em>
-                        <small>{perMonthL(plan.prices[n], n, lang)}</small>
+                        <em>{show(priceIn(plan, n))}</em>
+                        <small>{perMo(priceIn(plan, n), n)}</small>
                       </>
                     )}
                   </button>
@@ -237,13 +246,23 @@ export default function PublishBar({
                 <span>
                   {plan && (lang === "en" ? `${planName(plan, lang)} gallery × ${period} mo.` : `${plan.name} galeria × ${period} mies.`)}
                 </span>
-                <span>{zl(price)}</span>
+                <span>{show(cur ? (foreign ?? 0) : price)}</span>
               </div>
+              {free && (
+                <div className="pub-line">
+                  <span>First gallery free</span>
+                  <span>−{show(foreign ?? 0)}</span>
+                </div>
+              )}
               <div className="pub-total">
                 <span>{t("Koszt publikacji", "Total")}</span>
-                <strong>{zl(price)}</strong>
+                <strong>{show(shown)}</strong>
               </div>
-              <p className="pub-permonth">{plan && `${t("To", "That is")} ${perMonthL(price, period, lang)}`}</p>
+              {cur && firstFree && period > 3 ? (
+                <p className="pub-permonth">Your first gallery is free for up to 3 months – choose 1 or 3 months to publish it at no cost.</p>
+              ) : (
+                !free && <p className="pub-permonth">{plan && `${t("To", "That is")} ${perMo(cur ? (foreign ?? 0) : price, period)}`}</p>
+              )}
               <InvoiceFields value={invoice} onChange={setInvoice} />
             </>
           )}
@@ -254,7 +273,7 @@ export default function PublishBar({
             </p>
           )}
 
-          {!pro && <PayButtons price={price} foreign={foreign} balance={balance} busy={busy} disabled={!plan} label={t("i opublikuj", "and publish")} onPay={publish} />}
+          {!pro && <PayButtons price={free ? 0 : price} foreign={foreign} freeLabel={free ? "Publish for free" : undefined} balance={balance} busy={busy} disabled={!plan} label={t("i opublikuj", "and publish")} onPay={publish} />}
         </div>
       </dialog>
     </section>

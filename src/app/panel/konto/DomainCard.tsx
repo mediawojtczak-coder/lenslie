@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLang } from "@/components/LangProvider";
 import { tr, money, locale } from "@/lib/lang";
+import { useCur } from "@/components/CurrencyProvider";
+import { addonPriceF, fmtCur } from "@/lib/foreign-prices";
 
 type Rec = { host: string; paidUntil: string } | null;
 
@@ -35,7 +37,9 @@ export default function DomainCard({
   const router = useRouter();
   const lang = useLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
-  const z = (n: number) => money(n, lang);
+  const cur = useCur();
+  // wersja angielska z kartą: cena w walucie klienta, płatność kartą
+  const z = (n: number) => (cur ? fmtCur(addonPriceF("domain", cur), cur) : money(n, lang));
   const dateFmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", year: "numeric" });
   const [host, setHost] = useState("");
   const [busy, setBusy] = useState(false);
@@ -63,6 +67,10 @@ export default function DomainCard({
     setFunds(false);
     try {
       const data = await call(body);
+      if (data.redirect) {
+        window.location.href = data.redirect;
+        return;
+      }
       if (data.cname) setDns(data);
       setHost("");
       router.refresh();
@@ -85,7 +93,7 @@ export default function DomainCard({
         {price > 0 ? (
           <>
             <strong>{z(price)} {t("za rok", "per year")}</strong>
-            {t(", płatne z salda.", ", paid from your balance.")}
+            {cur ? ", paid by card." : t(", płatne z salda.", ", paid from your balance.")}
           </>
         ) : (
           <strong>{t("w cenie abonamentu Pro.", "included in your Pro subscription.")}</strong>
@@ -257,7 +265,7 @@ export default function DomainCard({
         <button type="submit" className="btn" disabled={busy || !host.trim()}>
           {busy ? t("Podłączam…", "Connecting…") : rec && active ? t("Zmień adres", "Change address") : price > 0 ? `${t("Kup i podłącz za", "Buy and connect for")} ${z(price)}` : t("Podłącz domenę", "Connect domain")}
         </button>
-        {!(rec && active) && (
+        {!(rec && active) && !cur && (
           <p className="test-note left">{t("Stan salda", "Balance")}: {money(balance / 100, lang, true)}</p>
         )}
       </form>

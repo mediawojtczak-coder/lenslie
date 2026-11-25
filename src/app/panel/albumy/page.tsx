@@ -1,3 +1,4 @@
+import { viewerCur, addonLabel, proFromLabel } from "@/lib/viewer-cur";
 import Link from "next/link";
 import { activePro } from "@/lib/pro";
 import SideLogout from "@/components/SideLogout";
@@ -19,6 +20,7 @@ export default async function AlbumyPage() {
   const { supabase, user } = await getUser();
   if (!albumAllowed(user?.email)) notFound();
   const lang = await getLang();
+  const cur = await viewerCur();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const fmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "long", year: "numeric" });
   const [sub, billing, wallet] = await Promise.all([
@@ -69,7 +71,7 @@ export default async function AlbumyPage() {
                 )}
               </p>
               <p className="lr-ver">
-                {money(ALBUM_PRICES[1], lang)} {t("miesięcznie", "per month")} · {money(ALBUM_PRICES[12], lang)} {t("rocznie", "per year")} · {t("bez limitu albumów", "unlimited albums")} · {t("pierwszy album gratis", "first album free")}
+                {addonLabel("album", ALBUM_PRICES[1], lang, cur)} {t("miesięcznie", "per month")} · {addonLabel("album", ALBUM_PRICES[12], lang, cur, 12)} {t("rocznie", "per year")} · {t("bez limitu albumów", "unlimited albums")} · {t("pierwszy album gratis", "first album free")}
               </p>
             </div>
             <div className="alb-demo" aria-hidden="true">

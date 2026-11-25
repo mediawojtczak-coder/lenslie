@@ -348,7 +348,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                       ) : o.invoice ? (
                         <div className="inv-cell">
                           <span>
-                            {o.invoice.company}, NIP {o.invoice.nip}
+                            {o.invoice.company}, {o.invoice.country ? `${o.invoice.country} VAT ${o.invoice.nip || "–"}` : `NIP ${o.invoice.nip}`}
                             <br />
                             {o.invoice.street}, {o.invoice.postcode} {o.invoice.city}
                           </span>

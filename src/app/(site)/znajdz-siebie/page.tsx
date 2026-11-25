@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getLang } from "@/lib/lang-server";
+import { siteCur } from "@/lib/viewer-cur";
+import { addonPriceF, galleryPriceF, fmtCur } from "@/lib/foreign-prices";
 import { tr } from "@/lib/lang";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,6 +32,7 @@ const GRID = [
 // Strona reklamowa funkcji „Znajdź siebie na zdjęciach”
 export default async function ZnajdzSiebie() {
   const lang = await getLang();
+  const cur = await siteCur(lang);
   const t = (pl: string, en: string) => tr(lang, pl, en);
 
   return (
@@ -52,7 +55,7 @@ export default async function ZnajdzSiebie() {
               {t("Jak to działa ↓", "How it works ↓")}
             </a>
           </div>
-          <p className="fs-price">{t("5 zł jednorazowo za galerię · bez abonamentu", "PLN 5 one-off per gallery · no subscription")}</p>
+          <p className="fs-price">{cur ? `${fmtCur(addonPriceF("faces", cur), cur)} one-off per gallery · no subscription` : t("5 zł jednorazowo za galerię · bez abonamentu", "PLN 5 one-off per gallery · no subscription")}</p>
         </div>
 
         <div className="fs-visual" aria-hidden="true">
@@ -153,7 +156,7 @@ export default async function ZnajdzSiebie() {
 
       <section className="fs-cta">
         <h2>{t("Pokaż gościom coś, czego jeszcze nie widzieli", "Show guests something they haven't seen before")}</h2>
-        <p>{t("5 zł jednorazowo za galerię. Konto i panel są bezpłatne.", "PLN 5 one-off per gallery. Your account and dashboard are free.")}</p>
+        <p>{cur ? `${fmtCur(addonPriceF("faces", cur), cur)} one-off per gallery. Your account and dashboard are free.` : t("5 zł jednorazowo za galerię. Konto i panel są bezpłatne.", "PLN 5 one-off per gallery. Your account and dashboard are free.")}</p>
         <div className="fs-ctas center">
           <Link href="/rejestracja" className="btn btn-dark">
             {t("Załóż konto", "Sign up")}

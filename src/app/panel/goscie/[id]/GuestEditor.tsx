@@ -7,7 +7,7 @@ import { useLang } from "@/components/LangProvider";
 import { tr, money, locale } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
 import { useCur } from "@/components/CurrencyProvider";
-import { addonPriceF } from "@/lib/foreign-prices";
+import { addonPriceF, fmtCur } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import DownloadAll from "@/app/galeria/[id]/DownloadAll";
 import type { Billing } from "@/lib/billing";
@@ -131,7 +131,7 @@ export default function GuestEditor({
             {price > 0
               ? t(
                   `Jednorazowo ${money(price, lang)}: goście dodają i oglądają zdjęcia przez rok, do ${limitGb} GB. Po roku masz jeszcze 30 dni na pobranie wszystkiego.`,
-                  `One-off ${money(price, lang)}: guests upload and view photos for a year, up to ${limitGb} GB. After a year you have 30 more days to download everything.`,
+                  `One-off ${cur ? fmtCur(addonPriceF("guests", cur), cur) : money(price, lang)}: guests upload and view photos for a year, up to ${limitGb} GB. After a year you have 30 more days to download everything.`,
                 )
               : t(
                   `W cenie abonamentu Pro: goście dodają i oglądają zdjęcia przez rok, do ${limitGb} GB. Po roku masz jeszcze 30 dni na pobranie wszystkiego.`,

@@ -6,6 +6,8 @@ import { putEmpty } from "@/lib/r2-light";
 import { knowledge, SITE_RULES, ASSISTANT_MODEL, SITE_DAILY_PER_IP, SITE_DAILY_TOTAL, sitePublic } from "@/lib/assistant";
 
 import { getLang } from "@/lib/lang-server";
+import { siteCur } from "@/lib/viewer-cur";
+import { foreignKnowledge } from "@/lib/assistant";
 
 const langRule = (l: "pl" | "en") =>
   l === "en"
@@ -44,6 +46,7 @@ export async function POST(req: Request) {
   if (mine.length >= SITE_DAILY_PER_IP || all.length >= SITE_DAILY_TOTAL)
     return NextResponse.json({ error: "Na dziś to już wszystkie pytania. Zajrzyj do /cennik albo kliknij „Porozmawiaj z człowiekiem”." }, { status: 429 });
 
+  const siteCurNow = await siteCur(await getLang()).catch(() => null);
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
@@ -53,6 +56,7 @@ export async function POST(req: Request) {
       system: [
         { type: "text", text: `${SITE_RULES}\n\nWIEDZA O LENSLIE:\n${knowledge()}\n\nDzisiejsza data: ${day}.`, cache_control: { type: "ephemeral" } },
         { type: "text", text: langRule(await getLang()) },
+        ...(siteCurNow ? [{ type: "text", text: foreignKnowledge(siteCurNow) }] : []),
       ],
       messages,
     }),

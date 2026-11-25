@@ -18,7 +18,7 @@ import { isThemeId, type ThemeId } from "@/lib/themes";
 // Odręczne pismo dla motywu rustykalnego
 const scriptFont = Great_Vibes({ weight: "400", subsets: ["latin", "latin-ext"], variable: "--font-script", display: "swap", preload: false });
 import { unlockedPhotos, saleOn, getSaleOrder, getPayoutForGallery, type SaleOrder, saleCur } from "@/lib/sales";
-import { cardSales } from "@/lib/stripe-connect";
+import { cardSales, ownerCardCur } from "@/lib/stripe-connect";
 import type { SaleInfo } from "./PhotoGrid";
 import VideoSection, { type ClientVideo } from "./VideoSection";
 import FaceSearch from "./FaceSearch";
@@ -298,7 +298,7 @@ export default async function GalleryView({
           />
         )}
       </main>
-      {extendOffer && <ExtendAccess id={id} offer={extendOffer} lang={lang} />}
+      {extendOffer && <ExtendAccess id={id} offer={extendOffer} lang={lang} cur={await ownerCardCur(id, meta).catch(() => null)} />}
       {!preview && <Track galleryId={id} mode={mode} />}
       <footer className="g-footer">
         {brand.studioName && <span>{brand.studioName} · </span>}

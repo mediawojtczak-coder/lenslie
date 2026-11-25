@@ -1,9 +1,11 @@
 "use client";
 
 import type { Billing } from "@/lib/billing";
-import { useTr } from "./LangProvider";
+import { useLang, useTr } from "./LangProvider";
+import { COUNTRIES } from "@/lib/countries";
 
-// Pole „Chcę fakturę VAT” z danymi firmy (w oknach płatności i w Moim koncie)
+// Pole „Chcę fakturę VAT” z danymi firmy (w oknach płatności i w Moim koncie).
+// W wersji angielskiej: kraj i numer VAT zamiast polskiego NIP-u.
 export default function InvoiceFields({
   value,
   onChange,
@@ -14,32 +16,57 @@ export default function InvoiceFields({
   alwaysOpen?: boolean;
 }) {
   const t = useTr();
+  const lang = useLang();
   const set = (k: keyof Billing) => (e: React.ChangeEvent<HTMLInputElement>) => onChange({ ...value, [k]: e.target.value });
+  const en = lang === "en";
+  const country = value.country ?? (en ? "GB" : "PL");
+  const poland = country === "PL";
   return (
     <div className="invoice">
       {!alwaysOpen && (
         <label className="check">
-          <input type="checkbox" checked={value.want} onChange={(e) => onChange({ ...value, want: e.target.checked })} />
-          {t("Chcę fakturę VAT", "I need a VAT invoice")}
+          <input
+            type="checkbox"
+            checked={value.want}
+            onChange={(e) => onChange({ ...value, want: e.target.checked, ...(en && !value.country ? { country } : {}) })}
+          />
+          {t("Chcę fakturę VAT", "I need an invoice for my business")}
         </label>
       )}
       {(value.want || alwaysOpen) && (
         <div className="invoice-grid">
+          {en && (
+            <label className="span2">
+              Country
+              <select value={country} onChange={(e) => onChange({ ...value, country: e.target.value })}>
+                {COUNTRIES.map(([k, n]) => (
+                  <option key={k} value={k}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label>
-            {t("Nazwa firmy", "Company name")}
+            {t("Nazwa firmy", poland ? "Company name" : "Company or full name")}
             <input value={value.company} onChange={set("company")} autoComplete="organization" />
           </label>
           <label>
-            {t("NIP", "VAT ID")}
-            <input value={value.nip} onChange={set("nip")} inputMode="numeric" placeholder={t("10 cyfr", "Polish NIP, 10 digits")} />
+            {poland ? t("NIP", "Polish NIP") : "VAT number (optional)"}
+            <input
+              value={value.nip}
+              onChange={set("nip")}
+              inputMode={poland ? "numeric" : "text"}
+              placeholder={poland ? t("10 cyfr", "10 digits") : "e.g. GB123456789"}
+            />
           </label>
           <label className="span2">
             {t("Ulica i numer", "Street address")}
             <input value={value.street} onChange={set("street")} autoComplete="street-address" />
           </label>
           <label>
-            {t("Kod pocztowy", "Postcode")}
-            <input value={value.postcode} onChange={set("postcode")} autoComplete="postal-code" placeholder="00-000" />
+            {t("Kod pocztowy", poland ? "Postcode" : "Postcode / ZIP")}
+            <input value={value.postcode} onChange={set("postcode")} autoComplete="postal-code" placeholder={poland ? "00-000" : ""} />
           </label>
           <label>
             {t("Miasto", "City")}

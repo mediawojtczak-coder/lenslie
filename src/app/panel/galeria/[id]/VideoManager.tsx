@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useLang } from "@/components/LangProvider";
 import { tr, money } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
+import { useCur } from "@/components/CurrencyProvider";
+import { fromPln, fmtCur } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import { readDuration, uploadVideo, type VideoUpload } from "@/lib/video-upload";
 import type { Billing } from "@/lib/billing";
@@ -50,6 +52,8 @@ export default function VideoManager({
   pro?: boolean; // galeria w abonamencie Pro: filmy bez opłat (liczone do puli miejsca)
 }) {
   const lang = useLang();
+  const cur = useCur();
+  const cash = (pln: number) => (cur ? fmtCur(fromPln(pln, cur), cur) : money(pln, lang));
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -141,7 +145,7 @@ export default function VideoManager({
 
   const label = (v: VideoRow) =>
     v.status === "unpaid"
-      ? `${t("Do opłacenia", "To pay")} · ${money(v.price ?? 0, lang)}`
+      ? `${t("Do opłacenia", "To pay")} · ${cash(v.price ?? 0)}`
       : v.status === "processing"
         ? t("Przygotowuję podgląd…", "Preparing preview…")
         : v.status === "ready"
@@ -255,7 +259,7 @@ export default function VideoManager({
       {unpaid.length > 0 && !current && (
         <div className="video-pay">
           <p>
-            {t("Do zapłaty za filmy", "To pay for videos")}: <strong>{money(total, lang)}</strong>
+            {t("Do zapłaty za filmy", "To pay for videos")}: <strong>{cash(total)}</strong>
           </p>
           <p className="hint-inline">
             {t(

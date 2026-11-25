@@ -1,3 +1,4 @@
+import { viewerCur, addonLabel, proFromLabel } from "@/lib/viewer-cur";
 import Link from "next/link";
 import { Great_Vibes } from "next/font/google";
 import SideLogout from "@/components/SideLogout";
@@ -12,8 +13,9 @@ const script = Great_Vibes({ weight: "400", subsets: ["latin", "latin-ext"], var
 // Strona sprzedażowa „Zdjęcia od gości” (kody QR na stoły) w panelu fotografa
 export default async function GoscieOferta() {
   const lang = await getLang();
+  const cur = await viewerCur();
   const t = (pl: string, en: string) => tr(lang, pl, en);
-  const price = money(GUEST_PRICE, lang);
+  const price = addonLabel("guests", GUEST_PRICE, lang, cur);
 
   return (
     <div className="app-body">
