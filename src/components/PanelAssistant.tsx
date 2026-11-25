@@ -56,6 +56,22 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
     else setError(t("Nie udało się wysłać – spróbuj ponownie.", "Could not send – try again."));
   }
   const [open, setOpen] = useState(false);
+  // zminimalizowany czat: zostaje tylko mała zakładka przy krawędzi ekranu (zapamiętane w tej przeglądarce)
+  const HIDE = `lenslie_assistant_hidden_${mode}`;
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    try {
+      setHidden(localStorage.getItem(HIDE) === "1");
+    } catch {}
+  }, [HIDE]);
+  const minimize = (v: boolean) => {
+    setHidden(v);
+    if (v) setOpen(false);
+    try {
+      if (v) localStorage.setItem(HIDE, "1");
+      else localStorage.removeItem(HIDE);
+    } catch {}
+  };
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -117,6 +133,15 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
     } else setError(t("Nie udało się wysłać – spróbuj ponownie.", "Could not send – try again."));
   }
 
+  if (hidden)
+    return (
+      <button type="button" className="pa-mini" onClick={() => minimize(false)} aria-label={t("Pokaż asystenta Lenslie", "Show the Lenslie assistant")} title={t("Asystent Lenslie", "Lenslie assistant")}>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+          <path d="M12 3.5l1.6 4.2 4.4 1.6-4.4 1.6L12 15.1l-1.6-4.2-4.4-1.6 4.4-1.6L12 3.5Z" fill="currentColor" />
+        </svg>
+      </button>
+    );
+
   return (
     <div className={open ? "pa pa-open" : "pa"}>
       {open && (
@@ -135,6 +160,11 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
                   : t("Odpowiada AI – sprawdza Twoje galerie, niczego nie zmienia", "Answered by AI – it looks at your galleries but changes nothing")}
               </span>
             </div>
+            <button type="button" className="pa-x" onClick={() => minimize(true)} aria-label={t("Ukryj czat", "Hide chat")} title={t("Ukryj czat – zostanie mała ikonka przy krawędzi", "Hide chat – a small icon stays at the edge")}>
+              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                <path d="M6 12h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </button>
             <button type="button" className="pa-x" onClick={() => setOpen(false)} aria-label={t("Zamknij", "Close")}>
               ×
             </button>
@@ -275,6 +305,11 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
             )}
           </div>
         </section>
+      )}
+      {!open && (
+        <button type="button" className="pa-hide" onClick={() => minimize(true)} aria-label={t("Ukryj czat", "Hide chat")} title={t("Ukryj czat", "Hide chat")}>
+          ×
+        </button>
       )}
       <button type="button" className="pa-fab" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         {open ? (

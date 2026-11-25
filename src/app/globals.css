@@ -3201,3 +3201,12 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 .ui-dark .pa-idea textarea { background: #1b1816; border-color: rgba(255, 255, 255, .1); }
 .pa-foot { flex-wrap: wrap; row-gap: 4px; }
 .pa .pa-idea-row .as-link { font-size: .8rem; margin: 0; padding: 0; color: #8a7f76; } .pa .pa-idea-row .btn { margin: 0; }
+/* Ukrywanie czatu: mały krzyżyk przy przycisku i zakładka przy krawędzi */
+.pa { position: fixed; }
+.pa .pa-hide { position: absolute; right: -6px; bottom: 40px; width: 22px; height: 22px; border-radius: 50%; border: 0; display: grid; place-items: center; background: #fff; color: #6f655d; font-size: .95rem; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgba(40, 30, 20, .2); opacity: 0; transition: opacity .2s; z-index: 1; }
+.pa:hover .pa-hide, .pa .pa-hide:focus-visible { opacity: 1; }
+@media (hover: none) { .pa .pa-hide { opacity: .9; } }
+.pa-head .pa-x + .pa-x { margin-left: -4px; }
+.pa-head .pa-x { display: grid; place-items: center; }
+.pa-mini { position: fixed; right: 0; bottom: 96px; z-index: 60; width: 30px; height: 44px; border: 0; border-radius: 12px 0 0 12px; display: grid; place-items: center; background: rgba(31, 28, 26, .82); color: #c9a87c; cursor: pointer; opacity: .55; box-shadow: 0 4px 14px rgba(31, 28, 26, .2); transition: opacity .2s, width .2s; }
+.pa-mini:hover { opacity: 1; width: 36px; }
