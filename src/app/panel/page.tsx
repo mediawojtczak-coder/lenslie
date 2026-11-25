@@ -193,7 +193,7 @@ export default async function Panel({
           </Link>
           <Link href="/panel/goscie/oferta" className="side-link">
             <span>{t("Kody QR na stoły", "QR codes for tables")}</span>
-            <span className="side-count">99 zł</span>
+            <span className="side-count">{lang === "en" ? "PLN 99" : "99 zł"}</span>
           </Link>
           <InstallApp />
         </nav>

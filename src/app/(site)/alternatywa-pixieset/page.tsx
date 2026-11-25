@@ -6,9 +6,9 @@ import { tr } from "@/lib/lang";
 export async function generateMetadata(): Promise<Metadata> {
   const en = (await getLang()) === "en";
   return {
-    title: en ? "Pixieset alternative in Polish – Lenslie client galleries" : "Alternatywa dla Pixieset po polsku – galerie online Lenslie",
+    title: en ? "Pixieset alternative – client galleries without a subscription | Lenslie" : "Alternatywa dla Pixieset po polsku – galerie online Lenslie",
     description: en
-      ? "Looking for a Pixieset alternative? Lenslie is a Polish online gallery for photographers: pay per gallery in PLN, BLIK payments, Polish interface for you and your clients."
+      ? "Looking for a Pixieset alternative? Lenslie client galleries: pay per gallery instead of a monthly subscription, client proofing and photo sales with no commission, album designer and guest uploads."
       : "Szukasz alternatywy dla Pixieset? Lenslie to polska galeria zdjęć online dla fotografów: płacisz za galerię w złotówkach, BLIK, polski panel i galeria dla klienta, serwery w UE.",
     alternates: { canonical: "/alternatywa-pixieset" },
   };
@@ -20,12 +20,17 @@ export default async function AlternatywaPixieset() {
   const t = (pl: string, en: string) => tr(lang, pl, en);
 
   const rows: [string, string, string][] = [
-    [t("Język panelu i galerii", "Dashboard and gallery language"), t("Polski i angielski", "Polish and English"), t("Angielski", "English")],
-    [t("Waluta i płatności", "Currency and payments"), t("Złotówki – BLIK, przelew, karta (Przelewy24)", "PLN – BLIK, bank transfer, card (Przelewy24)"), t("Dolary amerykańskie, karta", "US dollars, card")],
+    // język i waluta to atut tylko dla polskich fotografów – w wersji angielskiej pomijamy (do czasu płatności w EUR/USD)
+    ...(lang === "en"
+      ? []
+      : ([
+          ["Język panelu i galerii", "Polski i angielski", "Angielski"],
+          ["Waluta i płatności", "Złotówki – BLIK, przelew, karta (Przelewy24)", "Dolary amerykańskie, karta"],
+        ] as [string, string, string][])),
     [t("Model rozliczenia", "Pricing model"), t("Płacisz za galerię albo abonament Pro – Ty wybierasz", "Pay per gallery or a Pro plan – your choice"), t("Abonament miesięczny lub roczny", "Monthly or yearly subscription")],
     [t("Darmowy start", "Free start"), t("Konto, panel i wersje robocze bez opłat", "Account, dashboard and drafts free"), t("Darmowy plan 3 GB", "Free 3 GB plan")],
     [t("Prowizja od sprzedaży zdjęć", "Commission on photo sales"), t("Pieniądze od klienta trafiają prosto do Ciebie", "Client money goes straight to you"), t("15% na darmowym planie", "15% on the free plan")],
-    [t("Wsparcie", "Support"), t("Po polsku, bezpośrednio od twórców", "In Polish, straight from the makers"), t("Po angielsku", "In English")],
+    [t("Wsparcie", "Support"), t("Po polsku, bezpośrednio od twórców", "Straight from the makers, in English or Polish"), t("Po angielsku", "In English")],
   ];
 
   const features: [string, string][] = [
@@ -56,11 +61,11 @@ export default async function AlternatywaPixieset() {
       <section className="fs-hero alt-hero">
         <div className="fs-copy">
           <p className="fs-kicker">{t("Alternatywa dla Pixieset", "A Pixieset alternative")}</p>
-          <h1>{t("Galerie dla klientów jak w Pixieset – tylko po polsku i w złotówkach.", "Client galleries like Pixieset – in Polish and in złoty.")}</h1>
+          <h1>{t("Galerie dla klientów jak w Pixieset – tylko po polsku i w złotówkach.", "Client galleries like Pixieset – without the monthly subscription.")}</h1>
           <p className="fs-lead">
             {t(
               "Lenslie to polska galeria zdjęć online dla fotografów. Oddajesz sesję na link i hasło, klient wybiera i pobiera zdjęcia, a Ty płacisz BLIK-iem za galerię – bez abonamentu w dolarach.",
-              "Lenslie is a Polish online photo gallery for photographers. Deliver a session with a link and password, your client picks and downloads photos, and you pay per gallery with BLIK – no subscription in dollars.",
+              "Lenslie is an online photo gallery for photographers. Deliver a session with a link and password, your client picks and downloads photos, and you pay only for the galleries you publish – no monthly plan.",
             )}
           </p>
           <div className="fs-ctas">

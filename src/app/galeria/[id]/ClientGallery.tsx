@@ -85,7 +85,12 @@ export async function ClientGallery({ id, blad, motyw }: { id: string; blad?: st
     );
   }
 
-  if (error) return <p className="notice">Nie udało się wczytać galerii. Odśwież stronę za chwilę.</p>;
+  if (error)
+    return (
+      <p className="notice">
+        {meta?.lang === "en" ? "We couldn't load the gallery. Please refresh the page in a moment." : "Nie udało się wczytać galerii. Odśwież stronę za chwilę."}
+      </p>
+    );
 
   // Fotograf może podejrzeć galerię w innym motywie (?motyw=noir)
   let themeOverride: ThemeId | undefined;

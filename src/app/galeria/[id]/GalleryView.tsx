@@ -214,8 +214,8 @@ export default async function GalleryView({
     <div className={`gtheme gtheme-${theme} ${scriptFont.variable}`}>
       {preview && (
         <p className="preview-banner">
-          Podgląd wersji roboczej. Klienci zobaczą galerię dopiero po opublikowaniu.{" "}
-          <Link href={`/panel/galeria/${id}`}>Wróć do panelu</Link>
+          {lang === "en" ? "Draft preview. Clients will see the gallery once it's published." : "Podgląd wersji roboczej. Klienci zobaczą galerię dopiero po opublikowaniu."}{" "}
+          <Link href={`/panel/galeria/${id}`}>{lang === "en" ? "Back to dashboard" : "Wróć do panelu"}</Link>
         </p>
       )}
       <Hero
