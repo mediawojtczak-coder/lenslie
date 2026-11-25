@@ -136,9 +136,9 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
   if (hidden)
     return (
       <button type="button" className="pa-mini" onClick={() => minimize(false)} aria-label={t("Pokaż asystenta Lenslie", "Show the Lenslie assistant")} title={t("Asystent Lenslie", "Lenslie assistant")}>
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-          <path d="M12 3.5l1.6 4.2 4.4 1.6-4.4 1.6L12 15.1l-1.6-4.2-4.4-1.6 4.4-1.6L12 3.5Z" fill="currentColor" />
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/icon-192.png" alt="" width={48} height={48} />
+        <i aria-hidden="true" />
       </button>
     );
 
