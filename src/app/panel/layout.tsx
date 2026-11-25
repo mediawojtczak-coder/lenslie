@@ -14,6 +14,8 @@ import MenuAutoClose from "@/components/MenuAutoClose";
 import GoogleTag from "@/components/GoogleTag";
 import LookSwitch from "@/components/LookSwitch";
 import PullRefresh from "@/components/PullRefresh";
+import PanelAssistant from "@/components/PanelAssistant";
+import { assistantAllowed } from "@/lib/assistant";
 import { cookies } from "next/headers";
 import type { Viewport } from "next";
 import "./panel-dark.css";
@@ -92,6 +94,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       </header>
       <PullRefresh />
       {children}
+      {assistantAllowed(user.email) && <PanelAssistant />}
       {/* konwersja „Rejestracja Lenslie” – raz, przy przyznaniu prezentu na start */}
       <GoogleTag conversion={Boolean(welcomed)} />
     </div>

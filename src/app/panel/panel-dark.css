@@ -185,3 +185,11 @@ html:has(.app.ui-dark), body:has(.app.ui-dark) { background: #11100e; }
 .ui-dark .alb-tools button:disabled { opacity: .3; }
 .ui-dark .alb-tools .alb-edit, .ui-dark .alb-tools button.on { background: var(--accent); border-color: var(--accent); color: #17130f; }
 .ui-dark .alb-tools .alb-edit:hover, .ui-dark .alb-tools button.on:hover { color: #17130f; filter: brightness(1.06); }
+
+/* Asystent AI w ciemnym panelu */
+.ui-dark .pa-box { background: var(--card); border-color: var(--hair); }
+.ui-dark .pa-fab { background: var(--accent); color: #17130f; }
+.ui-dark .pa-assistant { background: var(--card-2); color: var(--ink); }
+.ui-dark .pa-user { background: var(--accent); color: #17130f; }
+.ui-dark .pa-sugg button { background: var(--card-2); color: var(--ink); }
+.ui-dark .pa-form textarea { background: var(--card-2); color: var(--ink); }
