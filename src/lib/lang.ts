@@ -5,7 +5,7 @@ export const LANG_COOKIE = "lenslie_lang";
 export const isSiteLang = (v: unknown): v is SiteLang => v === "pl" || v === "en";
 
 // Orientacyjny kurs dolara (płatności są zawsze w złotych) – zaktualizuj przy większej zmianie kursu
-export const USD_PLN = 3.9;
+export const USD_PLN = 4.07; // kurs z 25.11.2026
 
 // „≈ $6” (powyżej 10 USD bez groszy)
 export function usd(pln: number) {
