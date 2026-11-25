@@ -3188,7 +3188,8 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 .pa .pa-contact input[type="email"] { width: 100%; margin: 0; border: 1px solid rgba(60, 45, 30, .14); border-radius: 12px; padding: 9px 12px; font: inherit; font-size: .86rem; }
 .pa-contact .btn { justify-self: start; }
 @media (max-width: 600px) {
-  .pa { right: 12px; bottom: 12px; }
+  .pa { right: 12px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+  .pa-open { bottom: 12px; }
   .pa-fab span { display: none; }
   .pa-fab { width: 54px; height: 54px; padding: 0; justify-content: center; }
   .pa-open .pa-fab { display: none; }
@@ -3213,4 +3214,5 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 .pa-mini i { position: absolute; right: -2px; top: -2px; width: 8px; height: 8px; border-radius: 50%; background: #5bc58a; border: 1.5px solid #fbf8f5; }
 .pa-mini:hover, .pa-mini:focus-visible { opacity: 1; transform: scale(1.08); }
 .ui-dark .pa-mini i { border-color: #11100e; }
-@media (max-width: 600px) { .pa-mini { right: 10px; bottom: 10px; } }
+/* telefon: wyżej od dolnej krawędzi, żeby pasek Safari przy przewijaniu nie ucinał ikonki */
+@media (max-width: 600px) { .pa-mini { right: 14px; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); } }

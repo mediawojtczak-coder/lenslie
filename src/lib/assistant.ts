@@ -4,11 +4,11 @@ import { PRO_TIERS } from "@/lib/pro-plans";
 import { GUIDES } from "@/lib/guides";
 import { isAdminEmail } from "@/lib/supabase/admin";
 
-// Asystent AI w panelu fotografa: na razie tylko dla kont z ADMIN_EMAILS i ASSISTANT_EMAILS (testy),
-// albo dla wszystkich, gdy ASSISTANT_ALL=1.
+// Asystent AI w panelu fotografa: włączony dla wszystkich (od 25.11.2026).
+// Wyłączenie dla wszystkich poza testerami: ASSISTANT_ALL=0 w Vercelu.
 export function assistantAllowed(email?: string | null) {
   if (!email) return false;
-  if (process.env.ASSISTANT_ALL === "1") return true;
+  if (process.env.ASSISTANT_ALL !== "0") return true;
   if (isAdminEmail(email)) return true;
   const list = (process.env.ASSISTANT_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
   return list.includes(email.toLowerCase());
@@ -83,7 +83,8 @@ Zasady:
 // do testów – w przeglądarce z ciasteczkiem lenslie_ai=1 (ustawia je wejście na stronę z ?ai=test).
 export const SITE_DAILY_PER_IP = 15;
 export const SITE_DAILY_TOTAL = 400;
-export const sitePublic = () => process.env.ASSISTANT_PUBLIC === "1";
+// Włączony dla wszystkich (od 25.11.2026); ASSISTANT_PUBLIC=0 wyłącza
+export const sitePublic = () => process.env.ASSISTANT_PUBLIC !== "0";
 
 export const SITE_RULES = `Jesteś asystentem na stronie Lenslie (www.lenslie.com) – polskiego serwisu z galeriami zdjęć online dla fotografów. Rozmawiasz z fotografem, który dopiero poznaje Lenslie.
 Twoje zadania:
