@@ -205,7 +205,7 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
               />
               <label>
                 <input type="checkbox" checked={contact.agree} onChange={(e) => setContact({ ...contact, agree: e.target.checked })} />
-                {t("Zgadzam się na kontakt mailowy w sprawie Lenslie (rozmowa zostanie przekazana Adamowi).", "I agree to be contacted by e-mail about Lenslie (the chat will be passed to Adam).")}
+                {t("Zgadzam się na kontakt mailowy w sprawie Lenslie (rozmowa trafi do obsługi Lenslie).", "I agree to be contacted by e-mail about Lenslie (the chat goes to Lenslie support).")}
               </label>
               <button type="button" className="btn btn-dark btn-small" onClick={handoff}>
                 {t("Wyślij", "Send")}
@@ -214,14 +214,14 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
           )}
           <div className="pa-foot">
             {sent ? (
-              <span>{t("Wysłane – Adam odpisze mailem.", "Sent – Adam will reply by e-mail.")}</span>
+              <span>{t("Wysłane – odpiszemy mailem.", "Sent – we'll reply by e-mail.")}</span>
             ) : mode === "site" ? (
               <button type="button" className="as-link" onClick={() => setContact({ ...contact, show: !contact.show })}>
                 {t("Porozmawiaj z człowiekiem", "Talk to a human")}
               </button>
             ) : (
               <button type="button" className="as-link" onClick={handoff} disabled={!msgs.length}>
-                {t("Wyślij rozmowę do Adama", "Send this conversation to Adam")}
+                {t("Napisz do obsługi Lenslie", "Contact Lenslie support")}
               </button>
             )}
             {msgs.length > 0 && (
