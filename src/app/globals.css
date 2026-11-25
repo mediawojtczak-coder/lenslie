@@ -3175,3 +3175,6 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 .pa-contact input[type="email"] { border: 1px solid var(--hair); border-radius: 8px; padding: 8px 10px; font: inherit; font-size: .86rem; }
 .pa-contact label { display: flex; gap: 8px; align-items: flex-start; line-height: 1.4; }
 .pa-contact .btn { justify-self: start; }
+.pa .pa-contact label { display: flex; flex-direction: row; gap: 8px; align-items: flex-start; margin: 0; font-size: .76rem; line-height: 1.4; color: var(--taupe); text-transform: none; letter-spacing: 0; }
+.pa .pa-contact input[type="checkbox"] { width: 16px; height: 16px; flex: none; margin: 1px 0 0; padding: 0; }
+.pa .pa-contact input[type="email"] { width: 100%; margin: 0; }
