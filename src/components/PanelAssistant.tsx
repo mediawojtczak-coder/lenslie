@@ -113,7 +113,12 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
       {open && (
         <section className="pa-box" aria-label={t("Asystent Lenslie", "Lenslie assistant")}>
           <header className="pa-head">
-            <div>
+            <span className="pa-ava" aria-hidden="true">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/icon-192.png" alt="" width={36} height={36} />
+              <i />
+            </span>
+            <div className="pa-title">
               <b>{t("Asystent Lenslie", "Lenslie assistant")}</b>
               <span>
                 {mode === "site"
@@ -152,7 +157,13 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
                 ))}
               </div>
             ))}
-            {busy && <div className="pa-msg pa-assistant pa-typing">{t("Piszę odpowiedź…", "Writing an answer…")}</div>}
+            {busy && (
+              <div className="pa-msg pa-assistant pa-typing" aria-label={t("Piszę odpowiedź…", "Writing an answer…")}>
+                <i />
+                <i />
+                <i />
+              </div>
+            )}
             {error && <p className="pa-error">{error}</p>}
           </div>
 
@@ -172,13 +183,15 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
                   ask(input);
                 }
               }}
-              rows={2}
+              rows={1}
               maxLength={2000}
               placeholder={t("Napisz pytanie…", "Type your question…")}
               aria-label={t("Pytanie", "Question")}
             />
-            <button type="submit" className="btn btn-dark btn-small" disabled={busy || !input.trim()}>
-              {t("Wyślij", "Send")}
+            <button type="submit" className="pa-send" disabled={busy || !input.trim()} aria-label={t("Wyślij", "Send")}>
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           </form>
           {contact.show && !sent && (
@@ -228,10 +241,16 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
         </section>
       )}
       <button type="button" className="pa-fab" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-          <path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11l-4 3v-3h-.5a2 2 0 0 1-2-2v-8Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-          <path d="M9 10.5h.01M12 10.5h.01M15 10.5h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
+        {open ? (
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
+            <path d="M12 3.5l1.6 4.2 4.4 1.6-4.4 1.6L12 15.1l-1.6-4.2-4.4-1.6 4.4-1.6L12 3.5Z" fill="currentColor" />
+            <path d="M18.5 14.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8Z" fill="currentColor" opacity=".75" />
+          </svg>
+        )}
         <span>{open ? t("Zamknij", "Close") : t("Zapytaj Lenslie", "Ask Lenslie")}</span>
       </button>
     </div>

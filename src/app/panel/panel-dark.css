@@ -187,9 +187,12 @@ html:has(.app.ui-dark), body:has(.app.ui-dark) { background: #11100e; }
 .ui-dark .alb-tools .alb-edit:hover, .ui-dark .alb-tools button.on:hover { color: #17130f; filter: brightness(1.06); }
 
 /* Asystent AI w ciemnym panelu */
-.ui-dark .pa-box { background: var(--card); border-color: var(--hair); }
-.ui-dark .pa-fab { background: var(--accent); color: #17130f; }
-.ui-dark .pa-assistant { background: var(--card-2); color: var(--ink); }
-.ui-dark .pa-user { background: var(--accent); color: #17130f; }
-.ui-dark .pa-sugg button { background: var(--card-2); color: var(--ink); }
-.ui-dark .pa-form textarea { background: var(--card-2); color: var(--ink); }
+.ui-dark .pa { --pa-bg: rgba(28, 25, 23, .94); --pa-ink: #efe9e2; }
+.ui-dark .pa-box { border-color: rgba(255, 255, 255, .08); }
+.ui-dark .pa-head { background: linear-gradient(135deg, #25211e, #171513); border-bottom: 1px solid rgba(255, 255, 255, .06); }
+.ui-dark .pa-assistant, .ui-dark .pa-hello p, .ui-dark .pa-form, .ui-dark .pa-contact { background: #24201d; border-color: rgba(255, 255, 255, .08); color: var(--pa-ink); }
+.ui-dark .pa-form textarea { color: var(--pa-ink); }
+.ui-dark .pa-send, .ui-dark .pa-fab { background: linear-gradient(135deg, var(--pa-gold), var(--pa-gold-2)); color: #17130f; }
+.ui-dark .pa-fab svg { color: #17130f; }
+.ui-dark .pa-sugg button { color: #dcc39c; }
+.ui-dark .pa-link { color: #dcc39c; }
