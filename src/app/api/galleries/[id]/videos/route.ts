@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { startPayment } from "@/lib/checkout";
 import { randomBytes } from "crypto";
 import {
   CreateMultipartUploadCommand,
@@ -17,7 +18,7 @@ import { getMeta, saveMeta, isExpired } from "@/lib/galleries";
 import { cleanBilling, saveBilling } from "@/lib/billing";
 import { spend, getWallet, zlFromGr } from "@/lib/wallet";
 import { notifyAdmins } from "@/lib/email";
-import { p24Enabled, newSessionId, saveOrder, registerTransaction } from "@/lib/p24";
+import { p24Enabled, newSessionId, saveOrder } from "@/lib/p24";
 import { videoPrefix, videoPrice, monthsLeft, startVideos, deleteVideo, galleryVideoBytes, type Video } from "@/lib/videos";
 import { activePro, galleryOwnerId, proFits, proName, proBytes, proUsage, proVideoSeconds, fmtDuration } from "@/lib/pro";
 import { formatBytes, getPlan, planBytes, hardLimitBytes } from "@/lib/plans";
@@ -252,7 +253,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       };
       await saveOrder(order);
       try {
-        return NextResponse.json({ ok: true, redirect: await registerTransaction(order, new URL(req.url).origin) });
+        return NextResponse.json({ ok: true, redirect: await startPayment(order, new URL(req.url).origin) });
       } catch (err) {
         return NextResponse.json({ error: await E(err instanceof Error ? err.message : "Błąd płatności.") }, { status: 502 });
       }

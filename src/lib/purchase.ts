@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { startPayment } from "@/lib/checkout";
 import { E } from "@/lib/api-lang";
 import { cleanBilling, saveBilling } from "@/lib/billing";
 import { spend, getWallet, zlFromGr } from "@/lib/wallet";
 import { notifyAdmins } from "@/lib/email";
-import { p24Enabled, newSessionId, saveOrder, registerTransaction, type ProductAction } from "@/lib/p24";
+import { p24Enabled, newSessionId, saveOrder, type ProductAction } from "@/lib/p24";
 import { fulfillProduct } from "@/lib/products";
 
 // Wspólna płatność za dodatki (motywy, strona portfolio, wyszukiwanie twarzy):
@@ -62,7 +63,7 @@ export async function purchase(opts: {
   };
   await saveOrder(order);
   try {
-    return NextResponse.json({ ok: true, redirect: await registerTransaction(order, new URL(req.url).origin) });
+    return NextResponse.json({ ok: true, redirect: await startPayment(order, new URL(req.url).origin) });
   } catch (err) {
     return NextResponse.json({ error: await E(err instanceof Error ? err.message : "Błąd płatności.") }, { status: 502 });
   }

@@ -72,7 +72,7 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
           )}
           {payment && payment.status !== "paid" && (
             <p className="warn-inline">
-              {t("Czekamy na potwierdzenie płatności od Przelewy24. Strona odświeży się sama.", "Waiting for payment confirmation from Przelewy24. The page refreshes by itself.")}
+              {t("Czekamy na potwierdzenie płatności od Przelewy24. Strona odświeży się sama.", "Waiting for payment confirmation. The page refreshes by itself.")}
               <RefreshSoon />
             </p>
           )}

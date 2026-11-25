@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useLang } from "@/components/LangProvider";
 import { tr, money } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
+import { useCur } from "@/components/CurrencyProvider";
+import { addonPriceF } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import type { Billing } from "@/lib/billing";
 import type { Theme, ThemeId } from "@/lib/themes";
@@ -26,6 +28,7 @@ export default function ThemeCard({
   billing: Billing;
 }) {
   const lang = useLang();
+  const cur = useCur();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const router = useRouter();
   const [picked, setPicked] = useState<ThemeId>(current);
@@ -95,6 +98,7 @@ export default function ThemeCard({
             <InvoiceFields value={invoice} onChange={setInvoice} />
             <PayButtons
               price={sel.price}
+              foreign={cur && sel.price > 0 ? addonPriceF("theme", cur) : undefined}
               balance={balance}
               busy={busy}
               label={t("za motyw", "for the theme")}

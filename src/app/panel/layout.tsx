@@ -17,6 +17,8 @@ import PullRefresh from "@/components/PullRefresh";
 import PanelAssistant from "@/components/PanelAssistant";
 import { assistantAllowed } from "@/lib/assistant";
 import { cookies } from "next/headers";
+import { CurrencyProvider } from "@/components/CurrencyProvider";
+import { stripeCurrency } from "@/lib/stripe";
 import type { Viewport } from "next";
 import "./panel-dark.css";
 
@@ -41,6 +43,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   // pierwszy mail powitalny – razem z prezentem na start (raz)
   if (welcomed && user.email) await sendOnboarding(user.id, user.email, "welcome", lang).catch(() => undefined);
   const wallet = welcomed ?? current;
+  // angielska wersja: płatności w walucie kraju przez Stripe (na razie tylko dla administratora)
+  const cur = await stripeCurrency(user.email, lang).catch(() => null);
   const t = (pl: string, en: string) => tr(lang, pl, en);
 
   return (
@@ -93,7 +97,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         </details>
       </header>
       <PullRefresh />
-      {children}
+      <CurrencyProvider cur={cur}>{children}</CurrencyProvider>
       {assistantAllowed(user.email) && <PanelAssistant />}
       {/* konwersja „Rejestracja Lenslie” – raz, przy przyznaniu prezentu na start */}
       <GoogleTag conversion={Boolean(welcomed)} />

@@ -6,6 +6,8 @@ import FancyQr, { qrPng } from "@/components/FancyQr";
 import { useLang } from "@/components/LangProvider";
 import { tr, money, locale } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
+import { useCur } from "@/components/CurrencyProvider";
+import { addonPriceF } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import DownloadAll from "@/app/galeria/[id]/DownloadAll";
 import type { Billing } from "@/lib/billing";
@@ -53,6 +55,7 @@ export default function GuestEditor({
   videos?: { name: string; poster?: string; src: string; downloadUrl: string; size: number; processing: boolean }[];
 }) {
   const lang = useLang();
+  const cur = useCur();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const router = useRouter();
   const [ev, setEv] = useState(event);
@@ -139,6 +142,7 @@ export default function GuestEditor({
           {note("pay")}
           <PayButtons
             price={price}
+            foreign={cur ? addonPriceF("guests", cur) : undefined}
             balance={balance}
             busy={busy === "pay"}
             label={t("i aktywuj", "and activate")}

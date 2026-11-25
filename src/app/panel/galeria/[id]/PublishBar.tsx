@@ -7,6 +7,8 @@ import { useLang } from "@/components/LangProvider";
 import { tr, money, locale } from "@/lib/lang";
 import { planName } from "@/lib/plans";
 import PayButtons from "@/components/PayButtons";
+import { useCur } from "@/components/CurrencyProvider";
+import { galleryPriceF } from "@/lib/foreign-prices";
 import type { Billing } from "@/lib/billing";
 import { PLANS, PERIODS, DEFAULT_PERIOD, fitPlan, formatBytes, perMonthL, hardLimitBytes, type Period, type PlanId } from "@/lib/plans";
 
@@ -54,6 +56,8 @@ export default function PublishBar({
 
   const plan = PLANS.find((p) => p.id === planId) ?? null;
   const price = plan ? plan.prices[period] : 0;
+  const cur = useCur();
+  const foreign = cur && plan ? galleryPriceF(plan.id, period, cur) : undefined;
 
   function open() {
     setPlanId(fitPlan(usedBytes)?.id ?? null);
@@ -250,7 +254,7 @@ export default function PublishBar({
             </p>
           )}
 
-          {!pro && <PayButtons price={price} balance={balance} busy={busy} disabled={!plan} label={t("i opublikuj", "and publish")} onPay={publish} />}
+          {!pro && <PayButtons price={price} foreign={foreign} balance={balance} busy={busy} disabled={!plan} label={t("i opublikuj", "and publish")} onPay={publish} />}
         </div>
       </dialog>
     </section>

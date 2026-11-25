@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { startPayment } from "@/lib/checkout";
 import { E } from "@/lib/api-lang";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, saveMeta } from "@/lib/galleries";
 import { getUser } from "@/lib/supabase/server";
 import { checkAction, applyAction } from "@/lib/plan-actions";
-import { p24Enabled, newSessionId, saveOrder, registerTransaction } from "@/lib/p24";
+import { p24Enabled, newSessionId, saveOrder } from "@/lib/p24";
 import { cleanBilling, saveBilling } from "@/lib/billing";
 import { spend, getWallet, zlFromGr } from "@/lib/wallet";
 import { notifyAdmins } from "@/lib/email";
@@ -113,7 +114,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   };
   await saveOrder(order);
   try {
-    const redirect = await registerTransaction(order, new URL(req.url).origin);
+    const redirect = await startPayment(order, new URL(req.url).origin);
     return NextResponse.json({ ok: true, redirect });
   } catch (err) {
     return NextResponse.json({ error: await E(err instanceof Error ? err.message : "Błąd płatności.") }, { status: 502 });

@@ -7,6 +7,8 @@ import { useLang } from "@/components/LangProvider";
 import { tr, money, locale } from "@/lib/lang";
 import { planName, planPhotos, periodText, periodShort, perMonthL } from "@/lib/plans";
 import PayButtons from "@/components/PayButtons";
+import { useCur } from "@/components/CurrencyProvider";
+import { galleryPriceF, galleryUpgradeF } from "@/lib/foreign-prices";
 import type { Billing } from "@/lib/billing";
 import {
   PLANS,
@@ -113,6 +115,16 @@ export default function PlanBar({
   }
 
   const targetPlan = getPlan(target);
+  const cur = useCur();
+  const foreign = !cur
+    ? undefined
+    : mode === "upgrade" && plan && targetPlan && period
+      ? galleryUpgradeF(plan.id, targetPlan.id, period, cur)
+      : mode === "extend" && plan
+        ? galleryPriceF(plan.id, newPeriod, cur)
+        : targetPlan
+          ? galleryPriceF(targetPlan.id, newPeriod, cur)
+          : undefined;
   const price =
     mode === "upgrade" && plan && targetPlan && period
       ? upgradeCost(plan, targetPlan, period)
@@ -259,6 +271,7 @@ export default function PlanBar({
 
           <PayButtons
             price={price}
+            foreign={foreign}
             balance={balance}
             busy={busy}
             disabled={mode !== "extend" && !target}

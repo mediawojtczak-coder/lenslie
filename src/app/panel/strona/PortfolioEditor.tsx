@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useLang } from "@/components/LangProvider";
 import { tr, money, locale } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
+import { useCur } from "@/components/CurrencyProvider";
+import { addonPriceF } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import { canvasToJpeg } from "@/lib/watermark-client";
 import type { Billing } from "@/lib/billing";
@@ -72,6 +74,7 @@ export default function PortfolioEditor({
   billing: Billing;
 }) {
   const lang = useLang();
+  const cur = useCur();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -365,6 +368,7 @@ export default function PortfolioEditor({
         {note("pay")}
         <PayButtons
           price={prices[months]}
+          foreign={cur ? addonPriceF("portfolio", cur, months) : undefined}
           balance={balance}
           busy={busy === "pay"}
           disabled={!s.slug}

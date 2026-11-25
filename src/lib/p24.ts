@@ -46,6 +46,10 @@ export type Order = {
   invoice?: Billing | null; // dane do faktury, gdy klient jej chce
   invoiceIssued?: boolean;
   byClient?: boolean; // przedłużenie opłacone przez klienta galerii
+  // Płatność przez Stripe (angielska wersja): kwota w walucie klienta; amount to wtedy przybliżony odpowiednik w groszach
+  gateway?: "p24" | "stripe";
+  foreign?: { cur: import("@/lib/foreign-prices").Cur; amount: number };
+  stripeSession?: string;
 };
 
 const orderKey = (sid: string) => `payments/${sid}.json`;

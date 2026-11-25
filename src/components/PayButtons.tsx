@@ -2,10 +2,14 @@
 
 import { useLang } from "./LangProvider";
 import { money, tr } from "@/lib/lang";
+import { useCur } from "./CurrencyProvider";
+import { fmtCur, fromPln } from "@/lib/foreign-prices";
 
 // Wybór płatności: z salda konta albo od razu przez Przelewy24
+// (w angielskiej wersji z płatnościami Stripe – kartą, Apple Pay, Google Pay w walucie kraju)
 export default function PayButtons({
   price,
+  foreign,
   balance,
   busy,
   disabled,
@@ -13,6 +17,7 @@ export default function PayButtons({
   onPay,
 }: {
   price: number; // zł
+  foreign?: number; // cena w walucie klienta (Stripe); bez niej – przeliczenie z zł
   balance: number; // grosze
   busy: boolean;
   disabled?: boolean;
@@ -30,6 +35,23 @@ export default function PayButtons({
         <button type="button" className="btn btn-wide btn-dark" disabled={busy || disabled} onClick={() => onPay("wallet")}>
           {busy ? t("Chwileczkę…", "One moment…") : t("Włącz – w cenie abonamentu Pro", "Turn on – included in Pro")}
         </button>
+      </div>
+    );
+  }
+  const cur = useCur();
+  if (cur) {
+    const f = foreign ?? fromPln(price, cur);
+    return (
+      <div className="pay-box">
+        <button type="button" className="btn btn-wide btn-dark" disabled={busy || disabled} onClick={() => onPay("p24")}>
+          {busy ? "Redirecting to payment…" : `Pay ${fmtCur(f, cur)} ${label}`}
+        </button>
+        {enough && (
+          <button type="button" className="as-link pay-alt" disabled={busy || disabled} onClick={() => onPay("wallet")}>
+            or use your account balance ({fmt(priceGr)})
+          </button>
+        )}
+        <p className="test-note">Card, Apple Pay or Google Pay – secure checkout by Stripe.</p>
       </div>
     );
   }

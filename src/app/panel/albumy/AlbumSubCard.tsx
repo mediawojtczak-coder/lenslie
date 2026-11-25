@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useLang } from "@/components/LangProvider";
 import { tr, money } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
+import { useCur } from "@/components/CurrencyProvider";
+import { addonPriceF } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import type { Billing } from "@/lib/billing";
 
@@ -12,6 +14,7 @@ const PRICES = { 1: 39, 12: 290 } as const;
 // Zakup abonamentu Projektora albumów (miesiąc albo rok z góry)
 export default function AlbumSubCard({ balance, billing, returnPath, compact = false }: { balance: number; billing: Billing; returnPath: string; compact?: boolean }) {
   const lang = useLang();
+  const cur = useCur();
   const t = (pl: string, en: string) => tr(lang, pl, en);
   const [months, setMonths] = useState<1 | 12>(12);
   const [invoice, setInvoice] = useState<Billing>(billing);
@@ -59,7 +62,7 @@ export default function AlbumSubCard({ balance, billing, returnPath, compact = f
         ))}
       </div>
       <InvoiceFields value={invoice} onChange={setInvoice} />
-      <PayButtons price={PRICES[months]} balance={balance} busy={busy} label={t("i pobieraj", "and download")} onPay={buy} />
+      <PayButtons price={PRICES[months]} foreign={cur ? addonPriceF("album", cur, months) : undefined} balance={balance} busy={busy} label={t("i pobieraj", "and download")} onPay={buy} />
       {error && (
         <p className="error" role="alert">
           {error}

@@ -15,7 +15,7 @@ export default async function PaymentNotice({ sessionId, galleryId }: { sessionI
   }
   return (
     <p className="warn-inline pay-note">
-      {t("Czekamy na potwierdzenie płatności od Przelewy24. Zwykle trwa to kilka sekund, strona odświeży się sama.", "Waiting for payment confirmation from Przelewy24. It usually takes a few seconds; the page refreshes by itself.")}
+      {t("Czekamy na potwierdzenie płatności od Przelewy24. Zwykle trwa to kilka sekund, strona odświeży się sama.", "Waiting for payment confirmation. It usually takes a few seconds; the page refreshes by itself.")}
       <RefreshSoon />
     </p>
   );

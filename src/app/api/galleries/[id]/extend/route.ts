@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
+import { startPayment } from "@/lib/checkout";
 import { cookies } from "next/headers";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, hasAccess, accessCookieName, isExpired } from "@/lib/galleries";
 import { clientExtendOffer, clientExtendPrice } from "@/lib/client-extend";
 import { isPeriod } from "@/lib/plans";
 import { adminClient } from "@/lib/supabase/admin";
-import { p24Enabled, newSessionId, saveOrder, registerTransaction } from "@/lib/p24";
+import { p24Enabled, newSessionId, saveOrder } from "@/lib/p24";
 import { siteUrl } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -52,7 +53,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   };
   await saveOrder(order);
   try {
-    return NextResponse.json({ ok: true, redirect: await registerTransaction(order, siteUrl(), meta.lang === "en" ? "en" : "pl") });
+    return NextResponse.json({ ok: true, redirect: await startPayment(order, siteUrl(), meta.lang === "en" ? "en" : "pl") });
   } catch {
     return err("Bramka płatności nie przyjęła zamówienia. Spróbuj za chwilę.", "The payment gateway is unavailable. Try again shortly.", 502);
   }

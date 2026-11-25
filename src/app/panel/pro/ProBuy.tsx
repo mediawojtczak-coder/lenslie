@@ -4,6 +4,8 @@ import { Fragment, useState } from "react";
 import { useLang } from "@/components/LangProvider";
 import { tr, money } from "@/lib/lang";
 import PayButtons from "@/components/PayButtons";
+import { useCur } from "@/components/CurrencyProvider";
+import { proPriceF, proUpgradeF } from "@/lib/foreign-prices";
 import InvoiceFields from "@/components/InvoiceFields";
 import type { Billing } from "@/lib/billing";
 import { PRO_TIERS, proIsBigger, proName, proPrice, proHardLimit, proVideoSeconds, type ProTierId, type ProMonths } from "@/lib/pro-plans";
@@ -40,6 +42,8 @@ export default function ProBuy({
   const bigger = cur ? PRO_TIERS.filter((x) => proIsBigger(x, cur)) : [];
   const sel = PRO_TIERS.find((x) => x.id === tier)!;
   const price = mode === "upgrade" ? (upgrade[tier] ?? 0) : proPrice(sel, months);
+  const payCur = useCur();
+  const foreign = payCur ? (mode === "upgrade" ? proUpgradeF(sel.id, price, sel.monthly, payCur) : proPriceF(sel.id, months, payCur)) : undefined;
   // przy aktywnym abonamencie przedłużamy ten sam pakiet; większy – przez „Zmień na większy”
   const lockedTier = active && mode === "buy";
 
@@ -144,6 +148,7 @@ export default function ProBuy({
       {!done && (
         <PayButtons
           price={price}
+          foreign={foreign}
           balance={balance}
           busy={busy}
           label={mode === "upgrade" ? t("i zmień pakiet", "and upgrade") : active ? t("i przedłuż", "and extend") : t("i włącz Pro", "and start Pro")}

@@ -48,7 +48,7 @@ export default async function Wydarzenie({ params, searchParams }: { params: Pro
       <main className="app-main">
         {order && order.ownerId === user!.id && order.status !== "paid" && !active && (
           <p className="warn-inline pay-note">
-            {t("Czekamy na potwierdzenie płatności od Przelewy24. Strona odświeży się sama.", "Waiting for payment confirmation from Przelewy24. The page refreshes by itself.")}
+            {t("Czekamy na potwierdzenie płatności od Przelewy24. Strona odświeży się sama.", "Waiting for payment confirmation. The page refreshes by itself.")}
             <RefreshSoon />
           </p>
         )}

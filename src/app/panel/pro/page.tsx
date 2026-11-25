@@ -62,7 +62,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
       <main className="app-main pro-page">
         {order && order.ownerId === user!.id && order.status !== "paid" && (
           <p className="warn-inline pay-note">
-            {t("Czekamy na potwierdzenie płatności od Przelewy24. Strona odświeży się sama.", "Waiting for payment confirmation from Przelewy24. The page refreshes by itself.")}
+            {t("Czekamy na potwierdzenie płatności od Przelewy24. Strona odświeży się sama.", "Waiting for payment confirmation. The page refreshes by itself.")}
             <RefreshSoon />
           </p>
         )}
