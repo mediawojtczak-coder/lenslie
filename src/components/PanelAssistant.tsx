@@ -46,6 +46,15 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
   const STORE = `lenslie_assistant_${mode}_v1`;
   const endpoint = mode === "site" ? "/api/assistant/site" : "/api/assistant";
   const [contact, setContact] = useState({ show: false, email: "", agree: false });
+  const [idea, setIdea] = useState<{ show: boolean; text: string; sent: boolean }>({ show: false, text: "", sent: false });
+
+  async function sendIdea() {
+    if (idea.text.trim().length < 5) return setError(t("Opisz pomysł w kilku słowach.", "Describe your idea in a few words."));
+    setError("");
+    const res = await fetch("/api/assistant/idea", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: idea.text }) }).catch(() => null);
+    if (res?.ok) setIdea({ show: false, text: "", sent: true });
+    else setError(t("Nie udało się wysłać – spróbuj ponownie.", "Could not send – try again."));
+  }
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -194,6 +203,28 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
               </svg>
             </button>
           </form>
+          {idea.show && (
+            <div className="pa-contact pa-idea">
+              <b>{t("Masz pomysł na nową funkcję?", "Got an idea for a new feature?")}</b>
+              <textarea
+                value={idea.text}
+                onChange={(e) => setIdea({ ...idea, text: e.target.value })}
+                rows={3}
+                maxLength={3000}
+                placeholder={t("Napisz, czego brakuje Ci w Lenslie albo co by Ci ułatwiło pracę…", "Tell us what's missing in Lenslie or what would make your work easier…")}
+                aria-label={t("Pomysł", "Idea")}
+              />
+              <div className="pa-idea-row">
+                <button type="button" className="btn btn-dark btn-small" onClick={sendIdea}>
+                  {t("Wyślij pomysł", "Send idea")}
+                </button>
+                <button type="button" className="as-link" onClick={() => setIdea({ ...idea, show: false })}>
+                  {t("Anuluj", "Cancel")}
+                </button>
+              </div>
+            </div>
+          )}
+          {idea.sent && !idea.show && <p className="pa-thanks">{t("Dziękujemy! Pomysł trafił do zespołu Lenslie.", "Thank you! Your idea has reached the Lenslie team.")}</p>}
           {contact.show && !sent && (
             <div className="pa-contact">
               <input
@@ -222,6 +253,11 @@ export default function PanelAssistant({ mode = "panel" }: { mode?: AssistantMod
             ) : (
               <button type="button" className="as-link" onClick={handoff} disabled={!msgs.length}>
                 {t("Napisz do obsługi Lenslie", "Contact Lenslie support")}
+              </button>
+            )}
+            {mode === "panel" && (
+              <button type="button" className="as-link pa-idea-btn" onClick={() => setIdea({ ...idea, show: !idea.show, sent: false })}>
+                💡 {t("Zgłoś pomysł", "Suggest an idea")}
               </button>
             )}
             {msgs.length > 0 && (

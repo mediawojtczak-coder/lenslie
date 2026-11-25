@@ -3194,3 +3194,9 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
   .pa-open .pa-fab { display: none; }
   .pa-box { width: calc(100vw - 24px); height: calc(100dvh - 24px); border-radius: 22px; }
 }
+.pa-idea b { font-size: .86rem; color: var(--pa-ink); font-weight: 600; }
+.pa-idea textarea { width: 100%; resize: vertical; border: 1px solid rgba(60, 45, 30, .14); border-radius: 12px; padding: 9px 12px; font: inherit; font-size: .86rem; background: #fff; color: var(--pa-ink); }
+.pa-idea-row { display: flex; align-items: center; gap: 12px; }
+.pa-thanks { margin: 0 18px 6px; font-size: .78rem; color: #4e8a63; }
+.ui-dark .pa-idea textarea { background: #1b1816; border-color: rgba(255, 255, 255, .1); }
+.pa-foot { flex-wrap: wrap; row-gap: 4px; }
