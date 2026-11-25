@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   const day = new Date().toISOString().slice(0, 10);
   const used = (await listObjects(`assistant/${day}/${user.id}/`).catch(() => [])).length;
   if (used >= ASSISTANT_DAILY_LIMIT)
-    return NextResponse.json({ error: `Na dziś wykorzystano limit ${ASSISTANT_DAILY_LIMIT} pytań. Wróć jutro albo napisz do Adama.` }, { status: 429 });
+    return NextResponse.json({ error: `Na dziś wykorzystano limit ${ASSISTANT_DAILY_LIMIT} pytań. Wróć jutro albo napisz do obsługi Lenslie.` }, { status: 429 });
 
   // dane konta fotografa (tylko jego własne)
   const [{ data: galleries }, { data: profile }, wallet] = await Promise.all([
