@@ -93,7 +93,7 @@ export default async function Home() {
 
       <section className="hero-visual" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/home/kolaz.jpg" alt="" className="hero-collage" width={1672} height={570} fetchPriority="high" />
+        <img src={lang === "en" ? "/home/kolaz-en.jpg" : "/home/kolaz.jpg"} alt="" className="hero-collage" width={1672} height={570} fetchPriority="high" />
         <div className="hero-collage-mobile">
           {["foto-1", "foto-2", "foto-4", "foto-7"].map((f) => (
             // eslint-disable-next-line @next/next/no-img-element
