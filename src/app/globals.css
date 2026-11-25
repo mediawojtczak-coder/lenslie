@@ -3120,3 +3120,20 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 .alt-hero .fs-lead { margin-left: auto; margin-right: auto; }
 .sel-zip-err { font-size: .8rem; color: #b4533c; }
 .alb-dl { display: flex; flex-wrap: wrap; gap: 10px; }
+/* Poradnik */
+.guide { max-width: 860px; }
+.guide-crumbs { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 14px; }
+.guide-crumbs a { color: var(--taupe); text-decoration: none; }
+.guide-table { margin: 8px 0 0; }
+.guide-table .alt-row { grid-template-columns: 1fr 1.1fr 1.1fr 1.3fr; gap: 14px; font-size: .88rem; }
+.guide-faq { margin: 0 0 56px; }
+.guide .fs-cta { padding-top: 8px; }
+.guide-cards { list-style: none; padding: 0 !important; margin: 28px 0 36px; display: grid; gap: 18px; }
+.guide-cards a { display: block; padding: 22px 24px; border: 1px solid var(--hair); border-radius: 14px; background: #fff; color: inherit !important; text-decoration: none; }
+.guide-cards a:hover { border-color: var(--brass); }
+.guide-cards h2 { margin: 0 0 8px !important; font-size: 1.35rem !important; }
+.guide-cards p { margin: 0 0 10px; color: var(--taupe); }
+.guide-more { color: var(--brass); font-size: .9rem; }
+@media (max-width: 760px) {
+  .guide-table .alt-row { grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: .8rem; padding: 12px; }
+}

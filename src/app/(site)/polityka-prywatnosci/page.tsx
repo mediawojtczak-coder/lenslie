@@ -3,7 +3,14 @@ import { COMPANY } from "@/lib/company";
 import { getLang } from "@/lib/lang-server";
 
 export async function generateMetadata() {
-  return { title: (await getLang()) === "en" ? "Privacy policy – Lenslie" : "Polityka prywatności – Lenslie", alternates: { canonical: "/polityka-prywatnosci" } };
+  const en = (await getLang()) === "en";
+  return {
+    title: en ? "Privacy policy – Lenslie" : "Polityka prywatności – Lenslie",
+    description: en
+      ? "How Lenslie processes personal data of photographers and their clients, where photos are stored and what rights you have."
+      : "Jak Lenslie przetwarza dane osobowe fotografów i ich klientów, gdzie przechowywane są zdjęcia i jakie masz prawa.",
+    alternates: { canonical: "/polityka-prywatnosci" },
+  };
 }
 
 function PolitykaPl() {

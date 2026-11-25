@@ -4,7 +4,14 @@ import { COMPANY } from "@/lib/company";
 import { getLang } from "@/lib/lang-server";
 
 export async function generateMetadata() {
-  return { title: (await getLang()) === "en" ? "Terms of service – Lenslie" : "Regulamin – Lenslie", alternates: { canonical: "/regulamin" } };
+  const en = (await getLang()) === "en";
+  return {
+    title: en ? "Terms of service – Lenslie" : "Regulamin – Lenslie",
+    description: en
+      ? "Lenslie terms of service: rules for using online client galleries, payments, gallery access periods and photo storage."
+      : "Regulamin serwisu Lenslie: zasady korzystania z galerii zdjęć online dla klientów, płatności, okresy dostępu i przechowywanie zdjęć.",
+    alternates: { canonical: "/regulamin" },
+  };
 }
 
 function RegulaminPl() {
