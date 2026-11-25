@@ -6,6 +6,13 @@ import { listObjects } from "@/lib/photos";
 import { putEmpty } from "@/lib/r2-light";
 import { assistantAllowed, knowledge, SYSTEM_RULES, ASSISTANT_DAILY_LIMIT, ASSISTANT_MODEL } from "@/lib/assistant";
 
+import { getLang } from "@/lib/lang-server";
+
+const langRule = (l: "pl" | "en") =>
+  l === "en"
+    ? "LANGUAGE: The visitor is using the ENGLISH version of Lenslie. Always reply in English, even if the knowledge above is in Polish. Translate feature names and button labels into English."
+    : "JĘZYK: Fotograf korzysta z POLSKIEJ wersji Lenslie. Odpowiadaj zawsze po polsku.";
+
 export const maxDuration = 60;
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -77,6 +84,7 @@ ${rows.join("\n") || "- brak galerii"}`;
       system: [
         { type: "text", text: `${SYSTEM_RULES}\n\nWIEDZA O LENSLIE:\n${knowledge()}`, cache_control: { type: "ephemeral" } },
         { type: "text", text: account },
+        { type: "text", text: langRule(await getLang()) },
       ],
       messages,
     }),
