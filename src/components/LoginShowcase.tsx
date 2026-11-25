@@ -32,7 +32,7 @@ export default function LoginShowcase({ lang = "pl" }: { lang?: "pl" | "en" }) {
             <img src={P(1)} alt="" />
             <div className="lv-cover-text">
               <small>Anna Nowak Fotografia</small>
-              <strong>Julia &amp; Michał</strong>
+              <strong>{en ? "Emma & James" : "Julia & Michał"}</strong>
               <em>{en ? "14 September 2026 · 486 photos" : "14 września 2026 · 486 zdjęć"}</em>
               <i>{en ? "View photos" : "Zobacz zdjęcia"}</i>
             </div>
@@ -66,7 +66,7 @@ export default function LoginShowcase({ lang = "pl" }: { lang?: "pl" | "en" }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={P(5)} alt="" />
             <div className="lv-cover-text">
-              <strong>Julia &amp; Michał</strong>
+              <strong>{en ? "Emma & James" : "Julia & Michał"}</strong>
               <i>{en ? "View photos" : "Zobacz zdjęcia"}</i>
             </div>
           </div>

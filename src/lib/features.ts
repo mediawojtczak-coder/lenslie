@@ -81,7 +81,7 @@ export const FEATURES: Feature[] = [
     price: ["15×15 cm 190 zł · 20×20 cm 220 zł · 25×25 cm 280 zł (20 stron) · każda kolejna strona 12 zł · wysyłka 15 zł", "15×15 cm PLN 190 · 20×20 cm PLN 220 · 25×25 cm PLN 280 (20 pages) · each extra page PLN 12 · delivery PLN 15"],
     steps: [
       { title: ["Projektujesz", "You design"], text: ["Album w Projektorze albumów – format 15×15, 20×20 albo 25×25 cm.", "The album in the Album designer – 15×15, 20×20 or 25×25 cm."] },
-      { title: ["Zamawiasz", "You order"], text: ["Liczba egzemplarzy, kod paczkomatu i płatność BLIK-iem, kartą lub z salda.", "Number of copies, locker code and payment by card, BLIK or balance."] },
+      { title: ["Zamawiasz", "You order"], text: ["Liczba egzemplarzy, kod paczkomatu i płatność BLIK-iem, kartą lub z salda.", "Number of copies, delivery details and payment."] },
       { title: ["Odbierasz", "You collect"], text: ["Czas realizacji do 12 dni roboczych. Numer przesyłki dostaniesz mailem.", "Lead time up to 12 working days. You'll get the tracking number by e-mail."] },
     ],
     forPhotographer: [
@@ -210,7 +210,7 @@ export const FEATURES: Feature[] = [
       { title: ["Goście dodają", "Guests add"], text: ["Zdjęcia i filmy z telefonów trafiają od razu do galerii.", "Photos and videos from phones go straight into the gallery."] },
     ],
     forPhotographer: [
-      ["Dodatek, który sprzedasz parze np. za 199–299 zł.", "An add-on you can sell to the couple, e.g. for PLN 199–299."],
+      ["Dodatek, który sprzedasz parze np. za 199–299 zł.", "An add-on you can sell to the couple at your own price."],
       ["Moderacja – usuwasz niechciane zdjęcia jednym kliknięciem.", "Moderation – remove unwanted photos in one click."],
       ["Pobieranie wszystkiego naraz w ZIP.", "Download everything at once as a ZIP."],
     ],
@@ -229,7 +229,7 @@ export const FEATURES: Feature[] = [
         { title: ["Bez aplikacji", "No app"], text: ["Wystarczy aparat w telefonie.", "Just the phone's camera."] },
       ],
     },
-    cta: { title: ["Dodaj kody QR do swojej oferty", "Add QR codes to your offer"], text: ["99 zł za wesele – bez abonamentu.", "PLN 99 per wedding – no subscription."] },
+    cta: { title: ["Dodaj kody QR do swojej oferty", "Add QR codes to your offer"], text: ["99 zł za wesele – bez abonamentu.", "One-off fee per wedding – no subscription."] },
   },
   {
     slug: "sprzedaz-zdjec",
@@ -243,11 +243,11 @@ export const FEATURES: Feature[] = [
     title: ["Zarabiaj na każdym dodatkowym zdjęciu", "Earn on every extra photo"],
     lead: [
       "Ustalasz, ile zdjęć jest w pakiecie i ile kosztuje każde kolejne. Klient wybiera ulubione w galerii, widzi kwotę i płaci Tobie przelewem lub BLIK-iem. Po wpłacie jednym kliknięciem udostępniasz zdjęcia bez znaku wodnego.",
-      "Set how many photos are included and the price of each extra one. Your client picks favourites in the gallery, sees the total and pays you by transfer or BLIK. Once paid, one click releases the photos without a watermark.",
+      "Set how many photos are included and the price of each extra one. Your client picks favourites in the gallery, sees the total and pays you by card or bank transfer. Once paid, one click releases the photos without a watermark.",
     ],
     price: ["W cenie galerii · pieniądze trafiają prosto do Ciebie, bez prowizji Lenslie", "Included with the gallery · money goes straight to you, no Lenslie commission"],
     steps: [
-      { title: ["Ustawiasz pakiet", "Set the package"], text: ["Np. 30 zdjęć w cenie sesji i 20 zł za każde kolejne.", "E.g. 30 photos included and PLN 20 for each extra one."] },
+      { title: ["Ustawiasz pakiet", "Set the package"], text: ["Np. 30 zdjęć w cenie sesji i 20 zł za każde kolejne.", "E.g. 30 photos included and a set price for each extra one."] },
       { title: ["Klient wybiera", "Client picks"], text: ["Zaznacza ulubione – galeria od razu liczy dopłatę.", "Marks favourites – the gallery calculates the extra cost right away."] },
       { title: ["Dostarczasz", "You deliver"], text: ["Po wpłacie udostępniasz zdjęcia w pełnej jakości.", "Once paid, you release the photos in full quality."] },
     ],
@@ -473,7 +473,7 @@ export const FEATURES: Feature[] = [
         { title: ["Raz i spokój", "Set and forget"], text: ["Jedna konfiguracja dla wszystkich galerii.", "One setup for every gallery."] },
       ],
     },
-    cta: { title: ["Daj galeriom swój adres", "Give your galleries your address"], text: ["99 zł rocznie za własną domenę.", "PLN 99 per year for your domain."] },
+    cta: { title: ["Daj galeriom swój adres", "Give your galleries your address"], text: ["99 zł rocznie za własną domenę.", "One yearly fee for your own domain."] },
   },
 ];
 

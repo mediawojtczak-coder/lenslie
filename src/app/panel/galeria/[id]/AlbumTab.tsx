@@ -783,15 +783,18 @@ export default function AlbumTab({
             )}
           </section>
 
+          {/* druk albumów – polska drukarnia i paczkomaty, tylko w wersji polskiej */}
+          {lang !== "en" && (
           <PrintOrderCard
-            galleryId={id}
-            project={project}
-            photos={photos}
-            balance={balance}
-            billing={billing}
-            saving={saved === "saving"}
-            onFormat={changeFormat}
-          />
+              galleryId={id}
+              project={project}
+              photos={photos}
+              balance={balance}
+              billing={billing}
+              saving={saved === "saving"}
+              onFormat={changeFormat}
+            />
+          )}
         </>
       )}
       {editing && (() => {

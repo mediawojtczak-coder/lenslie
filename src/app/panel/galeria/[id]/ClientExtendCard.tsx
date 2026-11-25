@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useCur } from "@/components/CurrencyProvider";
+import { clientExtendF, fmtCur } from "@/lib/foreign-prices";
 import { useTr } from "@/components/LangProvider";
 
 // Czy klient widzi licznik dni i może sam przedłużyć galerię
 export default function ClientExtendCard({ id, on: initial }: { id: string; on: boolean }) {
   const t = useTr();
+  const cur = useCur();
   const [on, setOn] = useState(initial);
   const [msg, setMsg] = useState("");
 
@@ -29,7 +32,9 @@ export default function ClientExtendCard({ id, on: initial }: { id: string; on: 
       <p>
         {t(
           "Na 14 dni przed końcem klient widzi na dole galerii, ile dni dostępu zostało, może ustawić sobie przypomnienie mailem i sam opłacić przedłużenie (BLIK, karta, przelew): 1 mies. – 20 zł, 3 mies. – 30 zł, 6 mies. – 40 zł, 12 mies. – 50 zł. Dostaniesz maila, gdy to zrobi. Po wygaśnięciu może jeszcze przez 30 dni przywrócić galerię.",
-          "14 days before the end, your client sees at the bottom of the gallery how many days are left, can set an e-mail reminder and pay for an extension themselves (card, BLIK, transfer): 1 mo. – PLN 20, 3 mo. – PLN 30, 6 mo. – PLN 40, 12 mo. – PLN 50. You'll get an e-mail when they do. After expiry they can still restore the gallery for 30 days.",
+          cur
+            ? `14 days before the end, your client sees at the bottom of the gallery how many days are left, can set an e-mail reminder and pay for an extension themselves by card: ${([1, 3, 6, 12] as const).map((m) => `${m} mo. – ${fmtCur(clientExtendF(m, cur), cur)}`).join(", ")}. You'll get an e-mail when they do. After expiry they can still restore the gallery for 30 days.`
+            : "14 days before the end, your client sees at the bottom of the gallery how many days are left, can set an e-mail reminder and pay for an extension themselves (card, BLIK, transfer): 1 mo. – PLN 20, 3 mo. – PLN 30, 6 mo. – PLN 40, 12 mo. – PLN 50. You'll get an e-mail when they do. After expiry they can still restore the gallery for 30 days.",
         )}
       </p>
       <label className="check">
