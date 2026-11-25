@@ -1,16 +1,19 @@
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
 import { getOwnerContact } from "@/lib/profiles";
 import { money } from "@/lib/lang";
+import { fmtCur, type Cur } from "@/lib/foreign-prices";
 import type { Payout, SaleOrder } from "@/lib/sales";
 
 type L = "pl" | "en";
-export const cash = (n: number, lang: L) => money(n, lang, n % 1 !== 0);
+export const cash = (n: number, lang: L, cur?: Cur | null) => (cur ? fmtCur(n, cur) : money(n, lang, n % 1 !== 0));
 
 // Instrukcja płatności – w mailu do klienta i w galerii
 export function paymentLines(o: SaleOrder, payout: Payout | null, title: string, lang: L): string[] {
   if (o.total <= 0) return [];
   const en = lang === "en";
-  const lines = [en ? `Amount: ${cash(o.total, lang)}` : `Kwota: ${cash(o.total, lang)}`];
+  const lines = [en ? `Amount: ${cash(o.total, lang, o.cur)}` : `Kwota: ${cash(o.total, lang, o.cur)}`];
+  // Galeria angielska z płatnością kartą – bez danych do przelewu
+  if (o.cur) return [...lines, "Pay by card, Apple Pay or Google Pay in the gallery – your photos unlock right after payment."];
   if (payout?.account) {
     lines.push(
       en ? `Bank transfer to: ${payout.holder}, account ${payout.account}` : `Przelew na konto: ${payout.holder}, ${payout.account}`,
@@ -35,16 +38,20 @@ export async function mailOrderPlaced(galleryId: string, title: string, o: SaleO
     await sendEmail({
       to: owner.email,
       subject: en
-        ? `New order: ${o.clientName} – ${o.total > 0 ? cash(o.total, "en") : "no extra payment"}`
-        : `Nowe zamówienie: ${o.clientName} – ${o.total > 0 ? cash(o.total, "pl") : "bez dopłaty"}`,
+        ? `New order: ${o.clientName} – ${o.total > 0 ? cash(o.total, "en", o.cur) : "no extra payment"}`
+        : `Nowe zamówienie: ${o.clientName} – ${o.total > 0 ? cash(o.total, "pl", o.cur) : "bez dopłaty"}`,
       html: emailLayout(
         en ? "New photo order" : "Nowe zamówienie zdjęć",
         [
           summary,
           o.total > 0
             ? en
-              ? `To pay: ${cash(o.total, "en")} (order ${o.ref}). When the money arrives, mark the order as paid and share the photos.`
-              : `Do zapłaty: ${cash(o.total, "pl")} (zamówienie ${o.ref}). Gdy pieniądze dotrą, oznacz zamówienie jako opłacone i udostępnij zdjęcia.`
+              ? o.cur
+                ? `To pay: ${cash(o.total, "en", o.cur)} (order ${o.ref}). Your client pays by card in the gallery – the photos unlock automatically and the money goes to your Stripe account.`
+                : `To pay: ${cash(o.total, "en")} (order ${o.ref}). When the money arrives, mark the order as paid and share the photos.`
+              : o.cur
+                ? `Do zapłaty: ${cash(o.total, "pl", o.cur)} (zamówienie ${o.ref}). Klient płaci kartą w galerii – zdjęcia odblokują się same, a pieniądze trafią na Twoje konto Stripe.`
+                : `Do zapłaty: ${cash(o.total, "pl")} (zamówienie ${o.ref}). Gdy pieniądze dotrą, oznacz zamówienie jako opłacone i udostępnij zdjęcia.`
             : en
               ? "No extra payment is needed – you can share the photos right away."
               : "Bez dopłaty – możesz od razu udostępnić zdjęcia.",
@@ -70,9 +77,13 @@ export async function mailOrderPlaced(galleryId: string, title: string, o: SaleO
             ? [
                 en ? "Please pay for the extra photos:" : "Prosimy o dopłatę za dodatkowe zdjęcia:",
                 ...paymentLines(o, payout, title, galleryLang),
-                en
-                  ? "Once your photographer confirms the payment, you will be able to download your photos without the watermark."
-                  : "Gdy fotograf potwierdzi wpłatę, pobierzesz swoje zdjęcia bez znaku wodnego.",
+                ...(o.cur
+                  ? []
+                  : [
+                      en
+                        ? "Once your photographer confirms the payment, you will be able to download your photos without the watermark."
+                        : "Gdy fotograf potwierdzi wpłatę, pobierzesz swoje zdjęcia bez znaku wodnego.",
+                    ]),
               ]
             : [
                 en

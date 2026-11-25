@@ -4,7 +4,7 @@ import { SRC_COOKIE, touchFrom } from "@/lib/source-touch";
 
 const MAIN_HOSTS = new Set(["lenslie.com", "www.lenslie.com", "lenslie.vercel.app", "localhost"]);
 const MARKETING = /^\/($|cennik|funkcje(\/|$)|rejestracja|logowanie|regulamin|polityka-prywatnosci)/;
-const SESSION_PATHS = ["/panel", "/admin", "/logowanie", "/api/upload-url", "/api/galleries", "/api/profile", "/api/domain", "/api/wallet", "/api/bookings", "/api/guest-events", "/api/portfolio"];
+const SESSION_PATHS = ["/panel", "/admin", "/logowanie", "/api/upload-url", "/api/galleries", "/api/profile", "/api/domain", "/api/wallet", "/api/bookings", "/api/guest-events", "/api/portfolio", "/api/stripe-connect"];
 
 export async function middleware(request: NextRequest) {
   const host = (request.headers.get("host") ?? "").split(":")[0].toLowerCase();

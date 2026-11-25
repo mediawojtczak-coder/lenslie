@@ -17,7 +17,8 @@ import { isThemeId, type ThemeId } from "@/lib/themes";
 
 // Odręczne pismo dla motywu rustykalnego
 const scriptFont = Great_Vibes({ weight: "400", subsets: ["latin", "latin-ext"], variable: "--font-script", display: "swap", preload: false });
-import { unlockedPhotos, saleOn, getSaleOrder, getPayoutForGallery, type SaleOrder } from "@/lib/sales";
+import { unlockedPhotos, saleOn, getSaleOrder, getPayoutForGallery, type SaleOrder, saleCur } from "@/lib/sales";
+import { cardSales } from "@/lib/stripe-connect";
 import type { SaleInfo } from "./PhotoGrid";
 import VideoSection, { type ClientVideo } from "./VideoSection";
 import FaceSearch from "./FaceSearch";
@@ -72,6 +73,9 @@ export default async function GalleryView({
     ? selP.then((s) => (s ? getSaleOrder(id, s.id).catch(() => null) : null))
     : Promise.resolve(null);
   const payoutP = selling && clientDb ? getPayoutForGallery(id).catch(() => null) : Promise.resolve(null);
+  // Galeria angielska ze sprzedażą w €/$/£: płatność kartą u fotografa (Stripe)
+  const cur = selling ? saleCur(meta) : null;
+  const cardP = cur && clientDb ? cardSales(id, meta).catch(() => null) : Promise.resolve(null);
   const [brand, photosRes, sel, order] = await Promise.all([
     getGalleryBrandOnce(id).catch(() => ({ studioName: null, logoUrl: null })),
     getGalleryPhotosWithClean(id, { watermark: Boolean(watermark), clean: orderP.then(unlockedPhotos) }).then(
@@ -199,6 +203,8 @@ export default async function GalleryView({
       extraPrice: meta!.sale!.extraPrice,
       title,
       payout: await payoutP,
+      cur,
+      card: Boolean(await cardP),
       order: order ? { status: order.status, total: order.total, extra: order.extra, count: order.photos.length, ref: order.ref } : null,
       done: unlockedPhotos(order),
       delivered: [...clean.values()].map((c) => ({ url: c.downloadUrl, fileName: c.fileName, webUrl: c.webDownloadUrl, webFileName: c.webFileName })),

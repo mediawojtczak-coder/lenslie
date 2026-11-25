@@ -11,6 +11,10 @@ import WalletCard from "./WalletCard";
 import ReferralCard from "./ReferralCard";
 import DomainCard from "./DomainCard";
 import PayoutCard from "./PayoutCard";
+import StripeConnectCard from "./StripeConnectCard";
+import { stripeAllowed } from "@/lib/stripe";
+import { refreshConnect, CONNECT_COUNTRIES, SALES_FEE_PERCENT } from "@/lib/stripe-connect";
+import { headers } from "next/headers";
 import { getPayout } from "@/lib/sales";
 import { getDomainByUser, domainActive, DOMAIN_PRICE, vercelEnabled } from "@/lib/domains";
 import { getRefUser, REWARD, THRESHOLD } from "@/lib/referrals";
@@ -38,6 +42,10 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
   ]);
   const domainRec = await getDomainByUser(user!.id).catch(() => null);
   const payout = await getPayout(user!.id).catch(() => null);
+  // Płatności kartą w galeriach angielskich (Stripe Connect) – na razie tylko dla administratora
+  const cardOn = tab === "wplaty" && lang === "en" && stripeAllowed(user!.email);
+  const connect = cardOn ? await refreshConnect(user!.id).catch(() => null) : null;
+  const ipCountry = cardOn ? ((await headers()).get("x-vercel-ip-country") ?? "GB") : "GB";
   const order = sp.platnosc ? await getOrder(sp.platnosc) : null;
   const payment = order && order.ownerId === user!.id ? order : null;
   const profile = (data ?? null) as { studio_name: string | null; logo_key: string | null } | null;
@@ -77,6 +85,14 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
             </p>
           )}
           {tab === "saldo" && <WalletCard balance={wallet.balance} history={wallet.history} billing={billing} topups={TOPUPS} />}
+          {tab === "wplaty" && cardOn && (
+            <StripeConnectCard
+              status={connect ? (connect.ready ? "ready" : "pending") : "none"}
+              country={ipCountry}
+              countries={CONNECT_COUNTRIES}
+              fee={SALES_FEE_PERCENT()}
+            />
+          )}
           {tab === "wplaty" && <PayoutCard payout={payout} />}
           {tab === "domena" && (vercelEnabled() ? <DomainCard
             rec={domainRec ? { host: domainRec.host, paidUntil: domainRec.paidUntil } : null}

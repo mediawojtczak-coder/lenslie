@@ -41,7 +41,7 @@ function form(obj: Record<string, unknown>, prefix = "", out = new URLSearchPara
   return out;
 }
 
-async function api<T>(method: "GET" | "POST", path: string, body?: Record<string, unknown>, idem?: string): Promise<T> {
+export async function api<T>(method: "GET" | "POST", path: string, body?: Record<string, unknown>, idem?: string): Promise<T> {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
     method,
     headers: {
@@ -69,6 +69,7 @@ export type StripeSession = {
   currency: string | null;
   client_reference_id: string | null;
   payment_intent: string | null;
+  metadata?: Record<string, string> | null;
 };
 
 // Strona płatności Stripe Checkout (karta, Apple Pay, Google Pay i inne metody włączone w panelu Stripe)
@@ -80,6 +81,9 @@ export async function createCheckout(o: {
   email: string;
   successUrl: string;
   cancelUrl: string;
+  // Sprzedaż zdjęć: pieniądze idą na konto Stripe fotografa, Lenslie zatrzymuje prowizję
+  connect?: { account: string; fee: number };
+  metadata?: Record<string, string>;
 }) {
   return api<StripeSession>(
     "POST",
@@ -92,8 +96,13 @@ export async function createCheckout(o: {
       success_url: o.successUrl,
       cancel_url: o.cancelUrl,
       line_items: [{ quantity: 1, price_data: { currency: o.cur, unit_amount: o.amount, product_data: { name: o.name.slice(0, 250) } } }],
-      metadata: { sid: o.sid },
-      payment_intent_data: { metadata: { sid: o.sid } },
+      metadata: { sid: o.sid, ...(o.metadata ?? {}) },
+      payment_intent_data: {
+        metadata: { sid: o.sid, ...(o.metadata ?? {}) },
+        ...(o.connect
+          ? { on_behalf_of: o.connect.account, transfer_data: { destination: o.connect.account }, application_fee_amount: o.connect.fee }
+          : {}),
+      },
     },
     `checkout-${o.sid}`,
   );

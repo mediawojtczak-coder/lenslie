@@ -3,11 +3,13 @@ import { r2, BUCKET, galleryPrefix } from "@/lib/r2";
 import { listObjects } from "@/lib/photos";
 import { adminClient } from "@/lib/supabase/admin";
 import type { GalleryMeta } from "@/lib/galleries";
+import { isCur, type Cur } from "@/lib/foreign-prices";
 
 // Sprzedaż zdjęć w galerii: klient wybiera zdjęcia do pakietu, za dodatkowe dopłaca fotografowi
 // (przelewem albo BLIK-iem na telefon), fotograf potwierdza wpłatę i udostępnia zdjęcia bez znaku wodnego.
 
-export type Sale = { enabled: boolean; included: number; extraPrice: number };
+// cur – waluta w galeriach angielskich z płatnością kartą (Stripe); bez niej złotówki
+export type Sale = { enabled: boolean; included: number; extraPrice: number; cur?: Cur };
 export type OrderStatus = "ordered" | "paid" | "delivered";
 export type SaleOrder = {
   selection: string;
@@ -27,6 +29,10 @@ export type SaleOrder = {
   // Domówienie: zdjęcia z wcześniejszych, już udostępnionych zamówień (klient dalej je pobiera) i numer rundy
   deliveredPhotos?: string[];
   round?: number;
+  // Płatność kartą w galerii (Stripe, galerie angielskie)
+  cur?: Cur;
+  paidBy?: "card";
+  stripeSession?: string;
 };
 
 // Zdjęcia, które klient może już pobrać bez znaku wodnego
@@ -52,8 +58,12 @@ export function cleanSale(raw: unknown): Sale | null {
   const extraPrice = Math.round(Number(String(r.extraPrice ?? "").replace(",", ".")) * 100) / 100;
   if (!Number.isFinite(included) || included < 0 || included > MAX_INCLUDED) return null;
   if (!Number.isFinite(extraPrice) || extraPrice < 0 || extraPrice > MAX_EXTRA_PRICE) return null;
-  return { enabled: Boolean(r.enabled), included, extraPrice };
+  return { enabled: Boolean(r.enabled), included, extraPrice, ...(isCur(r.cur) ? { cur: r.cur } : {}) };
 }
+
+// Waluta sprzedaży: tylko galerie angielskie mogą mieć €, $ albo £
+export const saleCur = (meta: GalleryMeta | null): Cur | null =>
+  meta?.lang === "en" && isCur(meta?.sale?.cur) ? meta!.sale!.cur! : null;
 
 // Numer konta: 26 cyfr (polski NRB), zapisywany w czytelnych grupach
 export function formatAccount(digits: string) {

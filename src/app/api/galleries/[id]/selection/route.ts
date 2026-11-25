@@ -6,7 +6,7 @@ import { adminClient } from "@/lib/supabase/admin";
 import { getSelection, selectionCookie } from "@/lib/selections";
 import { getOwnerContact } from "@/lib/profiles";
 import { sendEmail, emailLayout, siteUrl } from "@/lib/email";
-import { saleOn, priceFor, unlockedPhotos, getSaleOrder, saveSaleOrder, getPayoutForGallery, orderRef, type SaleOrder } from "@/lib/sales";
+import { saleCur, saleOn, priceFor, unlockedPhotos, getSaleOrder, saveSaleOrder, getPayoutForGallery, orderRef, type SaleOrder } from "@/lib/sales";
 import { mailOrderPlaced, paymentLines } from "@/lib/sales-mail";
 
 export const runtime = "nodejs";
@@ -104,6 +104,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       note,
       createdAt: new Date().toISOString(),
       ...(done.size ? { deliveredPhotos: [...done], round } : {}),
+      ...(saleCur(meta) ? { cur: saleCur(meta)! } : {}),
     };
     // zapis zamówienia, notatki i dane do wpłaty równolegle; maile wysyłamy już po odpowiedzi dla klienta
     const [, , payout] = await Promise.all([

@@ -3,6 +3,8 @@ import { getOrder, type Order } from "@/lib/p24";
 import { getCheckout, webhookValid, type StripeSession } from "@/lib/stripe";
 import { fulfilOrder } from "@/lib/fulfil-order";
 import { siteUrl } from "@/lib/email";
+import { confirmSale } from "@/lib/sale-pay";
+import { getSaleOrder } from "@/lib/sales";
 
 export const runtime = "nodejs";
 
@@ -28,7 +30,21 @@ async function confirm(order: Order, s: StripeSession) {
 
 // Powrót klienta ze strony płatności – sprawdzamy w Stripe i przenosimy z powrotem do panelu
 export async function GET(req: Request) {
-  const sid = new URL(req.url).searchParams.get("sid") ?? "";
+  const url = new URL(req.url);
+  // Klient galerii wraca po zapłacie za zdjęcia
+  const g = url.searchParams.get("g");
+  const sel = url.searchParams.get("s");
+  if (g && sel) {
+    const back = url.searchParams.get("back") ?? "";
+    const target = back.startsWith(`${url.origin}/`) ? back : `${url.origin}/galeria/${g}`;
+    const order = await getSaleOrder(g, sel).catch(() => null);
+    if (order?.status === "ordered" && order.stripeSession) {
+      const s = await getCheckout(order.stripeSession).catch(() => null);
+      if (s) await confirmSale(g, sel, s).catch((e) => console.error("Stripe sprzedaż powrót:", e));
+    }
+    return NextResponse.redirect(target);
+  }
+  const sid = url.searchParams.get("sid") ?? "";
   const order = await getOrder(sid);
   if (!order) return NextResponse.redirect(`${siteUrl()}/panel`);
   if (order.status !== "paid" && order.stripeSession) {
@@ -51,6 +67,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
   const s = event.data.object;
+  if (s.metadata?.kind === "sale" && s.metadata.gallery && s.metadata.selection) {
+    await confirmSale(s.metadata.gallery, s.metadata.selection, s);
+    return NextResponse.json({ ok: true });
+  }
   const order = s.client_reference_id ? await getOrder(s.client_reference_id) : null;
   if (!order) return NextResponse.json({ ok: true }); // nie nasze zamówienie
   await confirm(order, s);

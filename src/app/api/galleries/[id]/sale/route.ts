@@ -4,6 +4,9 @@ import { getMeta, saveMeta } from "@/lib/galleries";
 import { requireOwner } from "@/lib/owner";
 import { cleanSale, getSaleOrder, saveSaleOrder, deleteSaleOrder } from "@/lib/sales";
 import { mailDelivered } from "@/lib/sales-mail";
+import { getUser } from "@/lib/supabase/server";
+import { stripeAllowed } from "@/lib/stripe";
+import { getConnect } from "@/lib/stripe-connect";
 
 export const runtime = "nodejs";
 
@@ -25,6 +28,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (body.action === "save") {
     const sale = cleanSale(body.sale);
     if (!sale) return NextResponse.json({ error: await E("Sprawdź liczbę zdjęć w pakiecie i cenę.") }, { status: 400 });
+    // Cena w €/$/£ tylko w galerii angielskiej i z podłączonym kontem Stripe (płatność kartą)
+    if (sale.cur) {
+      const { user } = await getUser();
+      const ready = meta.lang === "en" && stripeAllowed(user?.email) && user ? Boolean((await getConnect(user.id))?.ready) : false;
+      if (!ready) return NextResponse.json({ error: "Connect your Stripe account first (My account › Client payments)." }, { status: 400 });
+      if (sale.enabled && sale.extraPrice > 0 && sale.extraPrice < 0.5) return NextResponse.json({ error: "The minimum card price is 0.50." }, { status: 400 });
+    }
     meta.sale = sale;
     await saveMeta(id, meta);
     return NextResponse.json({ ok: true, sale });

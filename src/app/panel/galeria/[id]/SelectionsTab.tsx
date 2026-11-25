@@ -6,6 +6,7 @@ import ClientLink from "./ClientLink";
 import { siteUrl } from "@/lib/email";
 import { listSaleOrders, type SaleOrder } from "@/lib/sales";
 import { money } from "@/lib/lang";
+import { fmtCur, type Cur } from "@/lib/foreign-prices";
 import { getLang } from "@/lib/lang-server";
 import { tr, locale } from "@/lib/lang";
 
@@ -58,12 +59,14 @@ export default async function SelectionsTab({
     );
   }
 
-  const cash = (n: number) => money(n, lang, n % 1 !== 0);
+  const cash = (n: number, cur?: Cur) => (cur ? fmtCur(n, cur) : money(n, lang, n % 1 !== 0));
   // Złożone zamówienia na górze, potem pozostałe wybory
   const rows = ((data ?? []) as Row[]).sort((a, b) => Number(orders.has(b.id)) - Number(orders.has(a.id)));
   const statusLabel = (o: SaleOrder) =>
     o.status === "delivered"
-      ? t("Zdjęcia udostępnione", "Photos delivered")
+      ? o.paidBy === "card"
+        ? t("Opłacone kartą – zdjęcia udostępnione", "Paid by card – photos delivered")
+        : t("Zdjęcia udostępnione", "Photos delivered")
       : o.status === "paid"
         ? t("Opłacone", "Paid")
         : o.total > 0
@@ -112,7 +115,7 @@ export default async function SelectionsTab({
                     </b>
                   </div>
                   <div className="ob-sum">
-                    <strong>{o.total > 0 ? cash(o.total) : t("bez dopłaty", "no extra payment")}</strong>
+                    <strong>{o.total > 0 ? cash(o.total, o.cur) : t("bez dopłaty", "no extra payment")}</strong>
                     {o.total > 0 && <span>{o.status === "ordered" ? t("do zapłaty", "to pay") : t("opłacone", "paid")}</span>}
                   </div>
                 </div>
@@ -136,11 +139,11 @@ export default async function SelectionsTab({
                     <div>
                       <dt>{t("Dodatkowe", "Extra")}</dt>
                       <dd>
-                        {o.extra} × {cash(o.extraPrice)}
+                        {o.extra} × {cash(o.extraPrice, o.cur)}
                       </dd>
                     </div>
                   )}
-                  {o.total > 0 && (
+                  {o.total > 0 && !o.cur && (
                     <div>
                       <dt>{t("Tytuł przelewu", "Transfer title")}</dt>
                       <dd>…{o.ref}</dd>

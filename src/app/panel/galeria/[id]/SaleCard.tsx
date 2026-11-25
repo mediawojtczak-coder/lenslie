@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLang } from "@/components/LangProvider";
 import { tr, money } from "@/lib/lang";
+import { fmtCur, type Cur } from "@/lib/foreign-prices";
 
 // Sprzedaż zdjęć: klient wybiera zdjęcia do pakietu, za dodatkowe dopłaca fotografowi
 export default function SaleCard({
@@ -12,11 +13,14 @@ export default function SaleCard({
   sale,
   watermark,
   hasPayout,
+  card = null,
 }: {
   id: string;
-  sale: { enabled: boolean; included: number; extraPrice: number } | null;
+  sale: { enabled: boolean; included: number; extraPrice: number; cur?: Cur } | null;
   watermark: boolean;
   hasPayout: boolean;
+  // galeria angielska: waluta i płatność kartą (Stripe); ready – fotograf ma podłączone konto Stripe
+  card?: { ready: boolean } | null;
 }) {
   const router = useRouter();
   const lang = useLang();
@@ -24,6 +28,7 @@ export default function SaleCard({
   const [enabled, setEnabled] = useState(sale?.enabled ?? false);
   const [included, setIncluded] = useState(String(sale?.included ?? 10));
   const [price, setPrice] = useState(String(sale?.extraPrice ?? 20));
+  const [cur, setCur] = useState<Cur | "pln">(card && sale?.cur ? sale.cur : card ? "eur" : "pln");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -31,6 +36,7 @@ export default function SaleCard({
   const inc = Math.max(0, Math.floor(Number(included) || 0));
   const p = Math.max(0, Number(price.replace(",", ".")) || 0);
   const example = inc + 3;
+  const fmt = (n: number) => (cur !== "pln" ? fmtCur(n, cur) : money(n, lang));
 
   async function save() {
     setBusy(true);
@@ -40,7 +46,7 @@ export default function SaleCard({
       const res = await fetch(`/api/galleries/${id}/sale`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "save", sale: { enabled, included, extraPrice: price } }),
+        body: JSON.stringify({ action: "save", sale: { enabled, included, extraPrice: price, ...(card && cur !== "pln" ? { cur } : {}) } }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? t("Nie udało się zapisać.", "Could not save."));
@@ -76,17 +82,42 @@ export default function SaleCard({
               <input id="sale-inc" type="number" min={0} max={2000} inputMode="numeric" value={included} onChange={(e) => setIncluded(e.target.value)} />
             </div>
             <div>
-              <label htmlFor="sale-price">{t("Cena dodatkowego zdjęcia (zł)", "Price per extra photo (PLN)")}</label>
+              <label htmlFor="sale-price">
+                {card ? `Price per extra photo (${cur === "pln" ? "PLN" : fmtCur(0, cur).replace("0", "")})` : t("Cena dodatkowego zdjęcia (zł)", "Price per extra photo (PLN)")}
+              </label>
               <input id="sale-price" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} />
             </div>
+            {card && (
+              <div>
+                <label htmlFor="sale-cur">Currency</label>
+                <select id="sale-cur" value={cur} onChange={(e) => setCur(e.target.value as Cur | "pln")}>
+                  <option value="eur">€ EUR – card payment</option>
+                  <option value="usd">$ USD – card payment</option>
+                  <option value="gbp">£ GBP – card payment</option>
+                  <option value="pln">PLN – bank transfer / BLIK</option>
+                </select>
+              </div>
+            )}
           </div>
+          {card && cur !== "pln" && (
+            <p className={card.ready ? "hint-inline" : "warn-inline"}>
+              {card.ready ? (
+                "Your clients pay by card, Apple Pay or Google Pay in the gallery. The photos unlock automatically and the money goes to your Stripe account."
+              ) : (
+                <>
+                  To take card payments, connect your Stripe account first:{" "}
+                  <Link href="/panel/konto?tab=wplaty">My account › Client payments</Link>
+                </>
+              )}
+            </p>
+          )}
           <p className="hint-inline">
             {inc > 0
               ? t(
-                  `Przykład: klient wybiera ${example} zdjęć – ${inc} ma w pakiecie, za 3 dopłaca ${money(3 * p, lang)}.`,
-                  `Example: your client picks ${example} photos – ${inc} are included, 3 extra cost ${money(3 * p, lang)}.`,
+                  `Przykład: klient wybiera ${example} zdjęć – ${inc} ma w pakiecie, za 3 dopłaca ${fmt(3 * p)}.`,
+                  `Example: your client picks ${example} photos – ${inc} are included, 3 extra cost ${fmt(3 * p)}.`,
                 )
-              : t(`Każde zdjęcie kosztuje ${money(p, lang)}.`, `Each photo costs ${money(p, lang)}.`)}
+              : t(`Każde zdjęcie kosztuje ${fmt(p)}.`, `Each photo costs ${fmt(p)}.`)}
           </p>
           {!watermark && (
             <p className="warn-inline">
@@ -96,7 +127,7 @@ export default function SaleCard({
               )}
             </p>
           )}
-          {!hasPayout && (
+          {!hasPayout && !(card && cur !== "pln") && (
             <p className="warn-inline">
               {t("Podaj numer konta lub telefon do BLIK, na które klienci mają wpłacać: ", "Add the bank account or BLIK phone your clients should pay to: ")}
               <Link href="/panel/konto?tab=wplaty">{t("Moje konto › Wpłaty od klientów", "My account › Client payments")}</Link>

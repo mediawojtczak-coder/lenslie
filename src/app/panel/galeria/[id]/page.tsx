@@ -34,6 +34,8 @@ import FacesCard from "./FacesCard";
 import { FACES_PRICE } from "@/lib/faces";
 import { THEMES, getOwnedThemes, themesFreeFor, type ThemeId } from "@/lib/themes";
 import { getPayout } from "@/lib/sales";
+import { stripeAllowed } from "@/lib/stripe";
+import { getConnect } from "@/lib/stripe-connect";
 import AlbumTab from "./AlbumTab";
 import { getAlbumProject, getAlbumSub, albumActive, albumAllowed, freeAlbumFor } from "@/lib/albums";
 import { isAdminEmail } from "@/lib/supabase/admin";
@@ -89,6 +91,9 @@ export default async function ZarzadzanieGalerii({
   const proT = proSub ? proTier(proSub.tier) : undefined;
   const ownedThemes = proOn || themesFreeFor(user?.email) ? THEMES.map((th) => th.id) : ownedThemesRaw;
   const hasPayout = Boolean(payout);
+  // Galeria angielska: sprzedaż zdjęć w €/$/£ z płatnością kartą (Stripe Connect) – na razie tylko dla administratora
+  const cardSale = meta0?.lang === "en" && stripeAllowed(user?.email);
+  const cardReady = cardSale && user ? Boolean((await getConnect(user.id).catch(() => null))?.ready) : false;
   const data = galleryRow.data;
   if (!data) notFound();
   const gallery = data as { id: string; title: string; created_at: string };
@@ -261,7 +266,7 @@ export default async function ZarzadzanieGalerii({
           })()
         ) : tab === "sprzedaz" ? (
           <>
-            <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} />
+            <SaleCard id={id} sale={meta?.sale ?? null} watermark={watermarkOn(meta)} hasPayout={hasPayout} card={cardSale ? { ready: cardReady } : null} />
             {/* znak wodny i pobieranie – tu, żeby zabezpieczyć zdjęcia przed zapłatą (to samo jest w Ustawieniach) */}
             <ProtectionCard
               id={id}

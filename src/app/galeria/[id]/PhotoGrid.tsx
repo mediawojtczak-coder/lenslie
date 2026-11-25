@@ -6,6 +6,7 @@ import DownloadMenu from "@/components/DownloadMenu";
 import DownloadAll from "./DownloadAll";
 import { T, type Lang } from "@/lib/i18n";
 import { money } from "@/lib/lang";
+import { fmtCur, type Cur } from "@/lib/foreign-prices";
 import type { Payout, OrderStatus } from "@/lib/sales";
 import type { ZipItem } from "@/lib/zip-client";
 
@@ -29,6 +30,9 @@ export type SaleInfo = {
   extraPrice: number;
   title: string;
   payout: Payout | null;
+  // galeria angielska: ceny w €/$/£ i płatność kartą (Stripe)
+  cur?: Cur | null;
+  card?: boolean;
   order: { status: OrderStatus; total: number; extra: number; count: number; ref: string } | null;
   delivered: ZipItem[];
   // zdjęcia już udostępnione klientowi (przy domówieniu zostają zaznaczone na stałe)
@@ -102,7 +106,27 @@ export default function PhotoGrid({
   const L = sale
     ? { add: t.pick, remove: t.unpick, name: t.picked, showOnly: t.showPicked, none: t.noPicked }
     : { add: t.addFav, remove: t.removeFav, name: t.favorites, showOnly: t.showFavs, none: t.noFavs };
-  const cash = (n: number) => money(n, lang, n % 1 !== 0);
+  const cash = (n: number) => (sale?.cur ? fmtCur(n, sale.cur) : money(n, lang, n % 1 !== 0));
+  const [payBusy, setPayBusy] = useState(false);
+  const [payError, setPayError] = useState("");
+  // Płatność kartą za dodatkowe zdjęcia – przejście do Stripe
+  async function payByCard() {
+    setPayBusy(true);
+    setPayError("");
+    try {
+      const res = await fetch(`/api/galleries/${galleryId}/sale-pay`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ back: window.location.href }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.redirect) throw new Error(data.error ?? "Could not start the payment.");
+      window.location.href = data.redirect;
+    } catch (e) {
+      setPayError(e instanceof Error ? e.message : "Could not start the payment.");
+      setPayBusy(false);
+    }
+  }
   const orderRef = useRef<HTMLDialogElement>(null);
   const payRef = useRef<HTMLDialogElement>(null);
   const [busy, setBusy] = useState(false);
@@ -416,7 +440,15 @@ export default function PhotoGrid({
             <>
               <div>
                 <h2>{t.orderPlaced}</h2>
-                <p>{order.status === "paid" ? t.statusPaid : order.total > 0 ? t.statusOrdered(cash(order.total)) : t.statusOrderedFree}</p>
+                <p>
+                  {order.status === "paid"
+                    ? t.statusPaid
+                    : order.total > 0
+                      ? sale.card
+                        ? `To pay: ${cash(order.total)}. Pay by card and download your photos without the watermark right away.`
+                        : t.statusOrdered(cash(order.total))
+                      : t.statusOrderedFree}
+                </p>
               </div>
               {((order.status === "ordered" && order.total > 0) || sale.delivered.length > 0) && (
                 <div className="sale-card-actions">
@@ -425,7 +457,7 @@ export default function PhotoGrid({
                   )}
                   {order.status === "ordered" && order.total > 0 && (
                     <button type="button" className="btn" onClick={() => payRef.current?.showModal()}>
-                      {t.howToPay}
+                      {sale.card ? `Pay ${cash(order?.total ?? 0)} by card` : t.howToPay}
                     </button>
                   )}
                 </div>
@@ -547,7 +579,7 @@ export default function PhotoGrid({
             </button>
           ) : order?.status === "ordered" && order.total > 0 ? (
             <button type="button" className="fav-send" onClick={() => payRef.current?.showModal()}>
-              {t.howToPay}
+              {sale.card ? `Pay ${cash(order?.total ?? 0)} by card` : t.howToPay}
             </button>
           ) : null}
         </div>
@@ -750,14 +782,18 @@ export default function PhotoGrid({
           >
             <div className="modal-body">
               <h2 id="sale-pay">{t.payTitle}</h2>
-              <p className="modal-lead">{t.payLead}</p>
+              <p className="modal-lead">
+                {sale.card
+                  ? "Pay securely by card, Apple Pay or Google Pay. Your photos unlock right after payment – in full resolution, without the watermark."
+                  : t.payLead}
+              </p>
               {order && (
                 <dl className="sale-sum pay">
                   <div className="sale-total">
                     <dt>{t.amount}</dt>
                     <dd>{cash(order.total)}</dd>
                   </div>
-                  {sale.payout?.account && (
+                  {!sale.card && sale.payout?.account && (
                     <>
                       <div>
                         <dt>{t.recipient}</dt>
@@ -783,7 +819,7 @@ export default function PhotoGrid({
                       </div>
                     </>
                   )}
-                  {sale.payout?.blik && (
+                  {!sale.card && sale.payout?.blik && (
                     <div>
                       <dt>{t.blik}</dt>
                       <dd>
@@ -796,9 +832,20 @@ export default function PhotoGrid({
                   )}
                 </dl>
               )}
-              {!sale.payout && <p className="hint-inline">{t.noPayout}</p>}
+              {!sale.card && !sale.payout && <p className="hint-inline">{t.noPayout}</p>}
+              {payError && (
+                <p className="error" role="alert">
+                  {payError}
+                </p>
+              )}
               <div className="modal-actions">
-                <span />
+                {sale.card && order && order.status === "ordered" ? (
+                  <button type="button" className="btn btn-dark" disabled={payBusy} onClick={payByCard}>
+                    {payBusy ? "Redirecting to payment…" : `Pay ${cash(order.total)} by card`}
+                  </button>
+                ) : (
+                  <span />
+                )}
                 <button type="button" className="btn" onClick={() => payRef.current?.close()}>
                   {t.close}
                 </button>
