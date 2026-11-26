@@ -5,14 +5,14 @@ import { getUser } from "@/lib/supabase/server";
 import { logoUrl } from "@/lib/profiles";
 import AccountForms from "./AccountForms";
 import { getBilling } from "@/lib/billing";
-import { getWallet, TOPUPS } from "@/lib/wallet";
+import { getWallet, TOPUPS, TOPUPS_FOREIGN } from "@/lib/wallet";
 import { getOrder } from "@/lib/p24";
 import WalletCard from "./WalletCard";
 import ReferralCard from "./ReferralCard";
 import DomainCard from "./DomainCard";
 import PayoutCard from "./PayoutCard";
 import StripeConnectCard from "./StripeConnectCard";
-import { stripeAllowed, cardMode } from "@/lib/stripe";
+import { stripeAllowed, cardMode, stripeCurrency } from "@/lib/stripe";
 import { refreshConnect, CONNECT_COUNTRIES, SALES_FEE_PERCENT } from "@/lib/stripe-connect";
 import { headers } from "next/headers";
 import { getPayout } from "@/lib/sales";
@@ -35,10 +35,13 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
   const { supabase, user } = await getUser();
   // wersja angielska z płatnościami kartą: bez salda w zł i poleceń (nagrody w zł)
   const card = cardMode(user!.email, lang);
-  const hidden: Tab[] = card ? ["saldo", "polecenia"] : [];
-  const first: Tab = card ? "studio" : "saldo";
+  const hidden: Tab[] = card ? ["polecenia"] : [];
+  const first: Tab = "saldo";
   const asked: Tab = sp["nowe-haslo"] ? "logowanie" : (TABS as readonly string[]).includes(sp.tab ?? "") ? (sp.tab as Tab) : first;
   const tab: Tab = hidden.includes(asked) ? first : asked;
+  // saldo w walucie fotografa (wersja angielska z kartą)
+  const walletCur = card ? await stripeCurrency(user!.email, lang).catch(() => null) : null;
+  const fwallet = walletCur ? await getWallet(user!.id, walletCur).catch(() => null) : null;
   const { data, error } = await supabase.from("profiles").select("studio_name, logo_key").eq("id", user!.id).maybeSingle();
   const [wallet, billing, refUser] = await Promise.all([
     getWallet(user!.id),
@@ -89,7 +92,10 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
               <RefreshSoon />
             </p>
           )}
-          {tab === "saldo" && <WalletCard balance={wallet.balance} history={wallet.history} billing={billing} topups={TOPUPS} />}
+          {tab === "saldo" && !walletCur && <WalletCard balance={wallet.balance} history={wallet.history} billing={billing} topups={TOPUPS} />}
+          {tab === "saldo" && walletCur && fwallet && (
+            <WalletCard balance={fwallet.balance} history={fwallet.history} billing={billing} topups={TOPUPS_FOREIGN} cur={walletCur} />
+          )}
           {tab === "wplaty" && cardOn && (
             <StripeConnectCard
               status={connect ? (connect.ready ? "ready" : "pending") : "none"}

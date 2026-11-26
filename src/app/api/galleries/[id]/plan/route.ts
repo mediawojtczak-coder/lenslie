@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { spendAny } from "@/lib/card-wallet";
 import { startPayment } from "@/lib/checkout";
 import { cardMode } from "@/lib/stripe";
 import { firstFreeAvailable, claimFirstFree, FIRST_FREE_MAX_MONTHS } from "@/lib/first-free";
@@ -98,7 +99,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // Płatność z salda konta
   if (body.pay === "wallet" && checked.amount > 0) {
     const ref = newSessionId();
-    const ok = await spend(user.id, Math.round(checked.amount * 100), `${checked.label} – ${meta.title}`, ref);
+    const ok = await spendAny(user, Math.round(checked.amount * 100), `${checked.label} – ${meta.title}`, ref, { action: checked.action, galleryId: id });
     if (!ok) return NextResponse.json({ error: await E("Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem.") }, { status: 402 });
     await applyAction(id, checked.action);
     const left = (await getWallet(user.id)).balance;

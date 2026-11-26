@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { spendAny } from "@/lib/card-wallet";
 import { startPayment } from "@/lib/checkout";
 import { randomBytes } from "crypto";
 import {
@@ -224,7 +225,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
       if (body.pay === "wallet" || !p24Enabled()) {
         if (body.pay === "wallet") {
-          const ok = await spend(user.id, amount * 100, label, `videos-${id}-${Date.now()}`);
+          const ok = await spendAny(user, amount * 100, label, `videos-${id}-${Date.now()}`, { action: { action: "videos", galleryId: id, ids }, galleryId: id });
           if (!ok) return NextResponse.json({ error: await E("Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem.") }, { status: 402 });
           const left = (await getWallet(user.id)).balance;
           await notifyAdmins(`Zakup z salda: ${zlFromGr(amount * 100)} – ${user.email}`, "Nowy zakup z salda", [

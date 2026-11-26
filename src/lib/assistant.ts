@@ -108,10 +108,10 @@ export function foreignKnowledge(cur: fp.Cur) {
   const pro = (["pro500", "pro700", "pro1000", "pro2000", "film30", "film60"] as const)
     .map((t) => `${t}: ${f(fp.proPriceF(t, 1, cur))}/month or ${f(fp.proPriceF(t, 12, cur))}/year`)
     .join("; ");
-  return `PRICES FOR THIS VISITOR (English version, card payments) – use ONLY these, never złoty/PLN, never mention BLIK, Przelewy24, account balance or top-ups:
+  return `PRICES FOR THIS VISITOR (English version, card payments) – use ONLY these, never złoty/PLN, never mention BLIK or Przelewy24:
 - Galleries: Small ${g("mala")}; Medium ${g("srednia")}; Large ${g("duza")}.
 - Pro (Pro 500 GB / 700 GB / 1 TB / 2 TB, Film 30 h / 60 h): ${pro}. A year costs 10 months (2 months free).
 - Add-ons: theme ${f(fp.addonPriceF("theme", cur))}, Find me ${f(fp.addonPriceF("faces", cur))} per gallery, Guest uploads ${f(fp.addonPriceF("guests", cur))} per event, custom domain ${f(fp.addonPriceF("domain", cur))}/year, album designer ${f(fp.addonPriceF("album", cur))}/month, portfolio website ${f(fp.addonPriceF("portfolio", cur))}/month.
-- Payment: by card, Apple Pay or Google Pay when publishing or buying. The first gallery is free for up to 3 months.
+- Payment: by card, Apple Pay or Google Pay when publishing or buying, or from a prepaid account balance in the same currency (top-ups of 10, 30, 50 or 100; +5 bonus with 100). The first gallery is free for up to 3 months.
 - Photo sales in galleries: clients pay the photographer by card; money goes to the photographer's own Stripe account. Lenslie keeps 5% (card fees included); with Pro – 0% commission, only the card fee.`;
 }

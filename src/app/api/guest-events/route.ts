@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { spendAny } from "@/lib/card-wallet";
 import { startPayment } from "@/lib/checkout";
 import { activePro } from "@/lib/pro";
 import { E } from "@/lib/api-lang";
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
       }
 
       if (body.pay === "wallet") {
-        const ok = await spend(user.id, amountGr, label, `guest-${e.id}`);
+        const ok = await spendAny(user, amountGr, label, `guest-${e.id}`, { action: { action: "guest-event", eventId: e.id } });
         if (!ok) return NextResponse.json({ error: await E("Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem.") }, { status: 402 });
         await activateGuestEvent(e.id);
         const left = (await getWallet(user.id)).balance;

@@ -19,7 +19,8 @@ const auth = () => "Basic " + Buffer.from(`${posId()}:${process.env.P24_API_KEY}
 const sign = (o: Record<string, unknown>) => createHash("sha384").update(JSON.stringify(o)).digest("hex");
 
 // Zamówienie zapisane w magazynie: payments/<sessionId>.json
-export type TopupAction = { action: "topup"; amount: number; bonus: number };
+// cur – doładowanie salda w walucie (wersja angielska, Stripe); amount i bonus w tej walucie
+export type TopupAction = { action: "topup"; amount: number; bonus: number; cur?: "eur" | "usd" | "gbp" };
 export type GuestEventAction = { action: "guest-event"; eventId: string };
 export type VideosAction = { action: "videos"; galleryId: string; ids: string[] };
 export type ProductAction =

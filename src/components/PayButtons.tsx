@@ -2,7 +2,7 @@
 
 import { useLang } from "./LangProvider";
 import { money, tr } from "@/lib/lang";
-import { useCur } from "./CurrencyProvider";
+import { useCur, useCurBalance } from "./CurrencyProvider";
 import { fmtCur, fromPln } from "@/lib/foreign-prices";
 
 // Wybór płatności: z salda konta albo od razu przez Przelewy24
@@ -41,14 +41,30 @@ export default function PayButtons({
     );
   }
   const cur = useCur();
+  const curBalance = useCurBalance();
   if (cur) {
     const f = foreign ?? fromPln(price, cur);
+    const fEnough = curBalance >= Math.round(f * 100);
+    const card = (
+      <button type="button" className={fEnough ? "as-link pay-alt" : "btn btn-wide btn-dark"} disabled={busy || disabled} onClick={() => onPay("p24")}>
+        {busy && !fEnough ? "Redirecting to payment…" : fEnough ? `or pay ${fmtCur(f, cur)} by card` : `Pay ${fmtCur(f, cur)} ${label}`}
+      </button>
+    );
     return (
       <div className="pay-box">
-        <button type="button" className="btn btn-wide btn-dark" disabled={busy || disabled} onClick={() => onPay("p24")}>
-          {busy ? "Redirecting to payment…" : `Pay ${fmtCur(f, cur)} ${label}`}
-        </button>
-        <p className="test-note">Card, Apple Pay or Google Pay – secure checkout by Stripe.</p>
+        {fEnough && (
+          <button type="button" className="btn btn-wide btn-dark" disabled={busy || disabled} onClick={() => onPay("wallet")}>
+            {busy ? "One moment…" : `Pay ${fmtCur(f, cur)} from balance ${label}`}
+          </button>
+        )}
+        {card}
+        <p className="test-note">
+          {fEnough
+            ? `Balance: ${fmtCur(curBalance / 100, cur)}.`
+            : curBalance > 0
+              ? `Balance: ${fmtCur(curBalance / 100, cur)} – not enough. Card, Apple Pay or Google Pay – secure checkout by Stripe.`
+              : "Card, Apple Pay or Google Pay – secure checkout by Stripe."}
+        </p>
       </div>
     );
   }

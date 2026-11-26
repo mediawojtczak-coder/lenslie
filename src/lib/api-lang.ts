@@ -33,7 +33,7 @@ const EN: Record<string, string> = {
   "Ten adres galerii jest już zajęty. Zmień nazwę galerii.": "This gallery address is already taken. Change the gallery name.",
   "Nie udało się zapisać galerii.": "Could not save the gallery.",
   "Nie znaleziono galerii.": "Gallery not found.",
-  "Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem.": "Not enough balance. Top up your account or pay by card/BLIK.",
+  "Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem.": "Not enough balance. Top up your account or pay by card.",
   "Błąd płatności.": "Payment error.",
   "Nie udało się usunąć wyboru.": "Could not delete the selection.",
   "Nie znaleziono tego zdjęcia.": "Photo not found.",

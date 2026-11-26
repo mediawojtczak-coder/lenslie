@@ -21,11 +21,21 @@ export const TOPUPS: { amount: number; bonus: number }[] = [
   { amount: 200, bonus: 10 },
 ];
 
-const key = (uid: string) => `profiles/${uid}/wallet.json`;
+// Wersja angielska (płatności kartą): osobne saldo w walucie fotografa – profiles/<id>/wallet-eur.json itd.
+// Kwoty w centach/pensach tej waluty. Doładowania 10/30/50/100, przy 100 bonus 5.
+export type WalletCur = "eur" | "usd" | "gbp";
+export const TOPUPS_FOREIGN: { amount: number; bonus: number }[] = [
+  { amount: 10, bonus: 0 },
+  { amount: 30, bonus: 0 },
+  { amount: 50, bonus: 0 },
+  { amount: 100, bonus: 5 },
+];
 
-export async function getWallet(uid: string): Promise<Wallet> {
+const key = (uid: string, cur?: WalletCur | null) => (cur ? `profiles/${uid}/wallet-${cur}.json` : `profiles/${uid}/wallet.json`);
+
+export async function getWallet(uid: string, cur?: WalletCur | null): Promise<Wallet> {
   try {
-    const res = await r2.send(new GetObjectCommand({ Bucket: BUCKET, Key: key(uid) }));
+    const res = await r2.send(new GetObjectCommand({ Bucket: BUCKET, Key: key(uid, cur) }));
     const text = await res.Body?.transformToString();
     return text ? (JSON.parse(text) as Wallet) : { balance: 0, history: [] };
   } catch {
@@ -33,8 +43,8 @@ export async function getWallet(uid: string): Promise<Wallet> {
   }
 }
 
-async function saveWallet(uid: string, w: Wallet) {
-  await r2.send(new PutObjectCommand({ Bucket: BUCKET, Key: key(uid), Body: JSON.stringify(w), ContentType: "application/json" }));
+async function saveWallet(uid: string, w: Wallet, cur?: WalletCur | null) {
+  await r2.send(new PutObjectCommand({ Bucket: BUCKET, Key: key(uid, cur), Body: JSON.stringify(w), ContentType: "application/json" }));
 }
 
 // Kolejka zmian na instancję serwera, żeby dwie operacje naraz nie nadpisały sobie salda
@@ -46,9 +56,9 @@ function serial<T>(uid: string, fn: () => Promise<T>): Promise<T> {
   return next;
 }
 
-export function addEntries(uid: string, entries: Omit<WalletEntry, "id" | "at">[]) {
-  return serial(uid, async () => {
-    const w = await getWallet(uid);
+export function addEntries(uid: string, entries: Omit<WalletEntry, "id" | "at">[], cur?: WalletCur | null) {
+  return serial(`${uid}-${cur ?? "pln"}`, async () => {
+    const w = await getWallet(uid, cur);
     // To samo zdarzenie (np. powtórzone powiadomienie o płatności) księgujemy raz
     if (entries[0]?.ref && w.history.some((h) => h.ref === entries[0].ref && h.type === entries[0].type)) return w;
     const at = new Date().toISOString();
@@ -57,20 +67,20 @@ export function addEntries(uid: string, entries: Omit<WalletEntry, "id" | "at">[
       w.history.unshift({ ...e, id: randomBytes(6).toString("hex"), at });
     }
     w.history = w.history.slice(0, 500);
-    await saveWallet(uid, w);
+    await saveWallet(uid, w, cur);
     return w;
   });
 }
 
 // Pobiera kwotę z salda; zwraca false, gdy środków jest za mało
-export function spend(uid: string, amount: number, description: string, ref: string) {
-  return serial(uid, async () => {
-    const w = await getWallet(uid);
+export function spend(uid: string, amount: number, description: string, ref: string, cur?: WalletCur | null) {
+  return serial(`${uid}-${cur ?? "pln"}`, async () => {
+    const w = await getWallet(uid, cur);
     if (w.balance < amount) return false;
     w.balance -= amount;
     w.history.unshift({ id: randomBytes(6).toString("hex"), at: new Date().toISOString(), type: "spend", amount: -amount, description, ref });
     w.history = w.history.slice(0, 500);
-    await saveWallet(uid, w);
+    await saveWallet(uid, w, cur);
     return true;
   });
 }

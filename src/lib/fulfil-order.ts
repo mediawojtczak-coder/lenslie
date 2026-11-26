@@ -33,7 +33,18 @@ export async function fulfilOrder(sid: string, via: { gateway: "p24" | "stripe";
 }
 
 async function runAction(order: Order) {
-  if (order.action.action === "topup") {
+  if (order.action.action === "topup" && order.action.cur) {
+    const a = order.action;
+    const cur = order.action.cur;
+    await addEntries(
+      order.ownerId,
+      [
+        { type: "topup", amount: a.amount * 100, description: `Balance top-up (card)`, ref: order.sessionId },
+        ...(a.bonus ? [{ type: "bonus" as const, amount: a.bonus * 100, description: `Top-up bonus`, ref: order.sessionId }] : []),
+      ],
+      cur,
+    );
+  } else if (order.action.action === "topup") {
     const a = order.action;
     await addEntries(order.ownerId, [
       { type: "topup", amount: a.amount * 100, description: `Doładowanie konta (Przelewy24)`, ref: order.sessionId },

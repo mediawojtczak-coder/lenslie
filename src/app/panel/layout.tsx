@@ -18,6 +18,7 @@ import PanelAssistant from "@/components/PanelAssistant";
 import { assistantAllowed } from "@/lib/assistant";
 import { cookies } from "next/headers";
 import { CurrencyProvider } from "@/components/CurrencyProvider";
+import { fmtCur } from "@/lib/foreign-prices";
 import { stripeCurrency, cardMode } from "@/lib/stripe";
 import type { Viewport } from "next";
 import "./panel-dark.css";
@@ -48,6 +49,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   const wallet = welcomed ?? current;
   // angielska wersja: płatności w walucie kraju przez Stripe (na razie tylko dla administratora)
   const cur = await stripeCurrency(user.email, lang).catch(() => null);
+  const fwallet = cur ? await getWallet(user.id, cur).catch(() => null) : null;
   const t = (pl: string, en: string) => tr(lang, pl, en);
 
   return (
@@ -68,6 +70,11 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <Link href="/panel/konto?tab=saldo" className="wallet-chip" title={t("Saldo konta – doładuj", "Account balance – top up")}>
           {money(wallet.balance / 100, lang, true).replace(/ \(≈[^)]*\)$/, "")}
         </Link>
+        )}
+        {card && cur && (
+          <Link href="/panel/konto?tab=saldo" className="wallet-chip" title="Account balance – top up">
+            {fmtCur((fwallet?.balance ?? 0) / 100, cur)}
+          </Link>
         )}
 
         <MenuAutoClose />
@@ -102,7 +109,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         </details>
       </header>
       <PullRefresh />
-      <CurrencyProvider cur={cur}>{children}</CurrencyProvider>
+      <CurrencyProvider cur={cur} balance={fwallet?.balance ?? 0}>{children}</CurrencyProvider>
       {assistantAllowed(user.email) && <PanelAssistant />}
       {/* konwersja „Rejestracja Lenslie” – raz, przy przyznaniu prezentu na start */}
       <GoogleTag conversion={Boolean(welcomed)} />

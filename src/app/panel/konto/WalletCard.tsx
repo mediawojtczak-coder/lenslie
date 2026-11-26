@@ -6,6 +6,7 @@ import type { Billing } from "@/lib/billing";
 import type { WalletEntry } from "@/lib/wallet";
 import { useLang } from "@/components/LangProvider";
 import { tr, money, locale } from "@/lib/lang";
+import { fmtCur, type Cur } from "@/lib/foreign-prices";
 
 
 // Opisy operacji są zapisywane po polsku – w wersji angielskiej tłumaczymy znane wzory
@@ -36,18 +37,21 @@ export default function WalletCard({
   history,
   billing,
   topups,
+  cur = null,
 }: {
   balance: number;
   history: WalletEntry[];
   billing: Billing;
   topups: { amount: number; bonus: number }[];
+  // wersja angielska z kartą: saldo w walucie fotografa (€/$/£)
+  cur?: Cur | null;
 }) {
   const lang = useLang();
   const t = (pl: string, en: string) => tr(lang, pl, en);
-  const z = (n: number) => money(n, lang);
-  const fmt = (gr: number) => money(gr / 100, lang, true);
+  const z = (n: number) => (cur ? fmtCur(n, cur) : money(n, lang));
+  const fmt = (gr: number) => (cur ? fmtCur(gr / 100, cur) : money(gr / 100, lang, true));
   const dateFmt = new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Warsaw" });
-  const [amount, setAmount] = useState(100);
+  const [amount, setAmount] = useState(cur ? 30 : 100);
   const [invoice, setInvoice] = useState<Billing>(billing);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -106,7 +110,11 @@ export default function WalletCard({
           ? t("Przechodzę do płatności…", "Going to payment…")
           : `${t("Doładuj", "Top up")} ${z(amount)}${pack?.bonus ? ` (${t("na konto", "credited")} ${z(amount + pack.bonus)})` : ""}`}
       </button>
-      <p className="test-note left">{t("BLIK, przelew lub karta przez Przelewy24. Niewykorzystane saldo zwracamy na życzenie.", "BLIK, bank transfer or card via Przelewy24. Unused balance is refunded on request.")}</p>
+      <p className="test-note left">
+        {cur
+          ? "Card, Apple Pay or Google Pay – secure checkout by Stripe. Unused balance is refunded on request."
+          : t("BLIK, przelew lub karta przez Przelewy24. Niewykorzystane saldo zwracamy na życzenie.", "BLIK, bank transfer or card via Przelewy24. Unused balance is refunded on request.")}
+      </p>
 
       <h3 className="wallet-h3">{t("Historia", "History")}</h3>
       {history.length === 0 ? (

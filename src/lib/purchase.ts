@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { spendAny } from "@/lib/card-wallet";
 import { startPayment } from "@/lib/checkout";
 import { E } from "@/lib/api-lang";
 import { cleanBilling, saveBilling } from "@/lib/billing";
@@ -33,7 +34,7 @@ export async function purchase(opts: {
   }
 
   if (opts.pay === "wallet") {
-    const ok = await spend(user.id, gr, label, `${action.product}-${Date.now()}`);
+    const ok = await spendAny(user, gr, label, `${action.product}-${Date.now()}`, { action });
     if (!ok) return NextResponse.json({ error: await E("Za mało środków na koncie. Doładuj konto albo zapłać BLIK-iem.") }, { status: 402 });
     await fulfillProduct(action);
     const left = (await getWallet(user.id)).balance;

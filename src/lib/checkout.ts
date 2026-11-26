@@ -20,7 +20,7 @@ import {
 export async function foreignAmount(order: Order, cur: Cur): Promise<number | null> {
   const a = order.action;
   const pln = order.amount / 100;
-  if (a.action === "topup") return null;
+  if (a.action === "topup") return a.cur === cur ? a.amount : null;
   if (a.action === "choose") return galleryPriceF(a.plan, a.period, cur);
   if (a.action === "extend" && order.byClient) return clientExtendF(a.period, cur);
   if (a.action === "upgrade" || a.action === "extend") {
@@ -62,6 +62,8 @@ export async function englishName(order: Order): Promise<string> {
       return `Gallery upgrade to ${PLAN_EN[a.plan] ?? a.plan}${title}`;
     case "extend":
       return `Gallery extension – ${months(a.period)}${title}`;
+    case "topup":
+      return `Lenslie balance top-up – ${a.amount}${a.bonus ? ` (+${a.bonus} bonus)` : ""}`;
     case "guest-event":
       return "Guest uploads – one event";
     case "videos":

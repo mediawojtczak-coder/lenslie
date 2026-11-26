@@ -76,7 +76,7 @@ function cardQa(qa: string[][], cur: Cur): string[][] {
   const f = (eur: number) => fmtCur(eur, cur);
   return qa.map(([q, a]) => {
     if (q === "How can I pay?")
-      return [q, `By card, Apple Pay or Google Pay, in ${cur === "eur" ? "euros" : cur === "usd" ? "US dollars" : "pounds"} – you pay for each gallery when you publish it. Your first gallery is free for up to 3 months.`];
+      return [q, `By card, Apple Pay or Google Pay, in ${cur === "eur" ? "euros" : cur === "usd" ? "US dollars" : "pounds"} – you pay for each gallery when you publish it, or top up your balance once (10, 30, 50 or 100) and publish with one click. Your first gallery is free for up to 3 months.`];
     if (q === "Can wedding guests add their own photos?") return [q, a.replace(/PLN 99/, f(addonPriceF("guests", cur)))];
     return [q, a];
   });
