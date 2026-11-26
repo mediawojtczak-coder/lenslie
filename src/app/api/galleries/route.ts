@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { E } from "@/lib/api-lang";
+import { getLang } from "@/lib/lang-server";
 import { isValidGalleryId } from "@/lib/r2";
 import { getMeta, saveMeta, hashPassword, type GalleryMeta } from "@/lib/galleries";
 import { getUser } from "@/lib/supabase/server";
@@ -94,7 +95,9 @@ export async function POST(req: Request) {
     const d = body.eventDate.trim();
     meta.eventDate = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : undefined;
   }
+  // język galerii dla klienta: wybrany w formularzu, a domyślnie – język panelu fotografa
   if (body?.lang === "pl" || body?.lang === "en") meta.lang = body.lang;
+  else if ((await getLang()) === "en") meta.lang = "en";
   if (typeof body?.welcome === "string") {
     meta.welcome = body.welcome.trim().slice(0, 1500) || undefined;
   }
