@@ -53,7 +53,7 @@ export default async function GoscieOferta() {
               <div className="qo-card">
                 <div className="qo-card-frame">
                   <p className="qc-kicker">{t("Podzielcie się zdjęciami", "Share your photos")}</p>
-                  <h3 className="qc-names">Anna &amp; Marek</h3>
+                  <h3 className="qc-names">{lang === "en" ? "Emma & James" : "Anna & Marek"}</h3>
                   <p className="qc-date">
                     <span />
                     14 · 09 · 2026
@@ -71,7 +71,7 @@ export default async function GoscieOferta() {
               </div>
               <div className="qo-phone">
                 <div className="qo-screen">
-                  <p className="qo-names">Anna &amp; Marek</p>
+                  <p className="qo-names">{lang === "en" ? "Emma & James" : "Anna & Marek"}</p>
                   <span className="qo-btn">{t("Dodaj zdjęcia i filmy", "Add photos & videos")}</span>
                   <div className="qo-grid">
                     {[1, 4, 2, 7, 3, 6].map((n, i) => (

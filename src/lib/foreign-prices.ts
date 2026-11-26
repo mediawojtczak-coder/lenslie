@@ -73,3 +73,17 @@ export function fmtCur(n: number, cur: Cur) {
   const whole = Math.abs(n - Math.round(n)) < 0.001;
   return `${sym}${n.toLocaleString("en-GB", whole ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
+
+// Teksty cen na stronach funkcji (wersja angielska z płatnościami kartą): „PLN 99 per wedding” → „€25 per wedding”
+export function localizeEnPrice(s: string, cur: Cur) {
+  const f = (n: number) => fmtCur(n, cur);
+  return s
+    .replace(/PLN 99( one-off)? per wedding/g, (_m, o) => `${f(addonPriceF("guests", cur))}${o ?? ""} per wedding`)
+    .replace(/PLN 99 (\/ year|per year)/g, (_m, y) => `${f(addonPriceF("domain", cur))} ${y}`)
+    .replace(/PLN 39 (\/ mo|per month)/g, (_m, m) => `${f(addonPriceF("album", cur))} ${m}`)
+    .replace(/PLN 290 per year/g, `${f(addonPriceF("album", cur, 12))} per year`)
+    .replace(/PLN 24 (\/ mo|per month)/g, (_m, m) => `${f(addonPriceF("portfolio", cur))} ${m}`)
+    .replace(/PLN 240 per year/g, `${f(addonPriceF("portfolio", cur, 12))} per year`)
+    .replace(/PLN 19 one-off/g, `${f(addonPriceF("theme", cur))} one-off`)
+    .replace(/PLN 5 per gallery/g, `${f(addonPriceF("faces", cur))} per gallery`);
+}

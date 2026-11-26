@@ -64,7 +64,7 @@ export default function FeatureVisual({ visual, lang, small = false }: { visual:
           <div className="fv-qrcard">
             <div className="fv-qrframe">
               <p className="fv-qr-k">{t("Podzielcie się zdjęciami", "Share your photos")}</p>
-              <p className="fv-qr-n">Anna &amp; Marek</p>
+              <p className="fv-qr-n">{t("Anna & Marek", "Emma & James")}</p>
               <p className="fv-qr-d">14 · 09 · 2026</p>
               <FancyQr text="https://www.lenslie.com" className="fv-qr" />
               <p className="fv-qr-t">{t("Dziękujemy", "Thank you")}</p>
@@ -106,7 +106,7 @@ export default function FeatureVisual({ visual, lang, small = false }: { visual:
             <div className="fv-site" style={{ backgroundImage: ph(visual === "domain" ? 2 : 1) }}>
               <div>
                 <span className="fv-ring">{visual === "domain" ? "A & M" : "TS"}</span>
-                <strong>{visual === "domain" ? "Anna & Marek" : t("Twoje Studio", "Your Studio")}</strong>
+                <strong>{visual === "domain" ? t("Anna & Marek", "Emma & James") : t("Twoje Studio", "Your Studio")}</strong>
                 <small>{visual === "domain" ? "14 · 09 · 2026" : t("Fotografia ślubna", "Wedding photography")}</small>
               </div>
             </div>

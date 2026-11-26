@@ -143,7 +143,7 @@ export default async function Home() {
         </p>
       </section>
 
-      <FeatureCards lang={lang} />
+      <FeatureCards lang={lang} cur={await siteCur(lang)} />
     </>
   );
 }

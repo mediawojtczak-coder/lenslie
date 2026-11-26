@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { usdify } from "@/lib/lang";
+import { localizeEnPrice, type Cur } from "@/lib/foreign-prices";
 import { FEATURES, FIND_ME_CARD, type L } from "@/lib/features";
 import FeatureVisual from "@/components/FeatureVisual";
 
 // Strona główna: „Więcej niż galeria” – karty funkcji z linkami do stron reklamowych
-export default function FeatureCards({ lang }: { lang: "pl" | "en" }) {
-  const t = (x: L) => (lang === "en" ? usdify(x[1]) : x[0]);
+export default function FeatureCards({ lang, cur = null }: { lang: "pl" | "en"; cur?: Cur | null }) {
+  // wersja angielska z kartą: ceny w walucie odwiedzającego; druk albumów (polska drukarnia) ukryty
+  const t = (x: L) => (lang === "en" ? (cur ? localizeEnPrice(x[1], cur) : usdify(x[1])) : x[0]);
   const cards = [
-    ...FEATURES.map((f) => ({ href: `/funkcje/${f.slug}`, visual: f.visual, ...f.card })),
+    ...FEATURES.filter((f) => !(lang === "en" && f.slug === "druk-albumow")).map((f) => ({ href: `/funkcje/${f.slug}`, visual: f.visual, ...f.card })),
     { href: FIND_ME_CARD.href, visual: FIND_ME_CARD.visual, title: FIND_ME_CARD.title, text: FIND_ME_CARD.text, price: FIND_ME_CARD.price },
   ];
   return (

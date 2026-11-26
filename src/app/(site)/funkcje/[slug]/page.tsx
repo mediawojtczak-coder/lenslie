@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { siteCur } from "@/lib/viewer-cur";
+import { localizeEnPrice } from "@/lib/foreign-prices";
 import { langAlternates } from "@/lib/en-paths";
 import { usdify } from "@/lib/lang";
 import { notFound } from "next/navigation";
@@ -30,9 +32,10 @@ export default async function FeaturePage({ params }: { params: Promise<{ slug: 
   const f = getFeature(slug);
   if (!f) notFound();
   const lang = await getLang();
-  const t = (x: L) => (lang === "en" ? usdify(x[1]) : x[0]);
+  const cur = await siteCur(lang);
+  const t = (x: L) => (lang === "en" ? (cur ? localizeEnPrice(x[1], cur) : usdify(x[1])) : x[0]);
   const others = [
-    ...FEATURES.filter((x) => x.slug !== f.slug).map((x) => ({ href: `/funkcje/${x.slug}`, title: x.card.title, price: x.card.price })),
+    ...FEATURES.filter((x) => x.slug !== f.slug && !(lang === "en" && x.slug === "druk-albumow")).map((x) => ({ href: `/funkcje/${x.slug}`, title: x.card.title, price: x.card.price })),
     { href: FIND_ME_CARD.href, title: FIND_ME_CARD.title, price: FIND_ME_CARD.price },
   ];
 

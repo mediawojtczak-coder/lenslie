@@ -65,7 +65,7 @@ export default function ThemeCard({
         {themes.map((th) => (
           <button key={th.id} type="button" className={picked === th.id ? "theme-tile active" : "theme-tile"} onClick={() => setPicked(th.id)} aria-pressed={picked === th.id}>
             <span className={`theme-prev tp-${th.id}`} style={{ background: th.swatch[0], color: th.swatch[1] }}>
-              <span className="tp-title">Anna &amp; Marek</span>
+              <span className="tp-title">{lang === "en" ? "Emma & James" : "Anna & Marek"}</span>
               <span className="tp-row">
                 <i style={{ background: th.swatch[2] }} />
                 <i style={{ background: th.swatch[2] }} />
