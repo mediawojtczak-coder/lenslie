@@ -42,10 +42,10 @@ export default async function PrzypomnieniaPanel() {
   const until = sample?.meta?.expiresAt ? new Date(sample.meta.expiresAt) : new Date(Date.now() + 90 * 24 * 3600 * 1000);
   const mail = coupleReminderMail({
     studio: studio || null,
-    title: sample?.title ?? "Magdalena & Szymon",
+    title: sample?.title ?? (en ? "Emma & James" : "Magdalena & Szymon"),
     coverUrl: sample?.cover ?? "/home/foto-2.jpg",
     link: sample ? `${siteUrl()}/galeria/${sample.id}` : `${siteUrl()}/galeria/…`,
-    password: sample ? (sample.meta?.password ?? null) : "lato2027",
+    password: sample ? (sample.meta?.password ?? null) : en ? "summer2027" : "lato2027",
     until: dateFmt.format(until),
     en,
     daysLeft: COUPLE_REMIND_DAYS,

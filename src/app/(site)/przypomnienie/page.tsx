@@ -27,10 +27,10 @@ export default async function Przypomnienie() {
   const until = new Intl.DateTimeFormat(en ? "en-GB" : "pl-PL", { day: "numeric", month: "long", year: "numeric" }).format(new Date(2027, 5, 21));
   const mail = coupleReminderMail({
     studio,
-    title: "Magdalena & Szymon",
+    title: en ? "Emma & James" : "Magdalena & Szymon",
     coverUrl: "/home/foto-2.jpg",
     link: "https://www.lenslie.com/galeria/…",
-    password: "lato2027",
+    password: en ? "summer2027" : "lato2027",
     until,
     en,
     daysLeft: COUPLE_REMIND_DAYS,
@@ -68,12 +68,12 @@ export default async function Przypomnienie() {
               <rect x="3.5" y="6" width="17" height="12" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
               <path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" strokeWidth="1.2" />
             </svg>
-            <span>magda@…</span>
+            <span>{en ? "emma@…" : "magda@…"}</span>
             <b>
               <svg viewBox="0 0 24 24" width="11" height="11">
                 <path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              14.06.2027
+              {en ? "14 Jun 2027" : "14.06.2027"}
             </b>
           </div>
         </div>
