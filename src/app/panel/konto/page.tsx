@@ -53,7 +53,8 @@ export default async function Konto({ searchParams }: { searchParams: Promise<{ 
   // Płatności kartą w galeriach angielskich (Stripe Connect) – na razie tylko dla administratora
   const cardOn = tab === "wplaty" && lang === "en" && stripeAllowed(user!.email);
   const connect = cardOn ? await refreshConnect(user!.id).catch(() => null) : null;
-  const ipCountry = cardOn ? ((await headers()).get("x-vercel-ip-country") ?? "GB") : "GB";
+  // Kraj firmy: najpierw z danych do faktury, inaczej z lokalizacji (IP) – fotograf może go zmienić
+  const ipCountry = cardOn ? (billing?.country ?? (await headers()).get("x-vercel-ip-country") ?? "GB") : "GB";
   const order = sp.platnosc ? await getOrder(sp.platnosc) : null;
   const payment = order && order.ownerId === user!.id ? order : null;
   const profile = (data ?? null) as { studio_name: string | null; logo_key: string | null } | null;
