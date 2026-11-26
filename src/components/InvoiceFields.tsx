@@ -30,7 +30,7 @@ export default function InvoiceFields({
             checked={value.want}
             onChange={(e) => onChange({ ...value, want: e.target.checked, ...(en && !value.country ? { country } : {}) })}
           />
-          {t("Chcę fakturę VAT", "I need an invoice for my business")}
+          {t("Chcę fakturę", "I need an invoice for my business")}
         </label>
       )}
       {(value.want || alwaysOpen) && (

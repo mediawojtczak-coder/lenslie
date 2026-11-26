@@ -99,7 +99,7 @@ function RegulaminPl() {
       <ol>
         <li>Opłata za Pakiet jest pobierana z góry, przy tworzeniu Galerii, zmianie Pakietu lub przedłużeniu dostępu.</li>
         <li>Płatności obsługuje zewnętrzny operator płatności PayPro S.A. (Przelewy24) z siedzibą w Poznaniu.</li>
-        <li>Na życzenie Fotografa, zgłoszone przy płatności, wystawiana jest faktura VAT wysyłana na adres e-mail Konta.</li>
+        <li>Na życzenie Fotografa, zgłoszone przy płatności, wystawiana jest faktura wysyłana na adres e-mail Konta. Usługodawca korzysta ze zwolnienia z VAT na podstawie art. 113 ust. 1 ustawy o VAT, dlatego faktury wystawiane są bez VAT, a ceny są cenami końcowymi.</li>
         <li>
           Fotograf może doładować Saldo konta kwotą 30, 50, 100 lub 200 zł. Przy doładowaniu 200 zł Usługodawca dolicza
           10 zł bonusu. Ze Salda opłaca się Pakiety, ich zmianę i przedłużenie dostępu.
@@ -281,7 +281,7 @@ function TermsEn() {
         English translation for information. In case of any discrepancy, the <strong>Polish version</strong> prevails.
       </p>
       <h1>Lenslie Terms of Service</h1>
-      <p className="legal-meta">Effective from: 27 October 2026</p>
+      <p className="legal-meta">Effective from: 26 November 2026</p>
 
       <h2>§ 1. General provisions</h2>
       <ol>
@@ -311,7 +311,7 @@ function TermsEn() {
 
       <h2>§ 5. Galleries and Plans</h2>
       <ol>
-        <li>The Photographer chooses a Plan for each Gallery. Current prices, storage limits and access periods are listed on the <Link href="/cennik">Pricing</Link> page. Prices are gross prices in Polish złoty (PLN).</li>
+        <li>The Photographer chooses a Plan for each Gallery. Current prices, storage limits and access periods are listed on the <Link href="/cennik">Pricing</Link> page. Prices are final prices shown in the currency of the Photographer’s country – euro (EUR), US dollars (USD), British pounds (GBP) or Polish złoty (PLN). The Provider is exempt from VAT under Art. 113(1) of the Polish VAT Act, so no VAT is added to the prices.</li>
         <li>A 2% tolerance is added to the Plan limit. Once exceeded, uploading is paused until a bigger Plan is chosen.</li>
         <li>Upgrading to a bigger Plan requires paying the price difference. The Gallery expiry date does not change.</li>
         <li>The Photographer may extend access to a Gallery before or after it expires.</li>
@@ -331,18 +331,18 @@ function TermsEn() {
       <h2>§ 6. Payments</h2>
       <ol>
         <li>Plan fees are charged in advance, when publishing a Gallery, changing a Plan or extending access.</li>
-        <li>Payments are processed by PayPro S.A. (Przelewy24), Poznań, Poland. Payments are made in PLN.</li>
-        <li>At the Photographer’s request made during payment, a VAT invoice is issued and sent to the Account email.</li>
-        <li>The Photographer may top up the Account balance with PLN 30, 50, 100 or 200. A top-up of PLN 200 includes a PLN 10 bonus. The balance can be used to pay for Plans, upgrades and extensions.</li>
+        <li>Card payments (card, Apple Pay, Google Pay and other methods shown at checkout) are processed by Stripe Payments Europe, Ltd., Dublin, Ireland. Payments in PLN may also be processed by PayPro S.A. (Przelewy24), Poznań, Poland.</li>
+        <li>At the Photographer’s request made during payment, an invoice is issued and sent to the Account email. Invoices are issued without VAT because the Provider is VAT-exempt (Art. 113(1) of the Polish VAT Act).</li>
+        <li>The Photographer may top up the Account balance in their currency with 10, 30, 50 or 100 (a top-up of 100 includes a bonus of 5), or – for a balance in PLN – with PLN 30, 50, 100 or 200 (a top-up of PLN 200 includes a PLN 10 bonus). The balance can be used to pay for Plans, upgrades, extensions, the Pro subscription and add-ons. Balances in different currencies are kept separately.</li>
         <li>An invoice for a balance top-up is issued at the time of payment, using the details provided by the Photographer.</li>
-        <li>The Photographer may purchase the “Custom domain” add-on (PLN 99 per 12 months, paid from the balance) so that Galleries are available under their subdomain. The Photographer is responsible for owning the domain and setting the DNS record. After the paid period ends, Galleries remain available at the Service address.</li>
+        <li>The Photographer may purchase the “Custom domain” add-on (at the price shown on the Pricing page, per 12 months) so that Galleries are available under their subdomain. The Photographer is responsible for owning the domain and setting the DNS record. After the paid period ends, Galleries remain available at the Service address.</li>
         <li>The balance bears no interest and does not expire. The unused part of the balance (excluding bonuses) is refunded at the Photographer’s request sent to {COMPANY.email}, within 14 days, to the account the payment was made from. Bonuses are not refundable.</li>
       </ol>
 
       <h2>§ 6a. Referral programme</h2>
       <ol>
         <li>The Photographer may recommend the Service using a personal link from “My account”.</li>
-        <li>When a person who signed up using the referral link has paid a total of at least PLN 30, both the referring Photographer and the referred person receive a PLN 20 bonus to their balance, once per referred person.</li>
+        <li>The referral programme applies to Accounts with a balance in PLN. When a person who signed up using the referral link has paid a total of at least PLN 30, both the referring Photographer and the referred person receive a PLN 20 bonus to their balance, once per referred person.</li>
         <li>Bonuses can only be used for the Service; they cannot be withdrawn or refunded.</li>
         <li>Creating Accounts to obtain bonuses (e.g. referring yourself) is prohibited; the Provider may cancel such bonuses.</li>
       </ol>
@@ -350,26 +350,27 @@ function TermsEn() {
       <h2>§ 6b. Photo sales in Galleries</h2>
       <ol>
         <li>The Photographer may turn on photo selection and sales in a Gallery: the Client chooses the photos included in the package agreed with the Photographer and pays the Photographer’s price for extra photos.</li>
-        <li>The Client pays for photos directly to the bank account or BLIK phone number provided by the Photographer. The Provider does not receive or intermediate these payments and charges no commission on them.</li>
+        <li>The Client pays for photos directly to the Photographer – by bank transfer or PayPal using the details provided by the Photographer (the Provider does not receive or intermediate these payments and charges no commission on them), or by card in the Gallery, if the Photographer has connected their own Stripe account.</li>
+        <li>Card payments for photos are processed by Stripe on behalf of the Photographer and paid out to the Photographer’s Stripe account. The Photographer is the seller of the photos to the Client. The Provider keeps a fee of 5% of each card payment, which includes card processing costs; with an active Pro subscription the Provider keeps only the card processing cost (approx. 3% + 0.30 in the payment currency). After a successful card payment, the ordered photos are made available to the Client automatically.</li>
         <li>The photo sale agreement is concluded solely between the Photographer and the Client. The Photographer is responsible for pricing, confirming payments, issuing sales documents, taxes and complaints concerning the photos.</li>
       </ol>
 
       <h2>§ 6c. Guest uploads</h2>
       <ol>
-        <li>The “Guest uploads” service lets event guests upload photos via a link or QR code without an account. The fee is PLN 99 gross per event and covers 12 months of uploading and viewing (up to 30 GB), followed by 30 days to download the photos, after which they are deleted.</li>
+        <li>The “Guest uploads” service lets event guests upload photos via a link or QR code without an account. The fee per event is shown on the Pricing page and covers 12 months of uploading and viewing (up to 30 GB), followed by 30 days to download the photos, after which they are deleted.</li>
         <li>The Photographer who created the event is responsible for content uploaded by guests. The Photographer can delete uploaded photos, and the Provider removes unlawful content upon notice.</li>
       </ol>
 
       <h2>§ 6d. Add-ons</h2>
       <ol>
-        <li>Premium gallery themes cost PLN 19 gross per theme, paid once; a purchased theme can be used in all Galleries of the Account.</li>
-        <li>The portfolio website costs PLN 24 gross per month or PLN 240 gross for 12 months, paid in advance. When the paid period ends, the website is no longer visible. The Photographer is responsible for the content and photos on the website, including the consent of the people in them.</li>
-        <li>“Find yourself in the photos” costs PLN 5 gross per Gallery, paid once. By turning it on, the Photographer confirms they have a legal basis to process biometric data of the people in the photos (e.g. their consent) and that they have been informed. See the Privacy policy for details.</li>
+        <li>Premium gallery themes are paid once per theme, at the price shown in the Service; a purchased theme can be used in all Galleries of the Account.</li>
+        <li>The portfolio website is paid in advance per month or for 12 months, at the price shown in the Service. When the paid period ends, the website is no longer visible. The Photographer is responsible for the content and photos on the website, including the consent of the people in them.</li>
+        <li>“Find yourself in the photos” is paid once per Gallery, at the price shown in the Service. By turning it on, the Photographer confirms they have a legal basis to process biometric data of the people in the photos (e.g. their consent) and that they have been informed. See the Privacy policy for details.</li>
       </ol>
 
       <h2>§ 6e. Pro subscription</h2>
       <ol>
-        <li>The Pro subscription provides storage for all Galleries and videos of the Account: 500 GB for PLN 59, 700 GB for PLN 79, 1000 GB for PLN 99 or 2000 GB for PLN 189 gross per month; paid 12 months in advance – PLN 708, 948, 1188 or 2268 gross. Filmmaker plans: Pro Film 30 (500 GB, videos up to 30 hours) for PLN 129 and Pro Film 60 (1000 GB, videos up to 60 hours) for PLN 249 gross per month; paid 12 months in advance – PLN 1548 or 2988 gross.</li>
+        <li>The Pro subscription provides storage for all Galleries and videos of the Account: 500 GB, 700 GB, 1000 GB or 2000 GB, and filmmaker plans Pro Film 30 (500 GB, videos up to 30 hours) and Pro Film 60 (1000 GB, videos up to 60 hours). Monthly and yearly prices are listed on the Pricing page.</li>
         <li>The subscription is paid in advance for a month or a year. It does not renew automatically – we send an e-mail reminder 7 days before the period ends. A new period is added to the current one.</li>
         <li>During the subscription the Photographer publishes Galleries without Plan fees, and Galleries are available to Clients until the end of the paid period and for 30 days after it. The subscription can be renewed during that time; if it is not, the Galleries expire and 30 days later we delete them together with their photos and videos.</li>
         <li>Photos, videos and draft Galleries in the subscription share one storage pool. The total length of videos is limited to 5 hours (500 GB), 8 hours (700 GB), 10 hours (1000 GB) or 20 hours (2000 GB). Once the storage or video limit is reached, no files can be added until the subscription is upgraded or some Galleries or videos are deleted. Upgrading during a period requires paying the price difference for the remaining days; a cheaper plan can be chosen after the period ends.</li>
