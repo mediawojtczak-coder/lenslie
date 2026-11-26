@@ -43,8 +43,9 @@ export default function StripeConnectCard({
       <h2>Card payments in your galleries</h2>
       <p>
         Let clients pay for extra photos by card, Apple Pay or Google Pay right in your English galleries. The photos unlock automatically after
-        payment and the money goes straight to your own Stripe account, paid out to your bank. Lenslie keeps {fee}% of each sale to cover card
-        fees.
+        payment and the money goes straight to your own Stripe account, paid out to your bank. {pro
+          ? "With Pro, Lenslie takes no commission – only the card processing cost (about 3% + 0.30 per payment)."
+          : `Lenslie keeps ${fee}% of each sale (at least 0.30 in the sale currency) to cover card fees.`}
       </p>
       {status === "ready" ? (
         <>

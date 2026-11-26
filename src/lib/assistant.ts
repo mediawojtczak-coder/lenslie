@@ -113,5 +113,5 @@ export function foreignKnowledge(cur: fp.Cur) {
 - Pro (Pro 500 GB / 700 GB / 1 TB / 2 TB, Film 30 h / 60 h): ${pro}. A year costs 10 months (2 months free).
 - Add-ons: theme ${f(fp.addonPriceF("theme", cur))}, Find me ${f(fp.addonPriceF("faces", cur))} per gallery, Guest uploads ${f(fp.addonPriceF("guests", cur))} per event, custom domain ${f(fp.addonPriceF("domain", cur))}/year, album designer ${f(fp.addonPriceF("album", cur))}/month, portfolio website ${f(fp.addonPriceF("portfolio", cur))}/month.
 - Payment: by card, Apple Pay or Google Pay when publishing or buying, or from a prepaid account balance in the same currency (top-ups of 10, 30, 50 or 100; +5 bonus with 100). The first gallery is free for up to 3 months.
-- Photo sales in galleries: clients pay the photographer by card; money goes to the photographer's own Stripe account. Lenslie keeps 5% (card fees included); with Pro – 0% commission, only the card fee.`;
+- Photo sales in galleries: clients pay the photographer by card; money goes to the photographer's own Stripe account. Lenslie keeps 5% (at least 0.30 per payment, card fees included); with Pro – 0% commission, only the card fee.`;
 }
