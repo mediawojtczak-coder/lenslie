@@ -61,6 +61,20 @@ html:has(.app.ui-dark), body:has(.app.ui-dark) { background: #11100e; }
 .ui-look-opts .lk-classic i { background: linear-gradient(135deg, #fdfcfa 50%, #f4e8e3 50%); }
 .ui-look-opts .lk-dark i { background: linear-gradient(135deg, #11100e 50%, #c9a87c 50%); border-color: #c9a87c; }
 .ui-look-opts button.on { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass) inset; }
+/* Pasek wersji roboczej (PublishBar): w jasnym wyglądzie różowy gradient, tu ciemna karta z różowym akcentem,
+   żeby jasne napisy (--ink) były czytelne. Selektor .app.ui-dark, żeby część generowana go nie nadpisała. */
+.app.ui-dark .draft-bar {
+  background: linear-gradient(90deg, color-mix(in srgb, #f9dfe0 10%, var(--card)) 0%, var(--card) 100%);
+  border: 1px solid color-mix(in srgb, #e8a6a6 30%, var(--hair));
+  box-shadow: inset 3px 0 0 #d98f8f, 0 18px 40px -28px rgba(0, 0, 0, .9);
+}
+.app.ui-dark .draft-title { color: #f1c9c4; letter-spacing: .02em; }
+.app.ui-dark .draft-note { color: #d8cdc3; }
+.app.ui-dark .draft-del { color: #f0a29a; }
+.app.ui-dark .draft-link { color: var(--ink); }
+.app.ui-dark .draft-link:hover { color: var(--brass); }
+.app.ui-dark .draft-actions .btn-ghost { color: var(--ink); border-color: #4a413b; }
+.app.ui-dark .draft-actions .btn-ghost[disabled] { background: transparent; color: #b3a89e; border-color: #4a413b; opacity: 1; }
 /* ===== generowane ===== */
 .ui-dark .photo-dl { background-color: var(--card); }
 .ui-dark .print { background-color: var(--card); }
