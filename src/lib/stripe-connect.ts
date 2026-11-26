@@ -28,9 +28,9 @@ const saveConnect = (uid: string, c: Connect) =>
 export const SALES_FEE_PERCENT = () => Math.min(30, Math.max(0, Number(process.env.STRIPE_SALES_FEE ?? "5") || 0));
 export const CARD_COST = { percent: 3, fixed: 30 }; // fixed – w groszach/centach waluty
 export function salesFee(amountMinor: number, pro: boolean) {
-  const fee = pro
-    ? Math.round((amountMinor * CARD_COST.percent) / 100) + CARD_COST.fixed
-    : Math.round((amountMinor * SALES_FEE_PERCENT()) / 100);
+  const base = Math.round((amountMinor * SALES_FEE_PERCENT()) / 100);
+  // Pro nigdy nie płaci więcej niż konto bez Pro (przy małych kwotach stałe 0,30 byłoby droższe niż 5%)
+  const fee = pro ? Math.min(base, Math.round((amountMinor * CARD_COST.percent) / 100) + CARD_COST.fixed) : base;
   return Math.max(0, Math.min(fee, amountMinor - 1));
 }
 
