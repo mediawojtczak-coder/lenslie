@@ -2,7 +2,7 @@ import { registerTransaction, saveOrder, type Order } from "@/lib/p24";
 import { stripeCurrency, createCheckout } from "@/lib/stripe";
 import { getMeta } from "@/lib/galleries";
 import { getPlan, isPeriod } from "@/lib/plans";
-import { proTier } from "@/lib/pro-plans";
+import { proTier, proName } from "@/lib/pro-plans";
 import { getTheme } from "@/lib/themes";
 import {
   galleryPriceF,
@@ -48,6 +48,42 @@ export async function foreignAmount(order: Order, cur: Cur): Promise<number | nu
   return fromPln(pln, cur);
 }
 
+// Nazwa zakupu na stronie płatności Stripe i w potwierdzeniu dla klienta – po angielsku (wersja angielska)
+const PLAN_EN: Record<string, string> = { mala: "Small", srednia: "Medium", duza: "Large" };
+const months = (n: number) => `${n} month${n === 1 ? "" : "s"}`;
+export async function englishName(order: Order): Promise<string> {
+  const a = order.action;
+  const meta = order.galleryId ? await getMeta(order.galleryId).catch(() => null) : null;
+  const title = meta?.title ? ` – ${meta.title}` : "";
+  switch (a.action) {
+    case "choose":
+      return `Gallery – ${PLAN_EN[a.plan] ?? a.plan}, ${months(a.period)}${title}`;
+    case "upgrade":
+      return `Gallery upgrade to ${PLAN_EN[a.plan] ?? a.plan}${title}`;
+    case "extend":
+      return `Gallery extension – ${months(a.period)}${title}`;
+    case "guest-event":
+      return "Guest uploads – one event";
+    case "videos":
+      return `Videos in the gallery${title}`;
+    case "product": {
+      if (a.product === "theme") return `Gallery theme – ${getTheme(a.theme).nameEn}`;
+      if (a.product === "faces") return "Find yourself – face search in the gallery";
+      if (a.product === "album") return `Album designer – ${a.months === 12 ? "12 months" : months(a.months)}`;
+      if (a.product === "portfolio") return `Portfolio website – ${a.months === 12 ? "12 months" : months(a.months)}`;
+      if (a.product === "domain") return `Custom domain ${a.host} – ${a.renew ? "renewal, " : ""}12 months`;
+      if (a.product === "pro") {
+        const t = proTier(a.tier);
+        const n = t ? proName(t) : "Pro";
+        return a.upgrade ? `Upgrade to Lenslie ${n}` : `Lenslie ${n} – ${a.months === 12 ? "12 months" : months(a.months)}`;
+      }
+      return "Lenslie order";
+    }
+    default:
+      return "Lenslie";
+  }
+}
+
 // Rozpoczęcie płatności online: Stripe (angielska wersja, waluta kraju) albo Przelewy24 (złotówki).
 // Zwraca adres strony płatności.
 // gateEmail – czyje konto decyduje o płatności kartą (np. fotograf, gdy płaci jego klient)
@@ -61,7 +97,7 @@ export async function startPayment(order: Order, origin: string, lang?: "pl" | "
         sid: order.sessionId,
         amount: Math.round(amount * 100),
         cur,
-        name: order.description.replace(/^Lenslie - /, "Lenslie – "),
+        name: await englishName(order).catch(() => "Lenslie"),
         email: order.email,
         successUrl: `${origin}/api/platnosci/stripe?sid=${order.sessionId}`,
         cancelUrl: `${origin}${back}`,
