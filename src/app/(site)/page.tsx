@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { langAlternates } from "@/lib/en-paths";
 import { unstable_cache } from "next/cache";
 import type { Metadata } from "next";
 import { siteCur } from "@/lib/viewer-cur";
@@ -19,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: en ? "Online client galleries for photographers | Lenslie" : "Galeria online dla fotografa – zdjęcia dla klientów | Lenslie",
     // osobny adres wersji angielskiej (lenslie.com/en) – dla Google i podglądów linków w social media
-    alternates: { canonical: en ? "/en" : "/", languages: { pl: "/", en: "/en", "x-default": "/" } },
+    alternates: langAlternates("/", en ? "en" : "pl"),
     openGraph: { url: en ? "/en" : "/", siteName: "Lenslie", type: "website", locale: en ? "en_GB" : "pl_PL", images: [ogImage(en ? "en" : "pl")] },
   };
 }

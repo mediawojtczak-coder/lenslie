@@ -1,4 +1,5 @@
 import { COMPANY } from "@/lib/company";
+import { langAlternates } from "@/lib/en-paths";
 
 import { getLang } from "@/lib/lang-server";
 
@@ -9,7 +10,7 @@ export async function generateMetadata() {
     description: en
       ? "How Lenslie processes personal data of photographers and their clients, where photos are stored and what rights you have."
       : "Jak Lenslie przetwarza dane osobowe fotografów i ich klientów, gdzie przechowywane są zdjęcia i jakie masz prawa.",
-    alternates: { canonical: "/polityka-prywatnosci" },
+    alternates: langAlternates("/polityka-prywatnosci", (en ? "en" : "pl")),
   };
 }
 

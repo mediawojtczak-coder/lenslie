@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { langAlternates } from "@/lib/en-paths";
 import { usdify } from "@/lib/lang";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -19,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${f.card.title[i]} – ${i ? "online galleries for photographers" : "galerie online dla fotografów"} | Lenslie`,
     description: f.card.text[i],
-    alternates: { canonical: `/funkcje/${f.slug}` },
+    alternates: langAlternates(`/funkcje/${f.slug}`, lang),
   };
 }
 

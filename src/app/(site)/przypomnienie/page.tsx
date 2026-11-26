@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { langAlternates } from "@/lib/en-paths";
 import type { Metadata } from "next";
 import { getLang } from "@/lib/lang-server";
 import { tr } from "@/lib/lang";
@@ -13,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
       lang === "en"
         ? "Enter your client's e-mail once. A week before gallery access ends, Lenslie sends an elegant reminder signed with your studio name."
         : "Wpisz e-mail klienta raz. Tydzień przed końcem dostępu do galerii Lenslie wyśle mu elegancki mail podpisany nazwą Twojego studia.",
-    alternates: { canonical: "/przypomnienie" },
+    alternates: langAlternates("/przypomnienie", lang),
   };
 }
 

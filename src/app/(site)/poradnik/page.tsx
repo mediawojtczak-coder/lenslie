@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { langAlternates } from "@/lib/en-paths";
 import type { Metadata } from "next";
 import { getLang } from "@/lib/lang-server";
 import { tr } from "@/lib/lang";
@@ -11,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: en
       ? "Practical articles for photographers: how to deliver photos to clients, run online galleries, let clients pick photos and design albums."
       : "Praktyczne artykuły dla fotografów: jak przekazać zdjęcia klientowi, jak prowadzić galerie online, wybór zdjęć przez klienta i albumy.",
-    alternates: { canonical: "/poradnik" },
+    alternates: langAlternates("/poradnik", (en ? "en" : "pl")),
   };
 }
 

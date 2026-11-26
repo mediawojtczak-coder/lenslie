@@ -1,4 +1,5 @@
 import LoginShowcase from "@/components/LoginShowcase";
+import { langAlternates } from "@/lib/en-paths";
 import { usdify } from "@/lib/lang";
 import Link from "next/link";
 import { cleanCode, REWARD, THRESHOLD } from "@/lib/referrals";
@@ -15,7 +16,7 @@ export async function generateMetadata() {
     description: en
       ? "Create a free Lenslie account and send your first online gallery to a client today."
       : "Załóż bezpłatne konto Lenslie i jeszcze dziś wyślij klientowi pierwszą galerię zdjęć online.",
-    alternates: { canonical: "/rejestracja" },
+    alternates: langAlternates("/rejestracja", (en ? "en" : "pl")),
   };
 }
 

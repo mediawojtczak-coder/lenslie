@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { langAlternates } from "@/lib/en-paths";
 import { usdify } from "@/lib/lang";
 import PricingPlans from "@/components/PricingPlans";
 import ProPlans from "@/components/ProPlans";
@@ -13,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: en
       ? "Pay only for the galleries you deliver to clients. No subscription, all features included."
       : "Ile kosztuje galeria zdjęć online dla klienta? Płacisz tylko za galerie, które oddajesz klientom – od 5 zł, bez abonamentu, wszystkie funkcje w cenie.",
-    alternates: { canonical: "/cennik" },
+    alternates: langAlternates("/cennik", (en ? "en" : "pl")),
   };
 }
 

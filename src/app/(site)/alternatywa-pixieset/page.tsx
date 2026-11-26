@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { langAlternates } from "@/lib/en-paths";
 import type { Metadata } from "next";
 import { getLang } from "@/lib/lang-server";
 import { tr } from "@/lib/lang";
@@ -10,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: en
       ? "Looking for a Pixieset alternative? Lenslie client galleries: pay per gallery instead of a monthly subscription, client proofing and photo sales with no commission, album designer and guest uploads."
       : "Szukasz alternatywy dla Pixieset? Lenslie to polska galeria zdjęć online dla fotografów: płacisz za galerię w złotówkach, BLIK, polski panel i galeria dla klienta, serwery w UE.",
-    alternates: { canonical: "/alternatywa-pixieset" },
+    alternates: langAlternates("/alternatywa-pixieset", (en ? "en" : "pl")),
   };
 }
 

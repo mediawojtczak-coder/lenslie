@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { langAlternates } from "@/lib/en-paths";
 import { COMPANY } from "@/lib/company";
 
 import { getLang } from "@/lib/lang-server";
@@ -10,7 +11,7 @@ export async function generateMetadata() {
     description: en
       ? "Lenslie terms of service: rules for using online client galleries, payments, gallery access periods and photo storage."
       : "Regulamin serwisu Lenslie: zasady korzystania z galerii zdjęć online dla klientów, płatności, okresy dostępu i przechowywanie zdjęć.",
-    alternates: { canonical: "/regulamin" },
+    alternates: langAlternates("/regulamin", (en ? "en" : "pl")),
   };
 }
 
