@@ -5,10 +5,14 @@ import { LANG_COOKIE, isSiteLang, type SiteLang } from "@/lib/lang";
 
 // Język z ciasteczka, a przy pierwszej wizycie – z ustawień przeglądarki (polski dla polskich przeglądarek, inaczej angielski)
 export async function getLang(): Promise<SiteLang> {
+  // adres lenslie.com/en albo ?lang=en (ustawiane w middleware) ma pierwszeństwo
+  const h = await headers();
+  const forced = h.get("x-lenslie-lang");
+  if (isSiteLang(forced)) return forced;
   const store = await cookies();
   const c = store.get(LANG_COOKIE)?.value;
   if (isSiteLang(c)) return c;
-  const accept = ((await headers()).get("accept-language") ?? "").toLowerCase();
+  const accept = (h.get("accept-language") ?? "").toLowerCase();
   if (!accept) return "pl";
   return accept.startsWith("pl") || /(^|,)\s*pl/.test(accept.split(";")[0]) ? "pl" : "en";
 }

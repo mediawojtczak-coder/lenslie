@@ -8,6 +8,7 @@ import FeatureCards from "@/components/FeatureCards";
 import { getGalleryPhotos } from "@/lib/photos";
 import { getMeta } from "@/lib/galleries";
 import { getLang } from "@/lib/lang-server";
+import { ogImage } from "@/lib/og";
 import { tr } from "@/lib/lang";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const en = (await getLang()) === "en";
   return {
     title: en ? "Online client galleries for photographers | Lenslie" : "Galeria online dla fotografa – zdjęcia dla klientów | Lenslie",
-    alternates: { canonical: "/" },
+    // osobny adres wersji angielskiej (lenslie.com/en) – dla Google i podglądów linków w social media
+    alternates: { canonical: en ? "/en" : "/", languages: { pl: "/", en: "/en", "x-default": "/" } },
+    openGraph: { url: en ? "/en" : "/", siteName: "Lenslie", type: "website", locale: en ? "en_GB" : "pl_PL", images: [ogImage(en ? "en" : "pl")] },
   };
 }
 

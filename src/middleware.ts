@@ -24,6 +24,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+  // Wersja angielska pod osobnym adresem (lenslie.com/en, /en/cennik…) i ?lang=en|pl –
+  // potrzebne m.in. do podglądów linków na Instagramie/Facebooku, które nie mają ciasteczka z wyborem języka
+  const enPath = path === "/en" || path.startsWith("/en/");
+  const qLang = request.nextUrl.searchParams.get("lang");
+  const forced = enPath ? "en" : qLang === "en" || qLang === "pl" ? qLang : null;
+  if (forced && (request.method === "GET" || request.method === "HEAD") && !path.startsWith("/api/")) {
+    const headers = new Headers(request.headers);
+    headers.set("x-lenslie-lang", forced);
+    const target = request.nextUrl.clone();
+    if (enPath) target.pathname = path.slice(3) || "/";
+    const res = enPath ? NextResponse.rewrite(target, { request: { headers } }) : NextResponse.next({ request: { headers } });
+    res.cookies.set("lenslie_lang", forced, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
+    const t = MARKETING.test(target.pathname) ? touchFrom(request.nextUrl, request.headers.get("referer")) : null;
+    if (t) res.cookies.set(SRC_COOKIE, encodeURIComponent(JSON.stringify(t)), { path: "/", sameSite: "lax", httpOnly: true, secure: true });
+    return res;
+  }
+
   // Źródło wizyty na stronach Lenslie (nie w galeriach klientów): reklama, polecenie, wyszukiwarka – zapisywane przy rejestracji
   const touch = MARKETING.test(path) ? touchFrom(request.nextUrl, request.headers.get("referer")) : null;
   const withSrc = (res: NextResponse) => {
