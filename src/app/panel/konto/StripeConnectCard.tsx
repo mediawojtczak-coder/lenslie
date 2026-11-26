@@ -61,7 +61,7 @@ export default function StripeConnectCard({
           {status === "none" && (
             <>
               <label htmlFor="sc-country">Country of your business</label>
-              <select id="sc-country" value={c} onChange={(e) => setC(e.target.value)}>
+              <select id="sc-country" className="settings-select" value={c} onChange={(e) => setC(e.target.value)}>
                 {countries.map(([k, n]) => (
                   <option key={k} value={k}>
                     {n}
@@ -70,7 +70,7 @@ export default function StripeConnectCard({
               </select>
             </>
           )}
-          <button type="button" className="btn btn-dark" disabled={busy} onClick={() => go("start")}>
+          <button type="button" className="btn" disabled={busy} onClick={() => go("start")}>
             {busy ? "Redirecting to Stripe…" : status === "pending" ? "Continue Stripe setup" : "Connect Stripe"}
           </button>
         </>
