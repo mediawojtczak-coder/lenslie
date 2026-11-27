@@ -1,6 +1,6 @@
 import { putEmpty } from "@/lib/r2-light";
 import { randomBytes } from "crypto";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { r2, BUCKET } from "@/lib/r2";
 import { listObjects, listPrefixes } from "@/lib/photos";
 
@@ -38,17 +38,38 @@ export function addTo(c: Counts, src: string | undefined, dev: string | undefine
   if (dev === "d") c.d += 1;
 }
 
-// Zliczenia odwiedzin z ostatnich `days` dni + data pierwszego zapisu (od kiedy liczymy)
-export async function visitCounts(days = 30): Promise<{ counts: Record<VisitStage, Counts>; since: string | null }> {
+// „Licz od nowa”: moment, od którego lejek liczy dane (starsze zostają w magazynie, ale nie są pokazywane)
+const START_KEY = "funnel-start.json";
+export async function getFunnelStart(): Promise<string | null> {
+  try {
+    const res = await r2.send(new GetObjectCommand({ Bucket: BUCKET, Key: START_KEY }));
+    const v = JSON.parse((await res.Body?.transformToString()) ?? "null") as { from?: string } | null;
+    return v?.from ?? null;
+  } catch {
+    return null;
+  }
+}
+export async function setFunnelStart(from: string | null) {
+  await r2.send(
+    new PutObjectCommand({ Bucket: BUCKET, Key: START_KEY, Body: JSON.stringify({ from }), ContentType: "application/json" }),
+  );
+}
+
+// Zliczenia odwiedzin z ostatnich `days` dni (nie wcześniej niż „licz od nowa”) + od kiedy liczymy
+export async function visitCounts(days = 30, start?: string | null): Promise<{ counts: Record<VisitStage, Counts>; since: string | null }> {
   const counts = Object.fromEntries(VISIT_STAGES.map((s) => [s, emptyCounts()])) as Record<VisitStage, Counts>;
-  const from = new Date(Date.now() - days * 24 * 3600 * 1000).toISOString().slice(0, 10);
+  const windowFrom = new Date(Date.now() - days * 24 * 3600 * 1000).toISOString();
+  const fromIso = start && start > windowFrom ? start : windowFrom;
+  const from = fromIso.slice(0, 10);
   // dni z danymi jednym lekkim zapytaniem, potem tylko potrzebne dni – równolegle
   const dayDirs = (await listPrefixes("funnel/").catch(() => [] as string[])).map((p) => p.split("/")[1]).filter(Boolean).sort();
-  const since: string | null = dayDirs[0] ?? null;
+  const since: string | null = start ? start.slice(0, 10) : (dayDirs[0] ?? null);
   const lists = await Promise.all(dayDirs.filter((d) => d >= from).map((d) => listObjects(`funnel/${d}/`).catch(() => [])));
   for (const o of lists.flat()) {
     const [, day, name] = o.key.split("/");
     if (!day || !name) continue;
+    // dzień „licz od nowa”: tylko wizyty po kliknięciu przycisku
+    if (day === from && o.modified && o.modified < fromIso) continue;
     const [stage, src, dev] = name.split(".");
     if (isStage(stage)) addTo(counts[stage], src, dev);
   }

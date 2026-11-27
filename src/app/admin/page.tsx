@@ -2,7 +2,7 @@ import { adminClient, isAdminEmail } from "@/lib/supabase/admin";
 import { listProSubs, proActive, proInGrace, proGraceEnd, proTier, proName } from "@/lib/pro";
 import { getSignupSource, sourceDetail, type SignupSource } from "@/lib/signup-source";
 import { speedKeys, speedFrom, grade, fmtMs } from "@/lib/speed";
-import { visitCounts, sourceKind, emptyCounts, addTo, SEGMENTS, type Counts } from "@/lib/funnel";
+import { visitCounts, sourceKind, emptyCounts, addTo, SEGMENTS, getFunnelStart, type Counts } from "@/lib/funnel";
 import { listObjects, listPrefixes } from "@/lib/photos";
 import { unstable_cache } from "next/cache";
 import { getMeta, isExpired, type GalleryMeta } from "@/lib/galleries";
@@ -70,6 +70,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     );
   }
 
+  // Lejek: „licz od nowa” (data startu ustawiana przyciskiem w panelu)
+  const funnelStart = await getFunnelStart().catch(() => null);
   // Etap 1: wszystko, co niezależne – równolegle
   const [usersRes, galleriesRes, profilesRes, galleryDirs, videoObjects, allOrders, printOrders, proSubsRaw, funnelVisits, speedAll] = await Promise.all([
     db.auth.admin.listUsers({ perPage: 1000 }),
@@ -80,7 +82,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     listOrders(5000).catch(() => []),
     listPrintOrders().catch(() => []),
     listProSubs().catch(() => []),
-    visitCounts(30).catch(() => null),
+    visitCounts(30, funnelStart).catch(() => null),
     speedKeys().catch(() => [] as string[]),
   ]);
   // Szybkość stron: ostatnie 7 dni i tydzień wcześniej (do porównania)
@@ -150,7 +152,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const orphans = [...usage.keys()].filter((gid) => !galleries.some((g) => g.id === gid));
 
   // ===== Lejek: od wejścia na stronę do pierwszej płatności (ostatnie 30 dni) =====
-  const funnelFrom = Date.now() - 30 * 24 * 3600 * 1000;
+  const funnelFrom = Math.max(Date.now() - 30 * 24 * 3600 * 1000, funnelStart ? new Date(funnelStart).getTime() : 0);
   const newUsers = users.filter((u) => new Date(u.created_at).getTime() >= funnelFrom && !isAdminEmail(u.email));
   const ownGalleries = new Map<string, G[]>();
   for (const g of galleries) if (g.owner_id) ownGalleries.set(g.owner_id, [...(ownGalleries.get(g.owner_id) ?? []), g]);
@@ -454,7 +456,20 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           {funnelVisits?.since ? ` – liczone od ${fmtDate(funnelVisits.since)}` : " – liczenie zacznie się po pierwszej wizycie"}. Dalsze etapy: konta założone w
           ostatnich 30 dniach (bez kont administratora), źródło i urządzenie z chwili rejestracji – urządzenie zapisujemy od 4.11.2026. „Z polecenia” = wejście przez link polecający
           fotografa (?polecenie=…) albo konto założone z kodem polecenia. „Zapłacili” = co najmniej jedna płatność Przelewy24 (bez bonusu 20 zł). Procent = część osób, które weszły na stronę.
+          {funnelStart ? ` Liczenie od nowa: od ${new Date(funnelStart).toLocaleString("pl-PL", { timeZone: "Europe/Warsaw", dateStyle: "short", timeStyle: "short" })} (starsze dane nie są pokazywane, ale nie zostały usunięte).` : ""}
         </p>
+        <div className="slot-gen">
+          <form method="post" action="/api/admin/funnel-reset">
+            <ConfirmButton message="Zacząć liczyć lejek od nowa (od teraz)? Starsze dane nie zostaną usunięte, tylko przestaną być pokazywane.">
+              Licz lejek od nowa (od teraz)
+            </ConfirmButton>
+          </form>
+          {funnelStart && (
+            <form method="post" action="/api/admin/funnel-reset">
+              <button type="submit" name="clear" value="1" className="btn btn-small btn-ghost">Pokaż znowu wszystkie dane</button>
+            </form>
+          )}
+        </div>
       </details>
 
       <details className="settings-card admin-sec" id="szybkosc">
