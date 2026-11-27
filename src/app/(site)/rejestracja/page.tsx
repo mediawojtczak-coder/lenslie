@@ -1,4 +1,6 @@
 import LoginShowcase from "@/components/LoginShowcase";
+import GoogleButton from "@/components/GoogleButton";
+import { googleLoginEnabled } from "@/lib/google-auth";
 import { langAlternates } from "@/lib/en-paths";
 import { usdify } from "@/lib/lang";
 import Link from "@/components/SiteLink";
@@ -29,6 +31,7 @@ const TXT = {
       istnieje: "Konto z tym adresem już istnieje. Zaloguj się albo odzyskaj hasło.",
       zamknieta: "Rejestracja nie jest jeszcze otwarta.",
       serwer: "Nie udało się założyć konta. Spróbuj ponownie za chwilę.",
+      google: "Nie udało się połączyć z Google. Spróbuj ponownie albo załóż konto e-mailem.",
     } as Record<string, string>,
     checkTitle: "Sprawdź skrzynkę",
     checkLead: (e: string) => `Wysłaliśmy link potwierdzający na adres ${e}. Kliknij go, aby aktywować konto i przejść do panelu.`,
@@ -58,6 +61,7 @@ const TXT = {
       istnieje: "An account with this email already exists. Log in or reset your password.",
       zamknieta: "Sign-ups are not open yet.",
       serwer: "Could not create your account. Please try again shortly.",
+      google: "Could not connect to Google. Try again or sign up with email.",
     } as Record<string, string>,
     checkTitle: "Check your inbox",
     checkLead: (e: string) => `We have sent a confirmation link to ${e}. Click it to activate your account and open your dashboard.`,
@@ -92,6 +96,7 @@ export default async function Rejestracja({
   const lang = await getLang();
   const cur = await siteCur(lang);
   const t = TXT[lang];
+  const google = open && !wyslano && (await googleLoginEnabled());
 
   return (
     <section className="login-split">
@@ -121,6 +126,7 @@ export default async function Rejestracja({
                 : "Załóż konto i odbierz 20 zł na start – wystarczy na pierwszą galerię."}
             </p>
             {refCode && !cur && <p className="ref-banner">{lang === "en" ? usdify(t.ref(REWARD, THRESHOLD)) : t.ref(REWARD, THRESHOLD)}</p>}
+            {google && <GoogleButton lang={lang} from="signup" refCode={refCode} />}
             <form method="post" action="/auth/zarejestruj">
               {refCode && <input type="hidden" name="ref" value={refCode} />}
               <label htmlFor="studio">{t.studio}</label>

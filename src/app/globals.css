@@ -3219,3 +3219,16 @@ html[lang="en"] .selection-grid li.is-edited::after { content: "✓ edited"; }
 .ui-dark .pa-mini i { border-color: #11100e; }
 /* telefon: wyżej od dolnej krawędzi, żeby pasek Safari przy przewijaniu nie ucinał ikonki */
 @media (max-width: 600px) { .pa-mini { right: 14px; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); } }
+
+/* Logowanie / rejestracja przez Google: biały przycisk z logo Google, kreska „lub e-mailem” */
+.oauth-form { margin: 0; }
+.btn-google {
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px; margin-top: 0;
+  background: #fff; color: var(--ink); border-color: var(--hair);
+}
+.btn-google:hover { background: #fff; border-color: var(--taupe); }
+.btn-google svg { flex: none; }
+.oauth-note { margin: 10px 0 0; font-size: .78rem; color: var(--taupe); line-height: 1.5; }
+.oauth-note a { color: var(--taupe); text-decoration: underline; }
+.or-divider { display: flex; align-items: center; gap: 14px; margin: 26px 0 22px; color: var(--taupe); font-size: .82rem; }
+.or-divider::before, .or-divider::after { content: ""; flex: 1; height: 1px; background: var(--hair); }

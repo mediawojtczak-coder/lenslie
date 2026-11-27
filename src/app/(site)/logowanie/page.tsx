@@ -1,4 +1,6 @@
 import LoginShowcase from "@/components/LoginShowcase";
+import GoogleButton from "@/components/GoogleButton";
+import { googleLoginEnabled } from "@/lib/google-auth";
 import Link from "@/components/SiteLink";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
@@ -19,6 +21,7 @@ const MESSAGES: Record<"pl" | "en", Record<string, string>> = {
     konfiguracja: "Logowanie jest chwilowo niedostępne. Spróbuj za chwilę.",
     serwer: "Serwer logowania nie odpowiada poprawnie. Spróbuj za chwilę.",
     link: "Link z wiadomości wygasł albo był już użyty. Zaloguj się lub poproś o nowy.",
+    google: "Nie udało się zalogować przez Google. Spróbuj ponownie albo zaloguj się e-mailem.",
   },
   en: {
     dane: "Incorrect email or password.",
@@ -26,6 +29,7 @@ const MESSAGES: Record<"pl" | "en", Record<string, string>> = {
     konfiguracja: "Logging in is temporarily unavailable. Please try again shortly.",
     serwer: "The login server is not responding. Please try again shortly.",
     link: "The link has expired or was already used. Log in or request a new one.",
+    google: "Could not sign in with Google. Try again or log in with email.",
   },
 };
 
@@ -49,12 +53,14 @@ export default async function Logowanie({
   const M = MESSAGES[lang];
   const en = lang === "en";
   const message = blad ? (M[blad] ?? M.serwer) : "";
+  const google = process.env.REGISTRATION_OPEN === "1" && (await googleLoginEnabled());
 
   return (
     <section className="login-split">
       <div className="login-form">
         <h1>{en ? "Welcome back" : "Witaj ponownie"}</h1>
         <p className="lead">{en ? "Log in to your photographer dashboard to deliver your next session." : "Zaloguj się do panelu fotografa, aby oddać kolejną sesję."}</p>
+        {google && <GoogleButton lang={lang} from="login" />}
         <form method="post" action="/auth/zaloguj">
           <label htmlFor="email">{en ? "Email" : "E-mail"}</label>
           <input id="email" name="email" type="email" autoComplete="email" defaultValue={email ?? ""} required />
