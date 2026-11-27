@@ -98,7 +98,8 @@ async function afterPaid(order: Order, via: { gateway: "p24" | "stripe"; ref: st
   const inv = order.invoice;
   const gal = ["choose", "upgrade", "extend"].includes(order.action.action);
   const galKind = order.action.action === "choose" ? "Nowa galeria" : order.action.action === "upgrade" ? "Większy pakiet galerii" : order.byClient ? "Klient przedłużył galerię" : "Przedłużenie galerii";
-  await pushAdmins(gal ? `🖼️ ${galKind}: ${kwota}` : `💳 Nowa płatność: ${kwota}`, `${order.description} – ${order.email}${inv ? " (prosi o fakturę)" : ""}`, "/admin#platnosci");
+  const topup = order.action.action === "topup";
+  await pushAdmins(gal ? `🖼️ ${galKind}: ${kwota}` : topup ? `💰 Doładowanie salda: ${kwota}` : `💳 Nowa płatność: ${kwota}`, `${order.description} – ${order.email}${inv ? " (prosi o fakturę)" : ""}`, "/admin#platnosci");
   for (const to of admins) {
     await sendEmail({
       to,
