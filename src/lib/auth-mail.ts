@@ -134,3 +134,14 @@ export async function sendSignupMail(
   });
   return { status: ok ? "sent" : "error", userId: data.user?.id };
 }
+
+// Link „potwierdź i zaloguj” dla osoby, która nie potwierdziła maila (przypomnienie po 1 dniu).
+// Link jednorazowy: potwierdza adres i loguje, potem otwiera okno tworzenia pierwszej galerii.
+export async function confirmReminderLink(email: string, origin: string): Promise<string | null> {
+  const db = adminClient();
+  if (!db) return null;
+  const { data, error } = await db.auth.admin.generateLink({ type: "magiclink", email });
+  const hashed = data?.properties?.hashed_token;
+  if (error || !hashed) return null;
+  return confirmUrl(origin, hashed, data.properties.verification_type ?? "magiclink", "/panel?nowa=1");
+}

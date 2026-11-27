@@ -13,7 +13,8 @@ import { getReminders, lastReminderMail, markReminderMail } from "@/lib/reminder
 import { listObjects } from "@/lib/photos";
 import { getDomainByHost, saveDomain, vercelRemoveDomain, DOMAIN_PRICE } from "@/lib/domains";
 import { getGuestEvent, saveGuestEvent, deleteGuestEvent, GUEST_DELETE_AFTER } from "@/lib/guest-events";
-import { getOnboarding, sendOnboarding, NUDGE_AFTER_DAYS, TIPS_AFTER_DAYS } from "@/lib/onboarding";
+import { getOnboarding, sendOnboarding, NUDGE_AFTER_DAYS, TIPS_AFTER_DAYS, CONFIRM_AFTER_DAYS } from "@/lib/onboarding";
+import { confirmReminderLink } from "@/lib/auth-mail";
 import { WELCOME_FROM } from "@/lib/wallet";
 import { speedKeys, speedFrom, speedReport } from "@/lib/speed";
 import { coupleReminderMail } from "@/lib/couple-mail";
@@ -455,18 +456,34 @@ export async function GET(req: Request) {
     for (const u of fresh) {
       const age = (now - new Date(u.created_at).getTime()) / DAY;
       let step: "welcome" | "nudge" | "tips" | null = null;
+      let hasGallery = false;
       if (age >= TIPS_AFTER_DAYS) step = "tips";
       else if (age >= NUDGE_AFTER_DAYS) {
-        // przypomnienie tylko, jeśli nic jeszcze nie opublikował
+        // przypomnienie tylko, jeśli nic jeszcze nie opublikował (inny tekst, gdy nie ma jeszcze żadnej galerii)
         const { data: gs } = await db.from("galleries").select("id").eq("owner_id", u.id);
+        hasGallery = (gs ?? []).length > 0;
         const metas = await Promise.all(((gs ?? []) as { id: string }[]).map((g) => getMeta(g.id).catch(() => null)));
         if (!metas.some((m) => m?.plan)) step = "nudge";
       } else step = "welcome";
       if (!step) continue;
       const st = await getOnboarding(u.id);
       if (st.off || st.sent[step]) continue;
-      log.push(`powitanie ${u.id}: ${step}`);
-      if (!dry) await sendOnboarding(u.id, u.email!, step, await getUserLang(u.id)).catch(() => false);
+      log.push(`powitanie ${u.id}: ${step}${step === "nudge" && !hasGallery ? " (bez galerii)" : ""}`);
+      if (!dry) await sendOnboarding(u.id, u.email!, step, await getUserLang(u.id), { hasGallery }).catch(() => false);
+    }
+
+    // Nie potwierdzili maila: jedno przypomnienie z linkiem „potwierdź i zaloguj” po 1 dniu (do 7 dni od rejestracji)
+    const unconfirmed = (data?.users ?? []).filter((u) => {
+      const age = (now - new Date(u.created_at).getTime()) / DAY;
+      return u.email && !u.email_confirmed_at && u.created_at >= WELCOME_FROM && age >= CONFIRM_AFTER_DAYS && age < 7;
+    });
+    for (const u of unconfirmed) {
+      const st = await getOnboarding(u.id);
+      if (st.off || st.sent.confirm) continue;
+      log.push(`potwierdzenie konta ${u.id}`);
+      if (dry) continue;
+      const link = await confirmReminderLink(u.email!, siteUrl()).catch(() => null);
+      if (link) await sendOnboarding(u.id, u.email!, "confirm", await getUserLang(u.id), { confirmLink: link }).catch(() => false);
     }
   }
 

@@ -149,7 +149,7 @@ export default async function Panel({
   return (
     <div className="app-body">
       <aside className="app-side">
-        <CreateGallery label={t("Nowa galeria", "New gallery")} className="btn btn-wide" />
+        <CreateGallery label={t("Nowa galeria", "New gallery")} className="btn btn-wide" autoOpen />
         <nav aria-label={t("Filtry galerii", "Gallery filters")}>
           {FILTERS.map((f) => (
             <Link

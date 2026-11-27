@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTr } from "@/components/LangProvider";
 
@@ -25,7 +25,7 @@ function generatePassword() {
 
 type Layout = "mozaika" | "siatka";
 
-export default function CreateGallery({ label, className }: { label: string; className?: string }) {
+export default function CreateGallery({ label, className, autoOpen }: { label: string; className?: string; autoOpen?: boolean }) {
   const router = useRouter();
   const t = useTr();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -44,6 +44,14 @@ export default function CreateGallery({ label, className }: { label: string; cla
     setError("");
     dialogRef.current?.showModal();
   }
+
+  // Link z maila „Utwórz pierwszą galerię” (/panel?nowa=1) od razu otwiera okno tworzenia galerii
+  useEffect(() => {
+    if (!autoOpen || new URLSearchParams(window.location.search).get("nowa") !== "1") return;
+    open();
+    window.history.replaceState(null, "", window.location.pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen]);
 
   function close() {
     dialogRef.current?.close();
