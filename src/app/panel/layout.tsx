@@ -45,7 +45,11 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   const welcomed = card ? null : await grantWelcome(user.id, user.created_at, current).catch(() => null);
   // pierwszy mail powitalny – razem z prezentem na start (raz)
   if (welcomed && user.email) await sendOnboarding(user.id, user.email, "welcome", lang).catch(() => undefined);
-  if (card && user.email && user.created_at >= WELCOME_FROM && Date.now() - new Date(user.created_at).getTime() < 3 * 864e5) await sendOnboarding(user.id, user.email, "welcome", lang).catch(() => undefined);
+  // konto angielskie (karta): pierwsze wejście = wysłany mail powitalny – wtedy też liczymy rejestrację w Google Ads
+  const cardWelcomed =
+    card && user.email && user.created_at >= WELCOME_FROM && Date.now() - new Date(user.created_at).getTime() < 3 * 864e5
+      ? await sendOnboarding(user.id, user.email, "welcome", lang).catch(() => false)
+      : false;
   const wallet = welcomed ?? current;
   // angielska wersja: płatności w walucie kraju przez Stripe (na razie tylko dla administratora)
   const cur = await stripeCurrency(user.email, lang).catch(() => null);
@@ -112,7 +116,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       <CurrencyProvider cur={cur} balance={fwallet?.balance ?? 0}>{children}</CurrencyProvider>
       {assistantAllowed(user.email) && <PanelAssistant />}
       {/* konwersja „Rejestracja Lenslie” – raz, przy przyznaniu prezentu na start */}
-      <GoogleTag conversion={Boolean(welcomed)} />
+      <GoogleTag conversion={Boolean(welcomed) || cardWelcomed} email={user.email} uid={user.id} />
     </div>
   );
 }

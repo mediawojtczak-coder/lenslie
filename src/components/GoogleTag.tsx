@@ -26,7 +26,19 @@ const granted = { ad_storage: "granted", ad_user_data: "granted", ad_personaliza
 
 // Tag Google z trybem zgody (domyślnie wszystko odrzucone) + baner cookie
 // clarity – Microsoft Clarity (mapy kliknięć, nagrania) – ładowany dopiero po zgodzie, tylko na stronach informacyjnych
-export default function GoogleTag({ conversion = false, clarity = false }: { conversion?: boolean; clarity?: boolean }) {
+// conversion – rejestracja (pierwsze wejście do panelu); email i uid – rozszerzone konwersje Google Ads
+// (Google sam szyfruje adres i używa go tylko po zgodzie ad_user_data) i ochrona przed podwójnym liczeniem
+export default function GoogleTag({
+  conversion = false,
+  clarity = false,
+  email,
+  uid,
+}: {
+  conversion?: boolean;
+  clarity?: boolean;
+  email?: string | null;
+  uid?: string;
+}) {
   const lang = useLang();
   const t = (pl: string, en: string) => (lang === "en" ? en : pl);
   const [ask, setAsk] = useState(false);
@@ -48,8 +60,9 @@ export default function GoogleTag({ conversion = false, clarity = false }: { con
   useEffect(() => {
     if (!conversion || !ADS_SIGNUP_LABEL || sent.current) return;
     sent.current = true;
-    gtag("event", "conversion", { send_to: `${ADS_ID}/${ADS_SIGNUP_LABEL}` });
-  }, [conversion]);
+    if (email) gtag("set", "user_data", { email: email.trim().toLowerCase() });
+    gtag("event", "conversion", { send_to: `${ADS_ID}/${ADS_SIGNUP_LABEL}`, ...(uid ? { transaction_id: `signup-${uid}` } : {}) });
+  }, [conversion, email, uid]);
 
   function decide(ok: boolean) {
     try {
@@ -70,7 +83,7 @@ export default function GoogleTag({ conversion = false, clarity = false }: { con
         {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
 gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});
 try{if(localStorage.getItem('${CONSENT_KEY}')==='granted')gtag('consent','update',{ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted',analytics_storage:'granted'});}catch(e){}
-gtag('js',new Date());gtag('config','${ADS_ID}');`}
+gtag('set','url_passthrough',true);gtag('js',new Date());gtag('config','${ADS_ID}',{allow_enhanced_conversions:true});`}
       </Script>
       <Script src={`https://www.googletagmanager.com/gtag/js?id=${ADS_ID}`} strategy="afterInteractive" />
       {clarity && consented && (
