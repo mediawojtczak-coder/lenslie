@@ -137,7 +137,7 @@ function mail(step: OnboardingStep, lang: SiteLang, card = false, opts: { hasGal
           "Lightroom plug-in – publish and update galleries straight from Lightroom, no exporting and uploading.",
           "Album designer – your client hearts their favourite photos and the album lays itself out, ready for print.",
           card
-            ? "Pro plans – if you deliver many sessions, one monthly fee covers all galleries, videos and add-ons (from €15 / $15 / £13 a month)."
+            ? "Pro plans – if you deliver many sessions, one monthly fee covers all galleries, videos and add-ons (from €15 / US$15 / £13 a month)."
             : "Pro plans – if you deliver many sessions, one monthly fee covers all galleries, videos and add-ons (from PLN 59 a month).",
         ]
       : [

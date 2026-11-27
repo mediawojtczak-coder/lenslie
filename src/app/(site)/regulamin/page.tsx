@@ -311,7 +311,7 @@ function TermsEn() {
 
       <h2>§ 5. Galleries and Plans</h2>
       <ol>
-        <li>The Photographer chooses a Plan for each Gallery. Current prices, storage limits and access periods are listed on the <Link href="/cennik">Pricing</Link> page. Prices are final prices shown in the currency of the Photographer’s country – euro (EUR), US dollars (USD), British pounds (GBP) or Polish złoty (PLN). The Provider is exempt from VAT under Art. 113(1) of the Polish VAT Act, so no VAT is added to the prices.</li>
+        <li>The Photographer chooses a Plan for each Gallery. Current prices, storage limits and access periods are listed on the <Link href="/cennik">Pricing</Link> page. Prices are final prices shown in the currency of the Photographer’s country – euro (EUR), US dollars (USD – also shown in Canada, Australia and New Zealand), British pounds (GBP) or Polish złoty (PLN). The Provider is exempt from VAT under Art. 113(1) of the Polish VAT Act, so no VAT is added to the prices.</li>
         <li>A 2% tolerance is added to the Plan limit. Once exceeded, uploading is paused until a bigger Plan is chosen.</li>
         <li>Upgrading to a bigger Plan requires paying the price difference. The Gallery expiry date does not change.</li>
         <li>The Photographer may extend access to a Gallery before or after it expires.</li>

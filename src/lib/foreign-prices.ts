@@ -11,7 +11,8 @@ export const isCur = (c: unknown): c is Cur => c === "eur" || c === "usd" || c =
 export function curForCountry(country: string | null | undefined): Cur {
   const c = (country ?? "").toUpperCase();
   if (c === "GB" || c === "GG" || c === "JE" || c === "IM") return "gbp";
-  if (c === "US" || c === "PR") return "usd";
+  // Kanada, Australia i Nowa Zelandia: dolary amerykańskie (oznaczone „US$”, żeby nie pomylić z ich własnym dolarem)
+  if (c === "US" || c === "PR" || c === "CA" || c === "AU" || c === "NZ") return "usd";
   return "eur";
 }
 
@@ -69,7 +70,7 @@ export const addonPriceF = (kind: keyof typeof ADDON_EUR, cur: Cur, months = 1) 
 
 // „€5”, „$5.50”, „£4.50”
 export function fmtCur(n: number, cur: Cur) {
-  const sym = cur === "eur" ? "€" : cur === "usd" ? "$" : "£";
+  const sym = cur === "eur" ? "€" : cur === "usd" ? "US$" : "£";
   const whole = Math.abs(n - Math.round(n)) < 0.001;
   return `${sym}${n.toLocaleString("en-GB", whole ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
