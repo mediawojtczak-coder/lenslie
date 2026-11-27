@@ -865,6 +865,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                 <th>Źródło</th>
                 <th>Konto od</th>
                 <th>Ostatnie logowanie</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -886,6 +887,16 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
                     </td>
                     <td data-l="Konto od">{fmtDate(u.created_at)}</td>
                     <td data-l="Ostatnie logowanie">{fmtDate(u.last_sign_in_at)}</td>
+                    <td data-l="">
+                      {!isAdminEmail(u.email) && (
+                        <form action="/api/admin/delete-account" method="post">
+                          <input type="hidden" name="uid" value={u.id} />
+                          <ConfirmButton message={`Usunąć konto ${u.email} NA ZAWSZE razem z ${own.length} galeriami, zdjęciami, filmami, saldem i wszystkimi danymi? Tego nie da się cofnąć.`}>
+                            Usuń konto
+                          </ConfirmButton>
+                        </form>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
