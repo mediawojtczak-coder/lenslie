@@ -30,6 +30,8 @@ function galleryProfit(m: GalleryMeta | null, bytes: number, paid?: number) {
 const zlx = (n: number) => `${n < 0 ? "−" : ""}${Math.abs(n).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`;
 import ConfirmButton from "./ConfirmButton";
 import RowToggle from "./RowToggle";
+import AdminPush from "./AdminPush";
+import { pushDevices } from "@/lib/admin-push";
 import { listOrders } from "@/lib/p24";
 import { getWallet, type WalletEntry } from "@/lib/wallet";
 import { getReminders } from "@/lib/reminders";
@@ -71,7 +73,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   }
 
   // Lejek: „licz od nowa” (data startu ustawiana przyciskiem w panelu)
-  const funnelStart = await getFunnelStart().catch(() => null);
+  const [funnelStart, pushDevs] = await Promise.all([getFunnelStart().catch(() => null), pushDevices().catch(() => [])]);
   // Etap 1: wszystko, co niezależne – równolegle
   const [usersRes, galleriesRes, profilesRes, galleryDirs, videoObjects, allOrders, printOrders, proSubsRaw, funnelVisits, speedAll] = await Promise.all([
     db.auth.admin.listUsers({ perPage: 1000 }),
@@ -399,6 +401,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
       </div>
 
       <RowToggle />
+      <details className="settings-card admin-sec" id="powiadomienia">
+        <summary>
+          <h2>Powiadomienia na telefonie</h2>
+        </summary>
+        <AdminPush devices={pushDevs.length} />
+      </details>
       {reminders.length > 0 && (
         <details className="settings-card admin-sec reminders" open>
           <summary>
@@ -842,7 +850,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         )}
       </details>
 
-      <details className="settings-card admin-sec">
+      <details className="settings-card admin-sec" id="fotografowie">
         <summary>
           <h2>Fotografowie</h2>
         </summary>

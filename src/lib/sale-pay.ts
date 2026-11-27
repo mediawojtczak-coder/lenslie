@@ -1,3 +1,4 @@
+import { pushAdmins } from "@/lib/admin-push";
 import { getMeta } from "@/lib/galleries";
 import { getSaleOrder, saveSaleOrder } from "@/lib/sales";
 import { mailDelivered, cash } from "@/lib/sales-mail";
@@ -29,6 +30,7 @@ export async function confirmSale(galleryId: string, selection: string, s: Strip
 
   const meta = await getMeta(galleryId);
   const title = meta?.title ?? "";
+  await pushAdmins(`📸 Sprzedaż zdjęć kartą: ${cash(order.total, "pl", order.cur)}`, `${order.extra} zdj. z galerii „${title}” – ${order.clientName}`, "/admin#sprzedaz");
   await mailDelivered(galleryId, title, order, meta?.lang ?? "en");
   const owner = await getOwnerContact(galleryId).catch(() => null);
   if (owner) {

@@ -1,3 +1,4 @@
+import { pushAdmins } from "@/lib/admin-push";
 import { getOrder, saveOrder, type Order } from "@/lib/p24";
 import { applyAction } from "@/lib/plan-actions";
 import { activateGuestEvent } from "@/lib/guest-events";
@@ -95,6 +96,7 @@ async function afterPaid(order: Order, via: { gateway: "p24" | "stripe"; ref: st
   const kwota = order.foreign ? `${fmtCur(order.foreign.amount, order.foreign.cur)} (ok. ${zl})` : zl;
   const bramka = via.gateway === "stripe" ? `Stripe, ${via.ref}` : `Przelewy24, nr ${via.orderId ?? via.ref}`;
   const inv = order.invoice;
+  await pushAdmins(`💳 Nowa płatność: ${kwota}`, `${order.description} – ${order.email}${inv ? " (prosi o fakturę)" : ""}`, "/admin#platnosci");
   for (const to of admins) {
     await sendEmail({
       to,
