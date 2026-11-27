@@ -46,7 +46,7 @@ const PUSH_SUBJECT = /^(Nowy fotograf|Zakup z salda|Zakup domeny|Przedłużenie 
 export async function notifyAdmins(subject: string, title: string, lines: string[]) {
   if (PUSH_SUBJECT.test(subject)) {
     const { pushAdmins } = await import("@/lib/admin-push");
-    await pushAdmins(`${subject.startsWith("Nowy fotograf") ? "👤" : "💰"} ${title}`, subject, subject.startsWith("Nowy fotograf") ? "/admin#fotografowie" : "/admin#platnosci");
+    await pushAdmins(`${subject.startsWith("Nowy fotograf") ? "👤" : /galeri/i.test(subject) ? "🖼️" : "💰"} ${title}`, subject, subject.startsWith("Nowy fotograf") ? "/admin#fotografowie" : "/admin#platnosci");
   }
   const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim()).filter(Boolean);
   for (const to of admins) {

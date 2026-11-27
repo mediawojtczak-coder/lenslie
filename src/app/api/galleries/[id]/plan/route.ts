@@ -12,6 +12,9 @@ import { p24Enabled, newSessionId, saveOrder } from "@/lib/p24";
 import { cleanBilling, saveBilling } from "@/lib/billing";
 import { spend, getWallet, zlFromGr } from "@/lib/wallet";
 import { notifyAdmins } from "@/lib/email";
+import { pushAdmins } from "@/lib/admin-push";
+
+const KIND: Record<string, string> = { choose: "Nowa galeria", upgrade: "Większy pakiet galerii", extend: "Przedłużenie galerii" };
 import { getLang } from "@/lib/lang-server";
 import { activePro, proFits, proGraceEnd, proName, proUsage, proVideoSeconds } from "@/lib/pro";
 import { getGalleryUsage } from "@/lib/photos";
@@ -69,6 +72,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     meta.expiresAt = proGraceEnd(sub).toISOString();
     meta.notices = undefined;
     await saveMeta(id, meta);
+    await pushAdmins("🖼️ Nowa galeria (w abonamencie Pro)", `„${meta.title}” – ${user.email}`, "/admin#galerie");
     return NextResponse.json({ ok: true, pro: true });
   }
 
@@ -104,7 +108,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await applyAction(id, checked.action);
     const left = (await getWallet(user.id)).balance;
     const kwota = zlFromGr(Math.round(checked.amount * 100));
-    await notifyAdmins(`Zakup z salda: ${kwota} – ${user.email}`, "Nowy zakup z salda", [
+    await pushAdmins(`🖼️ ${KIND[checked.action.action] ?? "Galeria"}: ${kwota} (z salda)`, `${checked.label} – „${meta.title}” – ${user.email}`, "/admin#galerie");
+    await notifyAdmins(`Zakup galerii z salda: ${kwota} – ${user.email}`, "Nowy zakup z salda", [
       `Kwota: ${kwota} (z salda konta).`,
       `Za: ${checked.label} – ${meta.title}.`,
       `Konto: ${user.email}. Pozostało na saldzie: ${zlFromGr(left)}.`,
@@ -116,6 +121,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // Nic do zapłaty albo brak bramki (tryb testowy): od razu
   if (checked.amount <= 0 || !p24Enabled()) {
     await applyAction(id, checked.action);
+    if (p24Enabled()) await pushAdmins(`🖼️ ${KIND[checked.action.action] ?? "Galeria"} (bez opłaty)`, `${checked.label} – „${meta.title}” – ${user.email}`, "/admin#galerie");
     return NextResponse.json({ ok: true, charged: checked.amount, test: !p24Enabled() });
   }
 

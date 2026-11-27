@@ -1027,7 +1027,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         </details>
       )}
 
-      <details className="settings-card admin-sec">
+      <details className="settings-card admin-sec" id="galerie">
         <summary>
           <h2>Galerie</h2>
         </summary>
