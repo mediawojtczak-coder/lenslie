@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/SiteLink";
 import { langAlternates } from "@/lib/en-paths";
 import { unstable_cache } from "next/cache";
 import type { Metadata } from "next";
@@ -58,6 +58,15 @@ const JSON_LD = {
   offers: { "@type": "AggregateOffer", priceCurrency: "PLN", lowPrice: "5", highPrice: "249" },
 };
 
+// Wersja angielska (lenslie.com/en): opis po angielsku, ceny w euro
+const JSON_LD_EN = {
+  ...JSON_LD,
+  url: "https://www.lenslie.com/en",
+  inLanguage: "en",
+  description: "Online client galleries for photographers: favourites, full-quality downloads, photo sales, a Lightroom plugin and an album designer.",
+  offers: { "@type": "AggregateOffer", priceCurrency: "EUR", lowPrice: "2", highPrice: "62" },
+};
+
 // Galeria pokazowa: utwórz w panelu galerię o nazwie „Pokaz” i wgraj do niej zdjęcia na stronę główną
 const SHOWCASE_ID = "pokaz";
 
@@ -84,7 +93,7 @@ export default async function Home() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([...ORG_LD, JSON_LD]) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([...ORG_LD, lang === "en" ? JSON_LD_EN : JSON_LD]) }} />
       <section className="hero">
         <h1>{t("Twoje zdjęcia zasługują na piękną oprawę.", "Your photos deserve a beautiful setting.")}</h1>
         <p>

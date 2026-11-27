@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/SiteLink";
 import { PLANS, PERIODS, DEFAULT_PERIOD, planName, planPhotos, planFor, periodText, periodShort, perMonthL, type Period } from "@/lib/plans";
 import { useLang } from "./LangProvider";
 import { tr, money } from "@/lib/lang";

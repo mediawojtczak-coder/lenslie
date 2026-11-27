@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/components/LangProvider";
+import { localHref } from "@/lib/en-paths";
 import { ADS_ID, ADS_SIGNUP_LABEL, CONSENT_KEY, CLARITY_ID } from "@/lib/ads";
 
 // gtag wymaga obiektu arguments, nie tablicy
@@ -85,7 +86,7 @@ window.clarity("consentv2",{ad_Storage:"granted",analytics_Storage:"granted"});`
               "Ta strona używa plików cookie.",
               "This website uses cookies.",
             )}{" "}
-            <a href="/polityka-prywatnosci">{t("Więcej", "More")}</a>
+            <a href={localHref("/polityka-prywatnosci", lang)}>{t("Więcej", "More")}</a>
           </p>
           <div>
             <button type="button" className="btn btn-ghost" onClick={() => decide(false)}>

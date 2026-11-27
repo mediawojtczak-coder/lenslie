@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/SiteLink";
 import { siteCur } from "@/lib/viewer-cur";
 import { localizeEnPrice } from "@/lib/foreign-prices";
 import { langAlternates } from "@/lib/en-paths";

@@ -1,5 +1,5 @@
 import LoginShowcase from "@/components/LoginShowcase";
-import Link from "next/link";
+import Link from "@/components/SiteLink";
 import { getLang } from "@/lib/lang-server";
 
 export default async function Haslo({ searchParams }: { searchParams: Promise<{ wyslano?: string }> }) {

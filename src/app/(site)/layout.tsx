@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/SiteLink";
 import type { Metadata } from "next";
 import { ogImage } from "@/lib/og";
 import { getLang } from "@/lib/lang-server";

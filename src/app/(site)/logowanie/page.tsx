@@ -1,5 +1,5 @@
 import LoginShowcase from "@/components/LoginShowcase";
-import Link from "next/link";
+import Link from "@/components/SiteLink";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { getLang } from "@/lib/lang-server";

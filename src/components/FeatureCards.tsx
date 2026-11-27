@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/SiteLink";
 import { usdify } from "@/lib/lang";
 import { localizeEnPrice, type Cur } from "@/lib/foreign-prices";
 import { FEATURES, FIND_ME_CARD, type L } from "@/lib/features";

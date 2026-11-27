@@ -1,7 +1,7 @@
 import LoginShowcase from "@/components/LoginShowcase";
 import { langAlternates } from "@/lib/en-paths";
 import { usdify } from "@/lib/lang";
-import Link from "next/link";
+import Link from "@/components/SiteLink";
 import { cleanCode, REWARD, THRESHOLD } from "@/lib/referrals";
 import { getLang } from "@/lib/lang-server";
 import { siteCur } from "@/lib/viewer-cur";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/SiteLink";
 import { langAlternates } from "@/lib/en-paths";
 import { COMPANY } from "@/lib/company";
 

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/SiteLink";
 import { money, usdify } from "@/lib/lang";
 import { addonPriceF, fmtCur, galleryPriceF, proPriceF, type Cur } from "@/lib/foreign-prices";
 import { PHOTO_TIERS, FILM_TIERS, proName, compareFor, COMPARE_ADDONS, COMPARE_GALLERY_GB, COMPARE_GALLERY_PRICE } from "@/lib/pro-plans";

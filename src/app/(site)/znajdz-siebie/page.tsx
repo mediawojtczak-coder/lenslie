@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/SiteLink";
 import { langAlternates } from "@/lib/en-paths";
 import type { Metadata } from "next";
 import { getLang } from "@/lib/lang-server";

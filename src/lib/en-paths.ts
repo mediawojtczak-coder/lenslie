@@ -59,3 +59,13 @@ export function langAlternates(plPath: string, lang: "pl" | "en") {
   const en = toEn(plPath);
   return { canonical: lang === "en" ? en : plPath, languages: { pl: plPath, en, "x-default": plPath } };
 }
+
+// Link wewnętrzny w wersji angielskiej: /cennik → /en/pricing (zachowuje #kotwicę i ?parametry).
+// Dzięki temu Google, czytając stronę /en, widzi linki do angielskich podstron (bez przekierowań).
+export function localHref(href: string, lang: "pl" | "en") {
+  if (lang !== "en" || !href.startsWith("/") || href.startsWith("/en/") || href === "/en") return href;
+  const m = href.match(/^([^?#]*)(.*)$/)!;
+  const first = split(m[1])[0] ?? "";
+  if (!(first in SEGMENTS) && first !== "" && !SITE_ROOTS.has(first)) return href;
+  return toEn(m[1]) + m[2];
+}
