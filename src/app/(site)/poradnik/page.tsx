@@ -42,6 +42,12 @@ export default async function Poradnik() {
         ))}
       </ul>
       <p>
+        {lang === "pl" && (
+          <>
+            <Link href="/galeria-online-dla-fotografa">Galeria online dla fotografa – jak działa i ile kosztuje</Link>
+            {" · "}
+          </>
+        )}
         {t("Szukasz porównania z Pixieset? ", "Looking for a Pixieset comparison? ")}
         <Link href="/alternatywa-pixieset">{t("Alternatywa dla Pixieset po polsku", "A Pixieset alternative in Polish")}</Link>
         {" · "}

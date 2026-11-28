@@ -26,8 +26,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const path = e.url.slice(SITE.length) || "/";
     return { ...e, alternates: { languages: { pl: `${SITE}${path}`, en: `${SITE}${toEn(path)}` } } };
   };
+  // Strony tylko po polsku (bez wersji /en – dostaną własny angielski odpowiednik później)
+  const plOnly: MetadataRoute.Sitemap = [{ url: `${SITE}/galeria-online-dla-fotografa`, changeFrequency: "monthly", priority: 0.8 }];
   return [
     ...pl.map(withLangs),
+    ...plOnly,
     ...pl.map((e) => {
       const path = e.url.slice(SITE.length) || "/";
       return { ...withLangs(e), url: `${SITE}${toEn(path)}`, priority: Math.max(0.1, (e.priority ?? 0.5) - 0.1) };
